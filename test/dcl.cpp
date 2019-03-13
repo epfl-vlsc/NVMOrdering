@@ -16,26 +16,30 @@ void clflush(void const *p){
 	_mm_clflush(p);
 }
 
-class LogEntry{
+void assign(int* a, int val){
+	*a = val;
+}
+
+struct LogEntry{
 	pdcl("LogEntry.valid") int data;
 	pcheck() int valid;
-public:
-	void persistent_code bad(){
+
+	LogEntry():data(0), valid(0){}
+
+	void setData(int data_){
 		data = 1;
-		clflush(&data);
-		valid = 1;
-		clflush(&valid);
-		pfence();
 	}
 
-	void persistent_code bad2(){
-		data = 1;
-		clflush(&data);
+	void setValid(int valid_){
 		valid = 1;
-		if(data == 1){
-			clflush(&valid);
-			pfence();
-		}
+	}
+
+	void flushData(){
+		clflush(&data);
+	}
+
+	void flushValid(){
+		clflush(&valid);
 	}
 
 	void persistent_code good(){
@@ -47,3 +51,14 @@ public:
 		pfence();
 	}
 };
+
+
+void persistent_code good(){
+	LogEntry entry;
+	entry.setData(1);
+	entry.flushData();
+	pfence();
+	entry.setValid(1);
+	entry.flushValid();
+	pfence();
+}

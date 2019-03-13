@@ -7,13 +7,17 @@
 #include "llvm/Support/raw_ostream.h"
 #include <utility>
 
-constexpr const char * CHECKER_PLUGIN_NAME = "nvm.orderingchecker";
+constexpr const char *CHECKER_PLUGIN_NAME = "nvm.orderingchecker";
 
-namespace clang::ento::nvm{
+namespace clang::ento::nvm {
 
-class OrderingChecker : public Checker<check::EndAnalysis, 
-                                      check::PreCall,
-                                      check::BeginFunction> {
+class OrderingChecker
+    : public Checker<check::EndAnalysis, 
+                     check::BeginFunction,
+                     check::Bind,
+                     check::Location,
+                     check::PreCall,
+                     check::BranchCondition> {
 
 public:
   OrderingChecker();
@@ -25,9 +29,15 @@ public:
 
   void checkPreCall(const CallEvent &Call, CheckerContext &C) const;
 
+  void checkBind(SVal Loc, SVal Val, const Stmt *S, CheckerContext &C) const;
+
+  void checkLocation(SVal Loc, bool IsLoad, const Stmt *S,
+                     CheckerContext &C) const;
+
+  void checkBranchCondition(const Stmt *Condition, CheckerContext &C) const;
+
 private:
   OrderingBugReporter BReporter;
 };
 
-} // end anonymous namespace
-
+} // namespace clang::ento::nvm

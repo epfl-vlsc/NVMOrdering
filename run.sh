@@ -25,6 +25,15 @@ run_tool(){
     cd ..
 }
 
+run_tool2(){
+    cd build
+    clang++ \
+        -fsyntax-only -fplugin=lib/liborderingchecker.so -Xclang -analyzer-max-loop -Xclang 2 \
+        -Xclang -analyze -Xclang -analyzer-checker=nvm.orderingchecker \
+        $test_file -Xclang -analyzer-display-progress
+    cd ..
+}
+
 dump_ast(){
     cd build
     clang++ -Xclang -ast-dump -fsyntax-only $test_file > ../test/ast.txt
