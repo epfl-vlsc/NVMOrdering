@@ -62,3 +62,13 @@ void persistent_code good(){
 	entry.flushValid();
 	pfence();
 }
+
+void megaman(){
+	LogEntry entry;
+	entry.setData(1);
+	entry.flushData();
+	pfence();
+	entry.setValid(1);
+	entry.flushValid();
+	pfence();
+}

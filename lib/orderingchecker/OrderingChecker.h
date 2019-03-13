@@ -1,23 +1,18 @@
 #pragma once
 #include "OrderingBugReporter.h"
-#include "clang/StaticAnalyzer/Core/Checker.h"
-#include "clang/StaticAnalyzer/Core/CheckerRegistry.h"
-#include "clang/StaticAnalyzer/Core/PathSensitive/CallEvent.h"
-#include "clang/StaticAnalyzer/Core/PathSensitive/CheckerContext.h"
-#include "llvm/Support/raw_ostream.h"
-#include <utility>
+#include "Common.h"
+#include "FunctionInfos.h"
 
 constexpr const char *CHECKER_PLUGIN_NAME = "nvm.orderingchecker";
 
-namespace clang::ento::nvm {
+namespace clang::ento::nvm
+{
 
 class OrderingChecker
-    : public Checker<check::EndAnalysis, 
-                     check::BeginFunction,
-                     check::Bind,
-                     check::Location,
-                     check::PreCall,
-                     check::BranchCondition> {
+    : public Checker<check::EndAnalysis, check::BeginFunction, check::Bind,
+                     check::PreCall, check::BranchCondition,
+                     check::ASTDecl<FunctionDecl>>
+{
 
 public:
   OrderingChecker();
@@ -31,13 +26,17 @@ public:
 
   void checkBind(SVal Loc, SVal Val, const Stmt *S, CheckerContext &C) const;
 
-  void checkLocation(SVal Loc, bool IsLoad, const Stmt *S,
-                     CheckerContext &C) const;
-
   void checkBranchCondition(const Stmt *Condition, CheckerContext &C) const;
+
+  void checkEndOfTranslationUnit(const TranslationUnitDecl *TU,
+                                 AnalysisManager &Mgr, BugReporter &BR) const;
+
+  void checkASTDecl(const FunctionDecl *D, AnalysisManager &Mgr,
+                    BugReporter &BR) const;
 
 private:
   OrderingBugReporter BReporter;
+  mutable NVMFunctionInfo nvmFncInfo;
 };
 
 } // namespace clang::ento::nvm
