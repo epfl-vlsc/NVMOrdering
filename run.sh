@@ -1,4 +1,5 @@
 mode=$1
+test_file=../test/dcl.cpp
 
 create_build(){
 	mkdir -p build
@@ -20,7 +21,13 @@ run_tool(){
     clang++ \
         -fsyntax-only -fplugin=lib/liborderingchecker.so -Xclang -analyzer-max-loop -Xclang 2 \
         -Xclang -analyze -Xclang -analyzer-checker=nvm.orderingchecker \
-        ../test/dcl.cpp -Xclang -analyzer-display-progress
+        $test_file -Xclang -analyzer-display-progress
+    cd ..
+}
+
+dump_ast(){
+    cd build
+    clang++ -Xclang -ast-dump -fsyntax-only $test_file > ../test/ast.txt
     cd ..
 }
 
@@ -35,6 +42,8 @@ elif [ "$mode" == "build" ] ;then
     rm -r build
 	create_build
     run_make
+elif [ "$mode" == "ast" ] ;then 
+    dump_ast
 else
-	echo "help, run, build, ir, test"
+	echo "run, build, ast"
 fi
