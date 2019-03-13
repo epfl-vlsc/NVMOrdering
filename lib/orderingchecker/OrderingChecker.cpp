@@ -78,6 +78,16 @@ void OrderingChecker::checkASTDecl(const FunctionDecl *D, AnalysisManager &Mgr,
   nvmFncInfo.analyzeIfAnnotated(D);
 }
 
+void OrderingChecker::checkASTDecl(const RecordDecl *D, AnalysisManager &Mgr, BugReporter &BR) const
+{
+  llvm::outs() << D->getName() << "\n";
+  for (RecordDecl::field_iterator I = D->field_begin(), E = D->field_end();
+       I != E; ++I)
+  {
+    llvm::outs() << I->getName() << " " << I->getType().getAsString() << "\n";
+  }
+}
+
 } // namespace clang::ento::nvm
 
 extern "C" const char clang_analyzerAPIVersionString[] =

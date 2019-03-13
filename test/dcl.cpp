@@ -20,6 +20,16 @@ void assign(int* a, int val){
 	*a = val;
 }
 
+
+struct ParentA{
+	int a;
+};
+
+class ChildB{
+	ParentA a;
+	int b;
+};
+
 struct LogEntry{
 	pdcl("LogEntry.valid") int data;
 	pcheck() int valid;

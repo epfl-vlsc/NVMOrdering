@@ -2,6 +2,7 @@
 #include "OrderingBugReporter.h"
 #include "Common.h"
 #include "FunctionInfos.h"
+#include "TypeInfos.h"
 
 constexpr const char *CHECKER_PLUGIN_NAME = "nvm.orderingchecker";
 
@@ -11,7 +12,8 @@ namespace clang::ento::nvm
 class OrderingChecker
     : public Checker<check::EndAnalysis, check::BeginFunction, check::Bind,
                      check::PreCall, check::BranchCondition,
-                     check::ASTDecl<FunctionDecl>>
+                     check::ASTDecl<FunctionDecl>,
+                     check::ASTDecl<RecordDecl> >
 {
 
 public:
@@ -33,10 +35,14 @@ public:
 
   void checkASTDecl(const FunctionDecl *D, AnalysisManager &Mgr,
                     BugReporter &BR) const;
+  
+  void checkASTDecl(const RecordDecl *D, AnalysisManager &Mgr,
+                    BugReporter &BR) const;
 
 private:
   OrderingBugReporter BReporter;
   mutable NVMFunctionInfo nvmFncInfo;
+  mutable NVMTypeInfo nvmTypeInfo;
 };
 
 } // namespace clang::ento::nvm
