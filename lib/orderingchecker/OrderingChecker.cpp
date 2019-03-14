@@ -27,39 +27,32 @@ void OrderingChecker::checkBind(SVal Loc, SVal Val, const Stmt *S,
   Loc.dump();
   llvm::outs() << "lol bind\n";
   
-
-  const TypedValueRegion *TR =
-      dyn_cast_or_null<TypedValueRegion>(Loc.getAsRegion());
-  if (!TR)
-  {
-    return;
+  const MemRegion *Region = Loc.getAsRegion();
+  if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()){
+    FieldReg->dump();
+    const Decl* BD = FieldReg->getDecl();
+    const DeclaratorDecl* D = getDeclaratorDecl(BD);
+    if(nvmTypeInfo.inLabels(D)){
+      LabeledDecl* LD = nvmTypeInfo.getDeclaratorInfo(D);
+      if(LD->isCheck()){
+        handleCheck(Loc, C, LD);
+      }else{
+        handleData(Loc, C, LD);
+      }
+    }
   }
 
-  QualType valTy = TR->getValueType();
-  valTy.dump();
   llvm::outs() << "\n";
-
-  /*
-  llvm::outs() << "bind\n";
-  Loc.dump();
-
-  const TypedValueRegion *TR =
-      dyn_cast_or_null<TypedValueRegion>(Loc.getAsRegion());
-
-  if (!TR)
-    return;
-
-  llvm::outs() << "\n";
-  QualType valTy = TR->getValueType();
-  valTy.dump();
-
-  llvm::outs() << "\n";
-  Val.dump();
-  llvm::outs() << "\n";
-  S->dump();
-  llvm::outs() << "\n";
-  */
 }
+
+void OrderingChecker::handleData(SVal& Loc, CheckerContext &C, LabeledDecl* LD) const{
+
+}
+
+void OrderingChecker::handleCheck(SVal& Loc, CheckerContext &C, LabeledDecl* LD) const{
+  
+}
+
 
 void OrderingChecker::checkPreCall(const CallEvent &Call,
                                    CheckerContext &C) const

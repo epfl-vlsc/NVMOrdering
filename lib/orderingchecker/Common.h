@@ -19,4 +19,13 @@ const FunctionDecl* getFuncDecl(const CallEvent &Call){
     return nullptr;
 }
 
+const DeclaratorDecl* getDeclaratorDecl(const Decl* BD){
+    if (const DeclaratorDecl *D = dyn_cast_or_null<DeclaratorDecl>(BD))
+    {
+        return D;
+    }
+    llvm::report_fatal_error("All calls have function declaration");
+    return nullptr;
+}
+
 } //namespace nvm

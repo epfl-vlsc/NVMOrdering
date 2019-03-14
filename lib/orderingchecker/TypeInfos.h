@@ -15,12 +15,12 @@ int hasInt(const std::string &in)
     return val;
 }
 
-class PairBaseDecl
+class LabeledDecl
 {
     bool isCheck_;
 
   public:
-    PairBaseDecl(bool check) : isCheck_(check) {}
+    LabeledDecl(bool check) : isCheck_(check) {}
 
     bool isCheck()
     {
@@ -28,33 +28,36 @@ class PairBaseDecl
     }
 };
 
-class DataDecl : public PairBaseDecl
+class DataDecl : public LabeledDecl
 {
     //todo if you have time optimize string comparison
     std::string checkName_;
     bool isDcl_;
 
   public:
-    DataDecl(bool check, bool dcl, const std::string &cName) : PairBaseDecl(check), checkName_(cName), isDcl_(dcl) {}
+    DataDecl(bool check, bool dcl, const std::string &cName) : LabeledDecl(check), checkName_(cName), isDcl_(dcl) {}
 
-    bool isDcl(){
+    bool isDcl()
+    {
         return isDcl_;
     }
 };
 
-class CheckDecl : public PairBaseDecl
+class CheckDecl : public LabeledDecl
 {
     bool hasMask_;
     int maskValue_;
 
   public:
-    CheckDecl(bool check, bool msk, int maskVal) : PairBaseDecl(check), hasMask_(msk), maskValue_(maskVal) {}
+    CheckDecl(bool check, bool msk, int maskVal) : LabeledDecl(check), hasMask_(msk), maskValue_(maskVal) {}
 
-    bool hasMask(){
+    bool hasMask()
+    {
         return hasMask_;
     }
 
-    int getMaskValue(){
+    int getMaskValue()
+    {
         return maskValue_;
     }
 };
@@ -66,7 +69,7 @@ class NVMTypeInfo
     static constexpr const char *SCL = "scl";
     static constexpr const char *CHECK = "check";
     static constexpr const char *SEP = "-";
-    std::map<const DeclaratorDecl *, PairBaseDecl *> labels;
+    std::map<const DeclaratorDecl *, LabeledDecl *> labels;
 
   public:
     void analyzeMemLabel(const DeclaratorDecl *D)
@@ -101,6 +104,17 @@ class NVMTypeInfo
                 }
             }
         }
+    }
+
+    bool inLabels(const DeclaratorDecl *D) const
+    {
+        return labels.count(D);
+    }
+
+    LabeledDecl* getDeclaratorInfo(const DeclaratorDecl *D) const
+    {
+        assert(labels.count(D));
+        return labels.find(D)->second;
     }
 };
 

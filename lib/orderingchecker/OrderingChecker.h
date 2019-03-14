@@ -38,6 +38,10 @@ private:
 
   void handleVFence(const CallEvent &Call, CheckerContext &C) const;
 
+  void handleData(SVal& Loc, CheckerContext &C, LabeledDecl* LD) const;
+
+  void handleCheck(SVal& Loc, CheckerContext &C, LabeledDecl* LD) const;
+
   OrderingBugReporter BReporter;
   mutable NVMFunctionInfo nvmFncInfo;
   mutable NVMTypeInfo nvmTypeInfo;
