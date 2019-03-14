@@ -31,7 +31,7 @@ class ChildB{
 };
 
 struct LogEntry{
-	pdcl("LogEntry.valid") int data;
+	pdcl(LogEntry.valid) int data;
 	pcheck() int valid;
 
 	LogEntry():data(0), valid(0){}
@@ -74,6 +74,7 @@ void persistent_code good(){
 }
 
 void megaman(){
+	int zeman;
 	LogEntry entry;
 	entry.setData(1);
 	entry.flushData();

@@ -13,7 +13,7 @@ class OrderingChecker
     : public Checker<check::EndAnalysis, check::BeginFunction, check::Bind,
                      check::PreCall, check::BranchCondition,
                      check::ASTDecl<FunctionDecl>,
-                     check::ASTDecl<RecordDecl> >
+                     check::ASTDecl<DeclaratorDecl>>
 {
 
 public:
@@ -30,13 +30,10 @@ public:
 
   void checkBranchCondition(const Stmt *Condition, CheckerContext &C) const;
 
-  void checkEndOfTranslationUnit(const TranslationUnitDecl *TU,
-                                 AnalysisManager &Mgr, BugReporter &BR) const;
-
   void checkASTDecl(const FunctionDecl *D, AnalysisManager &Mgr,
                     BugReporter &BR) const;
-  
-  void checkASTDecl(const RecordDecl *D, AnalysisManager &Mgr,
+
+  void checkASTDecl(const DeclaratorDecl *D, AnalysisManager &Mgr,
                     BugReporter &BR) const;
 
 private:

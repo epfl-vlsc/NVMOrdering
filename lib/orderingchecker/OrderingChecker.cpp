@@ -65,27 +65,16 @@ void OrderingChecker::checkPreCall(const CallEvent &Call,
   //Call.dump();
 }
 
-void OrderingChecker::checkEndOfTranslationUnit(const TranslationUnitDecl *TU,
-                                                AnalysisManager &Mgr,
-                                                BugReporter &BR) const
-{
-  //llvm::outs() << "checkEndOfTranslationUnit\n";
-}
-
 void OrderingChecker::checkASTDecl(const FunctionDecl *D, AnalysisManager &Mgr,
                                    BugReporter &BR) const
 {
   nvmFncInfo.analyzeIfAnnotated(D);
 }
 
-void OrderingChecker::checkASTDecl(const RecordDecl *D, AnalysisManager &Mgr, BugReporter &BR) const
+void OrderingChecker::checkASTDecl(const DeclaratorDecl *D, AnalysisManager &Mgr,
+                                   BugReporter &BR) const
 {
-  llvm::outs() << D->getName() << "\n";
-  for (RecordDecl::field_iterator I = D->field_begin(), E = D->field_end();
-       I != E; ++I)
-  {
-    llvm::outs() << I->getName() << " " << I->getType().getAsString() << "\n";
-  }
+  nvmTypeInfo.analyzeMemLabel(D);
 }
 
 } // namespace clang::ento::nvm
