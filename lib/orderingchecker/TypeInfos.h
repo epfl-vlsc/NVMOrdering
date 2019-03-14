@@ -15,12 +15,13 @@ int hasInt(const std::string &in)
     return val;
 }
 
-class LabeledDecl
+class LabeledInfo
 {
     bool isCheck_;
 
   public:
-    LabeledDecl(bool check) : isCheck_(check) {}
+    LabeledInfo(bool check)
+        : isCheck_(check) {}
 
     bool isCheck()
     {
@@ -28,28 +29,34 @@ class LabeledDecl
     }
 };
 
-class DataDecl : public LabeledDecl
+class DataInfo : public LabeledInfo
 {
     //todo if you have time optimize string comparison
-    std::string checkName_;
+    StringRef checkName_;
     bool isDcl_;
 
   public:
-    DataDecl(bool check, bool dcl, const std::string &cName) : LabeledDecl(check), checkName_(cName), isDcl_(dcl) {}
+    DataInfo(bool check, bool dcl, const StringRef &cName)
+        : LabeledInfo(check), checkName_(cName), isDcl_(dcl) {}
 
     bool isDcl()
     {
         return isDcl_;
     }
+
+    bool isSameCheckName(const StringRef& otherCheckName){
+        return checkName_.equals(otherCheckName);
+    }
 };
 
-class CheckDecl : public LabeledDecl
+class CheckInfo : public LabeledInfo
 {
     bool hasMask_;
     int maskValue_;
 
   public:
-    CheckDecl(bool check, bool msk, int maskVal) : LabeledDecl(check), hasMask_(msk), maskValue_(maskVal) {}
+    CheckInfo(bool check, bool msk, int maskVal)
+        : LabeledInfo(check), hasMask_(msk), maskValue_(maskVal) {}
 
     bool hasMask()
     {
@@ -68,12 +75,14 @@ class NVMTypeInfo
     static constexpr const char *SCL = "scl";
     static constexpr const char *CHECK = "check";
     static constexpr const char *SEP = "-";
-    std::map<const DeclaratorDecl *, LabeledDecl *> labels;
+    static constexpr const char *DOT_SEP = ".";
+    std::map<const DeclaratorDecl *, LabeledInfo *> labels;
 
   public:
-
-    ~NVMTypeInfo(){
-        for(auto& [_,LD] : labels){
+    ~NVMTypeInfo()
+    {
+        for (auto &[_, LD] : labels)
+        {
             delete LD;
         }
     }
@@ -86,12 +95,16 @@ class NVMTypeInfo
             if (auto [annotInfo, textInfo] = annot.split(SEP);
                 annotInfo.contains(DCL))
             {
-                labels[D] = new DataDecl(false, true, textInfo);
-                //llvm::outs() << "dcl " << annot << "\n";
+                //todo use fullname for field save
+                auto [_, fieldName] = annot.split(DOT_SEP);
+                labels[D] = new DataInfo(false, true, fieldName);
+                //llvm::outs() << "dcl " << annot << " " << fieldName << "\n";
             }
             else if (annotInfo.contains(SCL))
             {
-                labels[D] = new DataDecl(false, false, textInfo);
+                //todo use fullname for field save
+                auto [_, fieldName] = annot.split(DOT_SEP);
+                labels[D] = new DataInfo(false, false, fieldName);
                 //llvm::outs() << "scl " << annot << "\n";
             }
             else if (annotInfo.contains(CHECK))
@@ -100,12 +113,12 @@ class NVMTypeInfo
 
                 if (auto numVal = hasInt(numStr); numVal)
                 {
-                    labels[D] = new CheckDecl(true, true, numVal);
+                    labels[D] = new CheckInfo(true, true, numVal);
                     //llvm::outs() << "check mask " << annot << "\n";
                 }
                 else
                 {
-                    labels[D] = new CheckDecl(true, false, 0);
+                    labels[D] = new CheckInfo(true, false, 0);
                     //llvm::outs() << "check " << annot << "\n";
                 }
             }
@@ -117,7 +130,7 @@ class NVMTypeInfo
         return labels.count(D);
     }
 
-    LabeledDecl* getDeclaratorInfo(const DeclaratorDecl *D) const
+    LabeledInfo *getDeclaratorInfo(const DeclaratorDecl *D) const
     {
         assert(labels.count(D));
         return labels.find(D)->second;

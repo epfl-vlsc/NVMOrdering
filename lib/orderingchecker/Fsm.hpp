@@ -1,65 +1,106 @@
 #pragma once
 #include "Common.h"
+#include "TypeInfos.h"
 
+namespace clang::ento::nvm
+{
 
-namespace clang::ento::nvm{
+struct DclState
+{
+  private:
+    enum Kind
+    {
+        WD,
+        FD,
+        PD,
+        WC,
+        FC,
+        PC
+    } K;
+    DataInfo *DI_;
+    DclState(Kind kind, DataInfo *DI)
+        : K(kind), DI_(DI) {}
 
+  public:
+    bool isWriteData() const { return K == WD; }
+    bool isFlushData() const { return K == FD; }
+    bool isPFenceData() const { return K == PD; }
+    bool isWriteCheck() const { return K == WC; }
+    bool isFlushCheck() const { return K == FC; }
+    bool isPFenceCheck() const { return K == PC; }
 
+    static DclState getWriteData(DataInfo *DI) { return DclState(WD, DI); }
+    static DclState getFlushData(DataInfo *DI) { return DclState(FD, DI); }
+    static DclState getPFenceData(DataInfo *DI) { return DclState(PD, DI); }
+    static DclState getWriteCheck(DataInfo *DI) { return DclState(WC, DI); }
+    static DclState getFlushCheck(DataInfo *DI) { return DclState(FC, DI); }
+    static DclState getPFenceCheck(DataInfo *DI) { return DclState(PC, DI); }
 
-struct DCLState{
-private:
-    enum Kind{WD, FD, PD, WC, FC, PC} K;
-    DCLState(Kind kind):K(kind){}
+    bool isSameCheckName(const StringRef &otherCheckName) const
+    {
+        return DI_->isSameCheckName(otherCheckName);
+    }
 
-public:
-    bool isWriteData() const {return K == WD;}
-    bool isFlushData() const {return K == FD;}
-    bool isPFenceData() const {return K == PD;}
-    bool isWriteCheck() const {return K == WC;}
-    bool isFlushCheck() const {return K == FC;}
-    bool isPFenceCheck() const {return K == PC;}
+    DataInfo *getDataInfo() const
+    {
+        return DI_;
+    }
 
-    static DCLState getWriteData() { return DCLState(WD); }
-    static DCLState getFlushData() { return DCLState(FD); }
-    static DCLState getPFenceData() { return DCLState(PD); }
-    static DCLState getWriteCheck() { return DCLState(WC); }
-    static DCLState getFlushCheck() { return DCLState(FC); }
-    static DCLState getPFenceCheck() { return DCLState(PC); }
-
-    bool operator==(const DCLState &X) const {
+    bool operator==(const DclState &X) const
+    {
         return K == X.K;
     }
 
-    void Profile(llvm::FoldingSetNodeID &ID) const {
+    void Profile(llvm::FoldingSetNodeID &ID) const
+    {
         ID.AddInteger(K);
+        ID.AddPointer(DI_);
     }
 };
 
-struct SCLState{
-private:
-    enum Kind{WD, VD, WC} K;
-    SCLState(Kind kind):K(kind){}
+struct SclState
+{
+  private:
+    enum Kind
+    {
+        WD,
+        VD,
+        WC
+    } K;
+    DataInfo *DI_;
 
-public:
-    bool isWriteData() const {return K == WD;}
-    bool isVFenceData() const {return K == VD;}
-    bool isWriteCheck() const {return K == WC;}
-    
-    static SCLState getWriteData() { return SCLState(WD); }
-    static SCLState getVFenceData() { return SCLState(VD); }
-    static SCLState getWriteCheck() { return SCLState(WC); }
-    
-    bool operator==(const SCLState &X) const {
+    SclState(Kind kind, DataInfo *DI)
+        : K(kind), DI_(DI) {}
+
+  public:
+    bool isWriteData() const { return K == WD; }
+    bool isVFenceData() const { return K == VD; }
+    bool isWriteCheck() const { return K == WC; }
+
+    static SclState getWriteData(DataInfo *DI) { return SclState(WD, DI); }
+    static SclState getVFenceData(DataInfo *DI) { return SclState(VD, DI); }
+    static SclState getWriteCheck(DataInfo *DI) { return SclState(WC, DI); }
+
+    bool operator==(const SclState &X) const
+    {
         return K == X.K;
     }
 
-    void Profile(llvm::FoldingSetNodeID &ID) const {
+    bool isSameCheckName(const StringRef &otherCheckName) const
+    {
+        return DI_->isSameCheckName(otherCheckName);
+    }
+
+    DataInfo *getDataInfo() const
+    {
+        return DI_;
+    }
+
+    void Profile(llvm::FoldingSetNodeID &ID) const
+    {
         ID.AddInteger(K);
+        ID.AddPointer(DI_);
     }
 };
 
-
-
-
-
-} //namespace nvm
+} // namespace clang::ento::nvm

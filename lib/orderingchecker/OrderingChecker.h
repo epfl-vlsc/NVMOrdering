@@ -46,11 +46,17 @@ private:
 
   void handleVFence(const CallEvent &Call, CheckerContext &C) const;
 
-  void handleData(SVal &Loc, CheckerContext &C,
-                  const DeclaratorDecl *D, DataDecl *LD) const;
+  void handleWriteData(CheckerContext &C, const DeclaratorDecl *D,
+                       DataInfo *DI) const;
 
-  void handleCheck(SVal &Loc, CheckerContext &C,
-                   const DeclaratorDecl *D, CheckDecl *LD) const;
+  void handleWriteCheck(CheckerContext &C, const DeclaratorDecl *D,
+                        CheckInfo *CI) const;
+
+  void handleFlushData(CheckerContext &C, const DeclaratorDecl *D,
+                       DataInfo *DI) const;
+
+  void handleFlushCheck(CheckerContext &C, const DeclaratorDecl *D,
+                        CheckInfo *CI) const;
 
   OrderingBugReporter BReporter;
   mutable NVMFunctionInfo nvmFncInfo;
@@ -58,3 +64,6 @@ private:
 };
 
 } // namespace clang::ento::nvm
+
+REGISTER_MAP_WITH_PROGRAMSTATE(SclMap, const clang::DeclaratorDecl *, clang::ento::nvm::SclState)
+REGISTER_MAP_WITH_PROGRAMSTATE(DclMap, const clang::DeclaratorDecl *, clang::ento::nvm::DclState)
