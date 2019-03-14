@@ -20,24 +20,43 @@ void OrderingChecker::checkBeginFunction(CheckerContext &C) const
   }
 }
 
+void OrderingChecker::checkDeadSymbols(SymbolReaper &SymReaper, CheckerContext &C) const
+{
+  //todo implement
+  llvm::outs() << "consider implementing checkDeadSymbols\n";
+}
+
+ProgramStateRef OrderingChecker::checkPointerEscape(ProgramStateRef State,
+                                                    const InvalidatedSymbols &Escaped,
+                                                    const CallEvent *Call,
+                                                    PointerEscapeKind Kind) const
+{
+  //todo implement
+  llvm::outs() << "consider implementing checkPointerEscape\n";
+  return State;
+}
+
 void OrderingChecker::checkBind(SVal Loc, SVal Val, const Stmt *S,
                                 CheckerContext &C) const
 {
-
-  Loc.dump();
-  llvm::outs() << "lol bind\n";
-  
   const MemRegion *Region = Loc.getAsRegion();
-  if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()){
+  if (const FieldRegion *FieldReg = Region->getAs<FieldRegion>())
+  {
     FieldReg->dump();
-    const Decl* BD = FieldReg->getDecl();
-    const DeclaratorDecl* D = getDeclaratorDecl(BD);
-    if(nvmTypeInfo.inLabels(D)){
-      LabeledDecl* LD = nvmTypeInfo.getDeclaratorInfo(D);
-      if(LD->isCheck()){
-        handleCheck(Loc, C, LD);
-      }else{
-        handleData(Loc, C, LD);
+    const Decl *BD = FieldReg->getDecl();
+    const DeclaratorDecl *D = getDeclaratorDecl(BD);
+    if (nvmTypeInfo.inLabels(D))
+    {
+      LabeledDecl *LD = nvmTypeInfo.getDeclaratorInfo(D);
+      if (LD->isCheck())
+      {
+        auto *DD = static_cast<CheckDecl *>(LD);
+        handleCheck(Loc, C, D, DD);
+      }
+      else
+      {
+        auto *DD = static_cast<DataDecl *>(LD);
+        handleData(Loc, C, D, DD);
       }
     }
   }
@@ -45,14 +64,19 @@ void OrderingChecker::checkBind(SVal Loc, SVal Val, const Stmt *S,
   llvm::outs() << "\n";
 }
 
-void OrderingChecker::handleData(SVal& Loc, CheckerContext &C, LabeledDecl* LD) const{
+void OrderingChecker::handleData(SVal &Loc, CheckerContext &C,
+                                 const DeclaratorDecl *D, DataDecl *DD) const
+{
+  //check if not completed or not initial throw error
 
+  //set state to wd
 }
 
-void OrderingChecker::handleCheck(SVal& Loc, CheckerContext &C, LabeledDecl* LD) const{
-  
+void OrderingChecker::handleCheck(SVal &Loc, CheckerContext &C,
+                                  const DeclaratorDecl *D, CheckDecl *DD) const
+{
+  //iterate over all states, check if any valid bit exists
 }
-
 
 void OrderingChecker::checkPreCall(const CallEvent &Call,
                                    CheckerContext &C) const

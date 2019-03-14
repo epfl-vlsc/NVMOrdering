@@ -13,7 +13,8 @@ namespace clang::ento::nvm
 class OrderingChecker
     : public Checker<check::BeginFunction, check::Bind,
                      check::PreCall, check::ASTDecl<FunctionDecl>,
-                     check::ASTDecl<DeclaratorDecl>>
+                     check::ASTDecl<DeclaratorDecl>, check::DeadSymbols,
+                     check::PointerEscape>
 {
 
 public:
@@ -31,6 +32,13 @@ public:
   void checkASTDecl(const DeclaratorDecl *D, AnalysisManager &Mgr,
                     BugReporter &BR) const;
 
+  void checkDeadSymbols(SymbolReaper &SymReaper, CheckerContext &C) const;
+
+  ProgramStateRef checkPointerEscape(ProgramStateRef State,
+                                     const InvalidatedSymbols &Escaped,
+                                     const CallEvent *Call,
+                                     PointerEscapeKind Kind) const;
+
 private:
   void handleFlush(const CallEvent &Call, CheckerContext &C) const;
 
@@ -38,9 +46,11 @@ private:
 
   void handleVFence(const CallEvent &Call, CheckerContext &C) const;
 
-  void handleData(SVal& Loc, CheckerContext &C, LabeledDecl* LD) const;
+  void handleData(SVal &Loc, CheckerContext &C,
+                  const DeclaratorDecl *D, DataDecl *LD) const;
 
-  void handleCheck(SVal& Loc, CheckerContext &C, LabeledDecl* LD) const;
+  void handleCheck(SVal &Loc, CheckerContext &C,
+                   const DeclaratorDecl *D, CheckDecl *LD) const;
 
   OrderingBugReporter BReporter;
   mutable NVMFunctionInfo nvmFncInfo;
