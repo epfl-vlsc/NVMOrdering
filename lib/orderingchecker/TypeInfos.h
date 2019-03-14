@@ -64,7 +64,6 @@ class CheckDecl : public LabeledDecl
 
 class NVMTypeInfo
 {
-    //todo fix mem leak for pair info
     static constexpr const char *DCL = "dcl";
     static constexpr const char *SCL = "scl";
     static constexpr const char *CHECK = "check";
@@ -72,6 +71,13 @@ class NVMTypeInfo
     std::map<const DeclaratorDecl *, LabeledDecl *> labels;
 
   public:
+
+    ~NVMTypeInfo(){
+        for(auto& [_,LD] : labels){
+            delete LD;
+        }
+    }
+
     void analyzeMemLabel(const DeclaratorDecl *D)
     {
         for (const auto *Ann : D->specific_attrs<AnnotateAttr>())
