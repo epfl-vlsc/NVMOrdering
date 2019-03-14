@@ -5,91 +5,146 @@
 namespace clang::ento::nvm
 {
 
-bool isTopFunction(CheckerContext &C){
+bool isTopFunction(CheckerContext &C)
+{
     return C.inTopFrame();
 }
 
-class FlushFunction
+class BaseFunction
 {
+  protected:
+    std::set<const FunctionDecl *> functions;
+
+    virtual bool checkName(const IdentifierInfo *II) const{
+        llvm::report_fatal_error("Override one check name in derived");
+        return false;
+    }
+    virtual bool checkName(const AnnotateAttr *AA) const{
+        llvm::report_fatal_error("Override one check name in derived");
+        return false;
+    }
+
+    virtual bool checkName(const FunctionDecl *D) const{
+        return checkName(D->getIdentifier());
+    }
 
   public:
-    void dump() const
+    virtual void dump() const
     {
+        for (auto *D : functions)
+        {
+            llvm::outs() << D->getQualifiedNameAsString() << "\n";
+        }
+    }
+
+    bool inFunctions(const FunctionDecl *D) const
+    {
+        return functions.count(D);
+    }
+
+    //for annotation
+    virtual void insertIfKnown(const FunctionDecl *D) {
+        if(checkName(D)){
+            functions.insert(D);
+        }
     }
 };
 
-class FenceFunction
+class FlushFunction : public BaseFunction
 {
-
   public:
-    void dump() const
-    {
+bool checkName(const IdentifierInfo *II) const{
+        return II && II->isStr("clflush");
     }
 };
 
-class AnalyzeFunction
+class PFenceFunction : public BaseFunction
 {
-    static constexpr const char *ANALYSIS_ANNOT = "PersistentCode";
-    std::set<const FunctionDecl*> analysisFunctions;
-
   public:
-    void insertIfAnnotated(const FunctionDecl *D)
+    bool checkName(const IdentifierInfo *II) const{
+        return II && II->isStr("pfence");
+    }
+};
+
+class VFenceFunction : public BaseFunction
+{
+  public:
+    bool checkName(const IdentifierInfo *II) const{
+        return II && II->isStr("vfence");
+    }
+};
+
+class AnnotFunction : public BaseFunction
+{
+  public:
+    bool checkName(const AnnotateAttr *AA) const{
+        return AA && AA->getAnnotation() == "PersistentCode";
+    }
+
+    void insertIfKnown(const FunctionDecl *D)
     {
         //if has attribute for analysis, add function to set
         for (const auto *Ann : D->specific_attrs<AnnotateAttr>())
         {
-            if (Ann->getAnnotation() == ANALYSIS_ANNOT)
+            if (checkName(Ann))
             {
-                analysisFunctions.insert(D);
+                functions.insert(D);
             }
-        }
-    }
-
-    bool isAnnotatedFunction(const FunctionDecl *D) const{
-        if(analysisFunctions.count(D)){
-            return true;
-        }
-        return false;
-    }
-
-    void dump() const
-    {
-        llvm::outs() << "Annotated functions\n";
-        for (auto* D : analysisFunctions)
-        {
-            llvm::outs() << D->getQualifiedNameAsString() << "\n";
         }
     }
 };
 
 class NVMFunctionInfo
 {
-    AnalyzeFunction analyzeFnc;
-    FenceFunction fenceFnc;
+    AnnotFunction annotFnc;
+    VFenceFunction vfenceFnc;
+    PFenceFunction pfenceFnc;
     FlushFunction flushFnc;
 
   public:
-    void analyzeIfAnnotated(const FunctionDecl *D)
+    void checkFunction(const FunctionDecl *D)
     {
-        analyzeFnc.insertIfAnnotated(D);
+        annotFnc.insertIfKnown(D);
+        vfenceFnc.insertIfKnown(D);
+        pfenceFnc.insertIfKnown(D);
+        flushFnc.insertIfKnown(D);
     }
 
-    bool isAnnotatedFunction(CheckerContext &C) const{
-        const LocationContext* LCtx = C.getLocationContext();
-        if(const FunctionDecl* D = dyn_cast_or_null<FunctionDecl>(LCtx->getDecl())){
-            return analyzeFnc.isAnnotatedFunction(D);
+    bool isAnnotatedFunction(CheckerContext &C) const
+    {
+        const LocationContext *LCtx = C.getLocationContext();
+        if (const FunctionDecl *D = dyn_cast_or_null<FunctionDecl>(LCtx->getDecl()))
+        {
+            return annotFnc.inFunctions(D);
         }
         return false;
     }
 
+    bool isFlushFunction(const CallEvent &Call) const
+    {
+        const FunctionDecl* D = getFuncDecl(Call);
+        return flushFnc.inFunctions(D);
+    }
+
+    bool isPFenceFunction(const CallEvent &Call) const
+    {
+        const FunctionDecl* D = getFuncDecl(Call);
+        return pfenceFnc.inFunctions(D);
+    }
+
+    bool isVFenceFunction(const CallEvent &Call) const
+    {
+        const FunctionDecl* D = getFuncDecl(Call);
+        return vfenceFnc.inFunctions(D);
+    }
+
     void dump() const
     {
-        analyzeFnc.dump();
-        fenceFnc.dump();
+        annotFnc.dump();
+        vfenceFnc.dump();
+        vfenceFnc.dump();
         flushFnc.dump();
     }
 };
-
-
 
 } // namespace clang::ento::nvm

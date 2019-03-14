@@ -9,5 +9,14 @@
 
 namespace clang::ento::nvm{
 
+const FunctionDecl* getFuncDecl(const CallEvent &Call){
+    const Decl* BD = Call.getDecl();
+    if (const FunctionDecl *D = dyn_cast_or_null<FunctionDecl>(BD))
+    {
+        return D;
+    }
+    llvm::report_fatal_error("All calls have function declaration");
+    return nullptr;
+}
 
 } //namespace nvm

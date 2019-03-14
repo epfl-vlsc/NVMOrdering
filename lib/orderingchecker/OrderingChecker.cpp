@@ -20,15 +20,25 @@ void OrderingChecker::checkBeginFunction(CheckerContext &C) const
   }
 }
 
-void OrderingChecker::checkEndAnalysis(ExplodedGraph &G, BugReporter &BR,
-                                       ExprEngine &Eng) const
-{
-  //llvm::errs() << "End of analysis\n";
-}
-
 void OrderingChecker::checkBind(SVal Loc, SVal Val, const Stmt *S,
                                 CheckerContext &C) const
 {
+
+  Loc.dump();
+  llvm::outs() << "lol bind\n";
+  
+
+  const TypedValueRegion *TR =
+      dyn_cast_or_null<TypedValueRegion>(Loc.getAsRegion());
+  if (!TR)
+  {
+    return;
+  }
+
+  QualType valTy = TR->getValueType();
+  valTy.dump();
+  llvm::outs() << "\n";
+
   /*
   llvm::outs() << "bind\n";
   Loc.dump();
@@ -51,24 +61,45 @@ void OrderingChecker::checkBind(SVal Loc, SVal Val, const Stmt *S,
   */
 }
 
-void OrderingChecker::checkBranchCondition(const Stmt *Condition,
-                                           CheckerContext &C) const
-{
-  //llvm::outs() << "checkBranchCondition\n";
-  //Condition->dump();
-}
-
 void OrderingChecker::checkPreCall(const CallEvent &Call,
                                    CheckerContext &C) const
 {
-  //llvm::outs() << "checkPreCall\n";
-  //Call.dump();
+  if (nvmFncInfo.isFlushFunction(Call))
+  {
+    handleFlush(Call, C);
+  }
+  else if (nvmFncInfo.isPFenceFunction(Call))
+  {
+    handlePFence(Call, C);
+  }
+  else if (nvmFncInfo.isVFenceFunction(Call))
+  {
+    handleVFence(Call, C);
+  }
+}
+
+void OrderingChecker::handleFlush(const CallEvent &Call,
+                                  CheckerContext &C) const
+{
+  llvm::outs() << "lol flush\n";
+}
+
+void OrderingChecker::handlePFence(const CallEvent &Call,
+                                   CheckerContext &C) const
+{
+  llvm::outs() << "lol pfence\n";
+}
+
+void OrderingChecker::handleVFence(const CallEvent &Call,
+                                   CheckerContext &C) const
+{
+  llvm::outs() << "lol vfence\n";
 }
 
 void OrderingChecker::checkASTDecl(const FunctionDecl *D, AnalysisManager &Mgr,
                                    BugReporter &BR) const
 {
-  nvmFncInfo.analyzeIfAnnotated(D);
+  nvmFncInfo.checkFunction(D);
 }
 
 void OrderingChecker::checkASTDecl(const DeclaratorDecl *D, AnalysisManager &Mgr,
