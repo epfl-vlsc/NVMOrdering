@@ -6,6 +6,9 @@
 namespace clang::ento::nvm
 {
 
+/**
+ * Skip analysis of unimportant functions 
+ */
 void OrderingChecker::checkBeginFunction(CheckerContext &C) const
 {
   bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
@@ -20,12 +23,11 @@ void OrderingChecker::checkBeginFunction(CheckerContext &C) const
   }
 }
 
+/**
+ * Check if model is correctly done 
+ */
 void OrderingChecker::checkEndFunction(CheckerContext &C) const
 {
-  const LocationContext *LC = C.getLocationContext();
-  const FunctionDecl *D = getFuncDecl(LC);
-  llvm::outs() << D->getName() << " end\n";
-
   bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
   bool isTopFnc = isTopFunction(C);
   if (isAnnotated && isTopFnc)
@@ -122,61 +124,27 @@ void OrderingChecker::checkBind(SVal Loc, SVal Val, const Stmt *S,
   }
 }
 
-void OrderingChecker::handleWriteData(CheckerContext &C, const DeclaratorDecl *D,
-                                      DataInfo *DI) const
+void OrderingChecker::handleWriteData(
+    CheckerContext &C, const DeclaratorDecl *D, DataInfo *DI) const
 {
   ProgramStateRef State = C.getState();
+  bool stateModified = false;
 
   //check if not completed or not initial throw error
   if (DI->isDcl())
   {
     //different cache line
-    const DclState *SS = State->get<DclMap>(D);
-
-    //check if in correct state
-    if (!SS || SS->isPFenceCheck())
-    {
-      //update to WD state
-      State = State->set<DclMap>(D, DclState::getWriteData(DI));
-      C.addTransition(State);
-      //llvm::outs() << "dcl WD\n";
-    }
-    else
-    {
-      /*
-      ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
-      if (!ErrNode)
-      {
-        return;
-      }
-      BReporter.reportWriteDataBug(C, D, ErrNode, C.getBugReporter());
-      */
-    }
+    stateModified |= dclWriteDataTrans(State, D, DI);
   }
   else
   {
     //same cache line
-    const SclState *SS = State->get<SclMap>(D);
+    stateModified |= sclWriteDataTrans(State, D, DI);
+  }
 
-    //check if in correct state
-    if (!SS || SS->isWriteCheck())
-    {
-      //update to WD state
-      State = State->set<SclMap>(D, SclState::getWriteData(DI));
-      C.addTransition(State);
-      llvm::outs() << "scl WD\n";
-    }
-    else
-    {
-      /*
-      ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
-      if (!ErrNode)
-      {
-        return;
-      }
-      BReporter.reportWriteDataBug(C, D, ErrNode, C.getBugReporter());
-      */
-    }
+  if (stateModified)
+  {
+    C.addTransition(State);
   }
 }
 
@@ -185,65 +153,16 @@ void OrderingChecker::handleWriteCheck(CheckerContext &C,
 {
   ProgramStateRef State = C.getState();
   StringRef checkName = D->getName();
-  bool seenCheck = false;
 
-  //iterate for dcl
-  for (auto &[dataDeclDecl, dclState] : State->get<DclMap>())
+  bool stateModified = dclWriteCheckTrans(State, checkName);
+
+  stateModified |= sclWriteCheckTrans(State, checkName);
+
+  if (stateModified)
   {
-    if (dclState.isSameCheckName(checkName))
-    {
-      seenCheck = true;
-      //update state
-      if (dclState.isPFenceData())
-      {
-        //update to WC
-        DataInfo *DI = dclState.getDataInfo();
-        State = State->set<DclMap>(dataDeclDecl, DclState::getWriteCheck(DI));
-        //llvm::outs() << "dcl WC\n";
-      }
-      else
-      {
-        /*
-        ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
-        if (!ErrNode)
-        {
-          return;
-        }
-        BReporter.reportWriteCheckBug(C, D, ErrNode, C.getBugReporter());
-        */
-      }
-    }
+    C.addTransition(State);
   }
-
-  //iterate for scl
-  for (auto &[dataDeclDecl, sclState] : State->get<SclMap>())
-  {
-    if (sclState.isSameCheckName(checkName))
-    {
-      seenCheck = true;
-      //update state
-      if (sclState.isVFenceData())
-      {
-        //update to WC
-        DataInfo *DI = sclState.getDataInfo();
-        State = State->set<SclMap>(dataDeclDecl, SclState::getWriteCheck(DI));
-        llvm::outs() << "scl WC\n";
-      }
-      else
-      {
-        /*
-        ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
-        if (!ErrNode)
-        {
-          return;
-        }
-        BReporter.reportWriteCheckBug(C, D, ErrNode, C.getBugReporter());
-        */
-      }
-    }
-  }
-
-  if (!seenCheck)
+  else
   {
     ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
     if (!ErrNode)
@@ -251,11 +170,6 @@ void OrderingChecker::handleWriteCheck(CheckerContext &C,
       return;
     }
     BReporter.reportWriteCheckBug(C, D, ErrNode, C.getBugReporter());
-  }
-  else
-  {
-    //add modified state
-    C.addTransition(State);
   }
 }
 
@@ -271,32 +185,14 @@ void OrderingChecker::handleWriteMask(
   }
   else
   {
-
     //access data part - guaranteeed to be scl
     ProgramStateRef State = C.getState();
-    const SclState *SS = State->get<SclMap>(D);
 
-    //check if in correct state
-    if (!SS || SS->isWriteCheck())
+    bool stateModified = sclWriteMaskTrans(State, D, CDI);
+
+    if (stateModified)
     {
-      //todo leak of old state DI
-      DataInfo *DI = CDI->getDI();
-
-      //update to WD state
-      State = State->set<SclMap>(D, SclState::getWriteData(DI));
       C.addTransition(State);
-      llvm::outs() << "scl mask WD\n";
-    }
-    else
-    {
-      /*
-      ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
-      if (!ErrNode)
-      {
-        return;
-      }
-      BReporter.reportWriteDataBug(C, D, ErrNode, C.getBugReporter());
-      */
     }
   }
 }
@@ -354,32 +250,14 @@ void OrderingChecker::handleFlushData(CheckerContext &C, const DeclaratorDecl *D
                                       DataInfo *DI) const
 {
   ProgramStateRef State = C.getState();
-
-  //check if not completed or not initial throw error
+  bool stateModified = false;
   if (DI->isDcl())
   {
-    //different cache line
-    const DclState *SS = State->get<DclMap>(D);
-
-    //check if in correct state
-    if (SS->isWriteData())
-    {
-      //update to WD state
-      State = State->set<DclMap>(D, DclState::getFlushData(DI));
-      C.addTransition(State);
-      //llvm::outs() << "FD\n";
-    }
-    else
-    {
-      /*
-      ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
-      if (!ErrNode)
-      {
-        return;
-      }
-      BReporter.reportFlushDataBug(C, D, ErrNode, C.getBugReporter());
-      */
-    }
+    stateModified |= dclFlushDataTrans(State, D, DI);
+  }
+  if (stateModified)
+  {
+    C.addTransition(State);
   }
 }
 
@@ -388,49 +266,9 @@ void OrderingChecker::handleFlushCheck(CheckerContext &C, const DeclaratorDecl *
 {
   ProgramStateRef State = C.getState();
   StringRef checkName = D->getName();
-  bool seenCheck = false;
+  bool stateModified = dclFlushCheckTrans(State, checkName);
 
-  //iterate for dcl
-  for (auto &[dataDeclDecl, dclState] : State->get<DclMap>())
-  {
-    if (dclState.isSameCheckName(checkName))
-    {
-      seenCheck = true;
-      //update state
-      if (dclState.isWriteCheck())
-      {
-
-        //update to WC
-        DataInfo *DI = dclState.getDataInfo();
-        State = State->set<DclMap>(dataDeclDecl, DclState::getFlushCheck(DI));
-        //llvm::outs() << "FC\n";
-      }
-      else
-      {
-        /*
-        ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
-        if (!ErrNode)
-        {
-          return;
-        }
-        BReporter.reportFlushCheckBug(C, D, ErrNode, C.getBugReporter());
-        */
-      }
-    }
-  }
-
-  if (!seenCheck)
-  {
-    /*
-    ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
-    if (!ErrNode)
-    {
-      return;
-    }
-    BReporter.reportFlushCheckBug(C, D, ErrNode, C.getBugReporter());
-    */
-  }
-  else
+  if (stateModified)
   {
     C.addTransition(State);
   }
@@ -440,59 +278,8 @@ void OrderingChecker::handlePFence(const CallEvent &Call,
                                    CheckerContext &C) const
 {
   ProgramStateRef State = C.getState();
-  bool stateModified = false;
-  //iterate for dcl
-  for (auto &[dataDeclDecl, dclState] : State->get<DclMap>())
-  {
-    if (dclState.isFlushData())
-    {
-      DataInfo *DI = dclState.getDataInfo();
-      State = State->set<DclMap>(dataDeclDecl, DclState::getPFenceData(DI));
-      stateModified = true;
-      //llvm::outs() << "PD\n";
-    }
-    else if (dclState.isFlushCheck())
-    {
-      DataInfo *DI = dclState.getDataInfo();
-      State = State->set<DclMap>(dataDeclDecl, DclState::getPFenceCheck(DI));
-      stateModified = true;
-      //llvm::outs() << "PC\n";
-    }
-    else
-    {
-      /*
-      ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
-      if (!ErrNode)
-      {
-        return;
-      }
-      BReporter.reportFenceBug(Call, C, ErrNode, C.getBugReporter());
-      */
-    }
-  }
-
-  //iterate for scl
-  for (auto &[dataDeclDecl, sclState] : State->get<SclMap>())
-  {
-    if (sclState.isWriteData())
-    {
-      DataInfo *DI = sclState.getDataInfo();
-      State = State->set<SclMap>(dataDeclDecl, SclState::getVFenceData(DI));
-      stateModified = true;
-      llvm::outs() << "pfence VD\n";
-    }
-    else
-    {
-      /*
-      ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
-      if (!ErrNode)
-      {
-        return;
-      }
-      BReporter.reportFenceBug(Call, C, ErrNode, C.getBugReporter());
-      */
-    }
-  }
+  bool stateModified = dclPFenceTrans(State);
+  stateModified |= sclPFenceTrans(State);
 
   if (stateModified)
   {
@@ -504,29 +291,7 @@ void OrderingChecker::handleVFence(const CallEvent &Call,
                                    CheckerContext &C) const
 {
   ProgramStateRef State = C.getState();
-  bool stateModified = false;
-  //iterate for scl
-  for (auto &[dataDeclDecl, sclState] : State->get<SclMap>())
-  {
-    if (sclState.isWriteData())
-    {
-      DataInfo *DI = sclState.getDataInfo();
-      State = State->set<SclMap>(dataDeclDecl, SclState::getVFenceData(DI));
-      stateModified = true;
-      llvm::outs() << "vfence VD\n";
-    }
-    else
-    {
-      /*
-      ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
-      if (!ErrNode)
-      {
-        return;
-      }
-      BReporter.reportFenceBug(Call, C, ErrNode, C.getBugReporter());
-      */
-    }
-  }
+  bool stateModified = sclVFenceTrans(State);
 
   if (stateModified)
   {

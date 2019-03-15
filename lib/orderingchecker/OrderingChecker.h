@@ -3,7 +3,8 @@
 #include "Common.h"
 #include "FunctionInfos.h"
 #include "TypeInfos.h"
-#include "Fsm.hpp"
+#include "States.h"
+#include "Transitions.h"
 
 constexpr const char *CHECKER_PLUGIN_NAME = "nvm.orderingchecker";
 
@@ -70,5 +71,4 @@ private:
 
 } // namespace clang::ento::nvm
 
-REGISTER_MAP_WITH_PROGRAMSTATE(SclMap, const clang::DeclaratorDecl *, clang::ento::nvm::SclState)
-REGISTER_MAP_WITH_PROGRAMSTATE(DclMap, const clang::DeclaratorDecl *, clang::ento::nvm::DclState)
+
