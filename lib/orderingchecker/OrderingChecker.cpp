@@ -74,6 +74,7 @@ ProgramStateRef OrderingChecker::checkPointerEscape(ProgramStateRef State,
 void OrderingChecker::checkBind(SVal Loc, SVal Val, const Stmt *S,
                                 CheckerContext &C) const
 {
+  //S->dump();
   const MemRegion *Region = Loc.getAsRegion();
   if (const FieldRegion *FieldReg = Region->getAs<FieldRegion>())
   {
@@ -86,7 +87,18 @@ void OrderingChecker::checkBind(SVal Loc, SVal Val, const Stmt *S,
       if (LI->isCheck())
       {
         auto *I = static_cast<CheckInfo *>(LI);
-        handleWriteCheck(C, D, I);
+        if (I->hasMask())
+        {
+          //bit field special case
+          //can be data or check, if it is data, treat is as data
+          //if it is check, treat it as check
+          auto *CDI = static_cast<CheckDataInfo *>(I);
+          handleWriteMask(S, C, D, CDI);
+        }
+        else
+        {
+          handleWriteCheck(C, D, I);
+        }
       }
       else
       {
@@ -151,8 +163,8 @@ void OrderingChecker::handleWriteData(CheckerContext &C, const DeclaratorDecl *D
   }
 }
 
-void OrderingChecker::handleWriteCheck(CheckerContext &C, const DeclaratorDecl *D,
-                                       CheckInfo *CI) const
+void OrderingChecker::handleWriteCheck(CheckerContext &C,
+                                       const DeclaratorDecl *D, CheckInfo *CI) const
 {
   ProgramStateRef State = C.getState();
   StringRef checkName = D->getName();
@@ -220,6 +232,20 @@ void OrderingChecker::handleWriteCheck(CheckerContext &C, const DeclaratorDecl *
       return;
     }
     BReporter.reportWriteCheckBug(C, D, ErrNode, C.getBugReporter());
+  }
+}
+
+void OrderingChecker::handleWriteMask(
+    const Stmt *S, CheckerContext &C, 
+    const DeclaratorDecl *D, CheckDataInfo *CDI) const
+{
+  if (usesMask(S, CDI->getMask()))
+  {
+    llvm::outs() << "uses mask\n";
+  }
+  else
+  {
+    llvm::outs() << "does not use mask\n";
   }
 }
 
@@ -319,6 +345,7 @@ void OrderingChecker::handleFlushCheck(CheckerContext &C, const DeclaratorDecl *
       //update state
       if (dclState.isWriteCheck())
       {
+
         //update to WC
         DataInfo *DI = dclState.getDataInfo();
         State = State->set<DclMap>(dataDeclDecl, DclState::getFlushCheck(DI));

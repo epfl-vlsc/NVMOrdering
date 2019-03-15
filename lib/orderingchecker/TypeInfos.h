@@ -7,6 +7,11 @@
 namespace clang::ento::nvm
 {
 
+bool usesMask(const Stmt *S, StringRef mask)
+{
+    return false;
+}
+
 int hasInt(const std::string &in)
 {
     std::stringstream sstr(in);
@@ -44,7 +49,8 @@ class DataInfo : public LabeledInfo
         return isDcl_;
     }
 
-    bool isSameCheckName(const StringRef& otherCheckName){
+    bool isSameCheckName(const StringRef &otherCheckName)
+    {
         return checkName_.equals(otherCheckName);
     }
 };
@@ -52,20 +58,41 @@ class DataInfo : public LabeledInfo
 class CheckInfo : public LabeledInfo
 {
     bool hasMask_;
-    int maskValue_;
+    StringRef maskStr_;
 
   public:
-    CheckInfo(bool check, bool msk, int maskVal)
-        : LabeledInfo(check), hasMask_(msk), maskValue_(maskVal) {}
+    CheckInfo(bool check, bool msk, StringRef maskVal)
+        : LabeledInfo(check), hasMask_(msk), maskStr_(maskVal) {}
 
     bool hasMask()
     {
         return hasMask_;
     }
 
-    int getMaskValue()
+    StringRef getMask()
     {
-        return maskValue_;
+        return maskStr_;
+    }
+};
+
+class CheckDataInfo : public CheckInfo
+{
+    StringRef checkName_;
+    bool isDcl_;
+
+  public:
+    CheckDataInfo(bool check, bool dcl, const StringRef &cName,
+                  bool msk, StringRef maskVal)
+        : CheckInfo(check, msk, maskVal), checkName_(cName), isDcl_(dcl) {}
+
+    bool isDcl()
+    {
+        return isDcl_;
+    }
+
+    bool isSameCheckName(const StringRef &otherCheckName)
+    {
+        return checkName_.equals(otherCheckName);
     }
 };
 
@@ -76,6 +103,7 @@ class NVMTypeInfo
     static constexpr const char *CHECK = "check";
     static constexpr const char *SEP = "-";
     static constexpr const char *DOT_SEP = ".";
+    static constexpr const StringRef emptySR;
     std::map<const DeclaratorDecl *, LabeledInfo *> labels;
 
   public:
@@ -109,17 +137,19 @@ class NVMTypeInfo
             }
             else if (annotInfo.contains(CHECK))
             {
-                auto numStr = textInfo.str();
-
-                if (auto numVal = hasInt(numStr); numVal)
+                if (textInfo.empty())
                 {
-                    labels[D] = new CheckInfo(true, true, numVal);
-                    //llvm::outs() << "check mask " << annot << "\n";
+                    labels[D] = new CheckInfo(true, false, emptySR);
+                    //llvm::outs() << "check " << annot << "\n";
                 }
                 else
                 {
-                    labels[D] = new CheckInfo(true, false, 0);
-                    //llvm::outs() << "check " << annot << "\n";
+                    StringRef fieldName = D->getName();
+                    labels[D] = new CheckDataInfo(true, false, fieldName, true, textInfo);
+                    /*
+                    llvm::outs() << "m: " << textInfo << " f: " << fieldName
+                                 << " " << annot << "\n";
+                    */
                 }
             }
         }

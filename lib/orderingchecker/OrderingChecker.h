@@ -12,7 +12,7 @@ namespace clang::ento::nvm
 
 class OrderingChecker
     : public Checker<check::BeginFunction, check::EndFunction,
-                     check::Bind, check::PreCall, 
+                     check::Bind, check::PreCall,
                      check::ASTDecl<FunctionDecl>, check::ASTDecl<DeclaratorDecl>,
                      check::DeadSymbols, check::PointerEscape>
 {
@@ -53,6 +53,9 @@ private:
 
   void handleWriteCheck(CheckerContext &C, const DeclaratorDecl *D,
                         CheckInfo *CI) const;
+
+  void handleWriteMask(const Stmt *S, CheckerContext &C, const DeclaratorDecl *D,
+                                        CheckDataInfo *DCI) const;
 
   void handleFlushData(CheckerContext &C, const DeclaratorDecl *D,
                        DataInfo *DI) const;
