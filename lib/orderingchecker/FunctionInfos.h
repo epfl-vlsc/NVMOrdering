@@ -5,30 +5,6 @@
 namespace clang::ento::nvm
 {
 
-const FunctionDecl* getFuncDecl(const CallEvent &Call){
-    const Decl* BD = Call.getDecl();
-    if (const FunctionDecl *D = dyn_cast_or_null<FunctionDecl>(BD))
-    {
-        return D;
-    }
-    llvm::report_fatal_error("All calls have function declaration");
-    return nullptr;
-}
-
-const DeclaratorDecl* getDeclaratorDecl(const Decl* BD){
-    if (const DeclaratorDecl *D = dyn_cast_or_null<DeclaratorDecl>(BD))
-    {
-        return D;
-    }
-    llvm::report_fatal_error("All calls have function declaration");
-    return nullptr;
-}
-
-bool isTopFunction(CheckerContext &C)
-{
-    return C.inTopFrame();
-}
-
 class BaseFunction
 {
   protected:
@@ -131,8 +107,8 @@ class NVMFunctionInfo
 
     bool isAnnotatedFunction(CheckerContext &C) const
     {
-        const LocationContext *LCtx = C.getLocationContext();
-        if (const FunctionDecl *D = dyn_cast_or_null<FunctionDecl>(LCtx->getDecl()))
+        const LocationContext *LC = C.getLocationContext();
+        if (const FunctionDecl *D = dyn_cast_or_null<FunctionDecl>(LC->getDecl()))
         {
             return annotFnc.inFunctions(D);
         }

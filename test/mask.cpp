@@ -44,7 +44,7 @@ struct LogEntry
 
     pscl(LogEntry.valid) int data;
     pcheck() int valid;
-    pscl(LogEntry.valid) int cdata;
+    pscl(LogEntry.chunk) int cdata;
     pcheck(MASK) int chunk;
 
     LogEntry()
@@ -54,7 +54,7 @@ struct LogEntry
         chunk = (chunk & ~MASK) | 0;
         vfence();
         chunk = (chunk & MASK) | 0;
-        valid=1;
+        valid=0;
     }
 
     void setData(int data_)

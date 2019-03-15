@@ -20,7 +20,6 @@ void assign(int* a, int val){
 	*a = val;
 }
 
-
 struct ParentA{
 	int a;
 };
@@ -59,7 +58,6 @@ struct LogEntry{
 		valid = 1;
 	}
 };
-
 
 void persistent_code correctModelFunction(){
 	LogEntry* entry = new LogEntry;

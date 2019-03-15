@@ -1,4 +1,6 @@
 //===-- OrderingChecker.cpp -----------------------------------------*
+//ensure main handle functions only add one state
+
 #include "OrderingChecker.h"
 
 namespace clang::ento::nvm
@@ -20,14 +22,23 @@ void OrderingChecker::checkBeginFunction(CheckerContext &C) const
 
 void OrderingChecker::checkEndFunction(CheckerContext &C) const
 {
+  const LocationContext *LC = C.getLocationContext();
+  const FunctionDecl *D = getFuncDecl(LC);
+  llvm::outs() << D->getName() << " end\n";
+
   bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
   bool isTopFnc = isTopFunction(C);
   if (isAnnotated && isTopFnc)
   {
+    //ensured it is the top function and annotated
+
     ProgramStateRef State = C.getState();
     //iterate over dcl
     for (auto &[dataDeclDecl, dclState] : State->get<DclMap>())
     {
+
+      llvm::outs() << dataDeclDecl << " dcl "
+                   << dataDeclDecl->getName() << " " << dclState.getStateName() << "\n";
       if (!dclState.isPFenceCheck())
       {
         ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
@@ -42,6 +53,8 @@ void OrderingChecker::checkEndFunction(CheckerContext &C) const
     //iterate over scl
     for (auto &[dataDeclDecl, sclState] : State->get<SclMap>())
     {
+      llvm::outs() << dataDeclDecl << " scl "
+                   << dataDeclDecl->getName() << " " << sclState.getStateName() << "\n";
       if (!sclState.isWriteCheck())
       {
         ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
@@ -58,7 +71,7 @@ void OrderingChecker::checkEndFunction(CheckerContext &C) const
 void OrderingChecker::checkDeadSymbols(SymbolReaper &SymReaper, CheckerContext &C) const
 {
   //todo implement
-  llvm::outs() << "consider implementing checkDeadSymbols\n";
+  //llvm::outs() << "consider implementing checkDeadSymbols\n";
 }
 
 ProgramStateRef OrderingChecker::checkPointerEscape(ProgramStateRef State,
@@ -67,7 +80,7 @@ ProgramStateRef OrderingChecker::checkPointerEscape(ProgramStateRef State,
                                                     PointerEscapeKind Kind) const
 {
   //todo implement
-  llvm::outs() << "consider implementing checkPointerEscape\n";
+  //llvm::outs() << "consider implementing checkPointerEscape\n";
   return State;
 }
 
@@ -126,16 +139,18 @@ void OrderingChecker::handleWriteData(CheckerContext &C, const DeclaratorDecl *D
       //update to WD state
       State = State->set<DclMap>(D, DclState::getWriteData(DI));
       C.addTransition(State);
-      //llvm::outs() << "WD\n";
+      //llvm::outs() << "dcl WD\n";
     }
     else
     {
+      /*
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {
         return;
       }
       BReporter.reportWriteDataBug(C, D, ErrNode, C.getBugReporter());
+      */
     }
   }
   else
@@ -149,16 +164,18 @@ void OrderingChecker::handleWriteData(CheckerContext &C, const DeclaratorDecl *D
       //update to WD state
       State = State->set<SclMap>(D, SclState::getWriteData(DI));
       C.addTransition(State);
-      //llvm::outs() << "WD\n";
+      llvm::outs() << "scl WD\n";
     }
     else
     {
+      /*
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {
         return;
       }
       BReporter.reportWriteDataBug(C, D, ErrNode, C.getBugReporter());
+      */
     }
   }
 }
@@ -182,17 +199,18 @@ void OrderingChecker::handleWriteCheck(CheckerContext &C,
         //update to WC
         DataInfo *DI = dclState.getDataInfo();
         State = State->set<DclMap>(dataDeclDecl, DclState::getWriteCheck(DI));
-        C.addTransition(State);
-        llvm::outs() << "WC\n";
+        //llvm::outs() << "dcl WC\n";
       }
       else
       {
+        /*
         ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
         if (!ErrNode)
         {
           return;
         }
         BReporter.reportWriteCheckBug(C, D, ErrNode, C.getBugReporter());
+        */
       }
     }
   }
@@ -209,17 +227,18 @@ void OrderingChecker::handleWriteCheck(CheckerContext &C,
         //update to WC
         DataInfo *DI = sclState.getDataInfo();
         State = State->set<SclMap>(dataDeclDecl, SclState::getWriteCheck(DI));
-        C.addTransition(State);
-        //llvm::outs() << "WC\n";
+        llvm::outs() << "scl WC\n";
       }
       else
       {
+        /*
         ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
         if (!ErrNode)
         {
           return;
         }
         BReporter.reportWriteCheckBug(C, D, ErrNode, C.getBugReporter());
+        */
       }
     }
   }
@@ -233,19 +252,52 @@ void OrderingChecker::handleWriteCheck(CheckerContext &C,
     }
     BReporter.reportWriteCheckBug(C, D, ErrNode, C.getBugReporter());
   }
+  else
+  {
+    //add modified state
+    C.addTransition(State);
+  }
 }
 
 void OrderingChecker::handleWriteMask(
-    const Stmt *S, CheckerContext &C, 
+    const Stmt *S, CheckerContext &C,
     const DeclaratorDecl *D, CheckDataInfo *CDI) const
 {
   if (usesMask(S, CDI->getMask()))
   {
-    llvm::outs() << "uses mask\n";
+    //access validity part
+    auto *I = static_cast<CheckInfo *>(CDI);
+    handleWriteCheck(C, D, I);
   }
   else
   {
-    llvm::outs() << "does not use mask\n";
+
+    //access data part - guaranteeed to be scl
+    ProgramStateRef State = C.getState();
+    const SclState *SS = State->get<SclMap>(D);
+
+    //check if in correct state
+    if (!SS || SS->isWriteCheck())
+    {
+      //todo leak of old state DI
+      DataInfo *DI = CDI->getDI();
+
+      //update to WD state
+      State = State->set<SclMap>(D, SclState::getWriteData(DI));
+      C.addTransition(State);
+      llvm::outs() << "scl mask WD\n";
+    }
+    else
+    {
+      /*
+      ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
+      if (!ErrNode)
+      {
+        return;
+      }
+      BReporter.reportWriteDataBug(C, D, ErrNode, C.getBugReporter());
+      */
+    }
   }
 }
 
@@ -319,12 +371,14 @@ void OrderingChecker::handleFlushData(CheckerContext &C, const DeclaratorDecl *D
     }
     else
     {
+      /*
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {
         return;
       }
       BReporter.reportFlushDataBug(C, D, ErrNode, C.getBugReporter());
+      */
     }
   }
 }
@@ -349,29 +403,36 @@ void OrderingChecker::handleFlushCheck(CheckerContext &C, const DeclaratorDecl *
         //update to WC
         DataInfo *DI = dclState.getDataInfo();
         State = State->set<DclMap>(dataDeclDecl, DclState::getFlushCheck(DI));
-        C.addTransition(State);
         //llvm::outs() << "FC\n";
       }
       else
       {
+        /*
         ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
         if (!ErrNode)
         {
           return;
         }
         BReporter.reportFlushCheckBug(C, D, ErrNode, C.getBugReporter());
+        */
       }
     }
   }
 
   if (!seenCheck)
   {
+    /*
     ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
     if (!ErrNode)
     {
       return;
     }
     BReporter.reportFlushCheckBug(C, D, ErrNode, C.getBugReporter());
+    */
+  }
+  else
+  {
+    C.addTransition(State);
   }
 }
 
@@ -379,6 +440,7 @@ void OrderingChecker::handlePFence(const CallEvent &Call,
                                    CheckerContext &C) const
 {
   ProgramStateRef State = C.getState();
+  bool stateModified = false;
   //iterate for dcl
   for (auto &[dataDeclDecl, dclState] : State->get<DclMap>())
   {
@@ -386,24 +448,26 @@ void OrderingChecker::handlePFence(const CallEvent &Call,
     {
       DataInfo *DI = dclState.getDataInfo();
       State = State->set<DclMap>(dataDeclDecl, DclState::getPFenceData(DI));
-      C.addTransition(State);
+      stateModified = true;
       //llvm::outs() << "PD\n";
     }
     else if (dclState.isFlushCheck())
     {
       DataInfo *DI = dclState.getDataInfo();
       State = State->set<DclMap>(dataDeclDecl, DclState::getPFenceCheck(DI));
-      C.addTransition(State);
+      stateModified = true;
       //llvm::outs() << "PC\n";
     }
     else
     {
+      /*
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {
         return;
       }
       BReporter.reportFenceBug(Call, C, ErrNode, C.getBugReporter());
+      */
     }
   }
 
@@ -414,18 +478,25 @@ void OrderingChecker::handlePFence(const CallEvent &Call,
     {
       DataInfo *DI = sclState.getDataInfo();
       State = State->set<SclMap>(dataDeclDecl, SclState::getVFenceData(DI));
-      C.addTransition(State);
-      //llvm::outs() << "VD\n";
+      stateModified = true;
+      llvm::outs() << "pfence VD\n";
     }
     else
     {
+      /*
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {
         return;
       }
       BReporter.reportFenceBug(Call, C, ErrNode, C.getBugReporter());
+      */
     }
+  }
+
+  if (stateModified)
+  {
+    C.addTransition(State);
   }
 }
 
@@ -433,6 +504,7 @@ void OrderingChecker::handleVFence(const CallEvent &Call,
                                    CheckerContext &C) const
 {
   ProgramStateRef State = C.getState();
+  bool stateModified = false;
   //iterate for scl
   for (auto &[dataDeclDecl, sclState] : State->get<SclMap>())
   {
@@ -440,18 +512,25 @@ void OrderingChecker::handleVFence(const CallEvent &Call,
     {
       DataInfo *DI = sclState.getDataInfo();
       State = State->set<SclMap>(dataDeclDecl, SclState::getVFenceData(DI));
-      C.addTransition(State);
-      //llvm::outs() << "VD\n";
+      stateModified = true;
+      llvm::outs() << "vfence VD\n";
     }
     else
     {
+      /*
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {
         return;
       }
       BReporter.reportFenceBug(Call, C, ErrNode, C.getBugReporter());
+      */
     }
+  }
+
+  if (stateModified)
+  {
+    C.addTransition(State);
   }
 }
 

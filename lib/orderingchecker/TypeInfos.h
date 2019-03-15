@@ -7,9 +7,44 @@
 namespace clang::ento::nvm
 {
 
+void maskTraverse(const Stmt *S, StringRef mask, bool &usesMask, bool &usesNegate)
+{
+    if (S)
+    {
+        if (const UnaryOperator *D = dyn_cast_or_null<UnaryOperator>(S))
+        {
+            usesNegate = true;
+        }
+
+        if (const DeclRefExpr *D = dyn_cast_or_null<DeclRefExpr>(S))
+        {
+            StringRef currentMask = D->getNameInfo()
+                                        .getName()
+                                        .getAsIdentifierInfo()
+                                        ->getName();
+            if (currentMask.equals(mask))
+            {
+                usesMask = true;
+            }
+        }
+
+        for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
+             I != E; ++I)
+        {
+            if (const Stmt *Child = *I)
+            {
+                maskTraverse(Child, mask, usesMask, usesNegate);
+            }
+        }
+    }
+}
+
 bool usesMask(const Stmt *S, StringRef mask)
 {
-    return false;
+    bool usesMask = false;
+    bool usesNegate = false;
+    maskTraverse(S, mask, usesMask, usesNegate);
+    return (usesMask && !usesNegate);
 }
 
 int hasInt(const std::string &in)
@@ -94,6 +129,11 @@ class CheckDataInfo : public CheckInfo
     {
         return checkName_.equals(otherCheckName);
     }
+
+    //todo use smart pointer
+    DataInfo* getDI(){
+        return new DataInfo(false, false, checkName_);
+    }
 };
 
 class NVMTypeInfo
@@ -123,14 +163,14 @@ class NVMTypeInfo
             if (auto [annotInfo, textInfo] = annot.split(SEP);
                 annotInfo.contains(DCL))
             {
-                //todo use fullname for field save
+                //todo use fully qualified name
                 auto [_, fieldName] = annot.split(DOT_SEP);
                 labels[D] = new DataInfo(false, true, fieldName);
                 //llvm::outs() << "dcl " << annot << " " << fieldName << "\n";
             }
             else if (annotInfo.contains(SCL))
             {
-                //todo use fullname for field save
+                //todo use fully qualified name
                 auto [_, fieldName] = annot.split(DOT_SEP);
                 labels[D] = new DataInfo(false, false, fieldName);
                 //llvm::outs() << "scl " << annot << "\n";

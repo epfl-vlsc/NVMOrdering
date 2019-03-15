@@ -18,6 +18,12 @@ struct DclState
         PC
     } K;
     DataInfo *DI_;
+    static constexpr const char* Str[] = {
+        "WriteData", "FlushData", "PfenceData",
+        "WriteCheck", "FlushCheck", "PfenceCheck"
+    };
+
+
     DclState(Kind kind, DataInfo *DI)
         : K(kind), DI_(DI) {}
 
@@ -51,10 +57,15 @@ struct DclState
         return K == X.K;
     }
 
+    const char* getStateName() const{
+        return Str[K];
+    }
+
     void Profile(llvm::FoldingSetNodeID &ID) const
     {
         ID.AddInteger(K);
         ID.AddPointer(DI_);
+        ID.AddPointer(Str);
     }
 };
 
@@ -68,6 +79,9 @@ struct SclState
         WC
     } K;
     DataInfo *DI_;
+    static constexpr const char* Str[] = {
+        "WriteData", "VfenceData", "WriteCheck"
+    };
 
     SclState(Kind kind, DataInfo *DI)
         : K(kind), DI_(DI) {}
@@ -96,10 +110,15 @@ struct SclState
         return DI_;
     }
 
+    const char* getStateName() const{
+        return Str[K];
+    }
+
     void Profile(llvm::FoldingSetNodeID &ID) const
     {
         ID.AddInteger(K);
         ID.AddPointer(DI_);
+        ID.AddPointer(Str);
     }
 };
 

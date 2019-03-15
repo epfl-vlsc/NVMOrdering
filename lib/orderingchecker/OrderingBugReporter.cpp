@@ -52,9 +52,15 @@ void OrderingBugReporter::reportWriteCheckBug(
 void OrderingBugReporter::reportModelBug(
     CheckerContext &C, const ExplodedNode *const ExplNode, BugReporter &BReporter) const
 {
-    std::string ErrorText = "Wrong model usage";
+    const LocationContext *LC = C.getLocationContext();
+    const FunctionDecl *D = getFuncDecl(LC);
+    std::string ErrorText = "Wrong model usage at function: " + D->getNameAsString();
+    
+
     auto Report = llvm::make_unique<BugReport>(*WrongModelBugType,
                                                ErrorText, ExplNode);
+    Report->markInteresting(LC);
+
     BReporter.emitReport(std::move(Report));
 }
 
