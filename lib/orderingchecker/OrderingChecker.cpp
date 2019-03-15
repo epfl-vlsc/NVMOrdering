@@ -30,7 +30,6 @@ void OrderingChecker::checkEndFunction(CheckerContext &C) const
     {
       if (!dclState.isPFenceCheck())
       {
-        //todo throw bug
         ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
         if (!ErrNode)
         {
@@ -45,7 +44,6 @@ void OrderingChecker::checkEndFunction(CheckerContext &C) const
     {
       if (!sclState.isWriteCheck())
       {
-        //todo throw bug
         ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
         if (!ErrNode)
         {
@@ -120,7 +118,6 @@ void OrderingChecker::handleWriteData(CheckerContext &C, const DeclaratorDecl *D
     }
     else
     {
-      //todo throw bug
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {
@@ -144,7 +141,6 @@ void OrderingChecker::handleWriteData(CheckerContext &C, const DeclaratorDecl *D
     }
     else
     {
-      //todo throw bug
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {
@@ -175,11 +171,10 @@ void OrderingChecker::handleWriteCheck(CheckerContext &C, const DeclaratorDecl *
         DataInfo *DI = dclState.getDataInfo();
         State = State->set<DclMap>(dataDeclDecl, DclState::getWriteCheck(DI));
         C.addTransition(State);
-        //llvm::outs() << "WC\n";
+        llvm::outs() << "WC\n";
       }
       else
       {
-        //todo throw bug
         ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
         if (!ErrNode)
         {
@@ -207,7 +202,6 @@ void OrderingChecker::handleWriteCheck(CheckerContext &C, const DeclaratorDecl *
       }
       else
       {
-        //todo throw bug
         ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
         if (!ErrNode)
         {
@@ -220,12 +214,12 @@ void OrderingChecker::handleWriteCheck(CheckerContext &C, const DeclaratorDecl *
 
   if (!seenCheck)
   {
-    //todo throw bug
-    ExplodedNode *N = C.generateNonFatalErrorNode(State);
-    if (!N)
+    ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
+    if (!ErrNode)
     {
       return;
     }
+    BReporter.reportWriteCheckBug(C, D, ErrNode, C.getBugReporter());
   }
 }
 
@@ -299,7 +293,6 @@ void OrderingChecker::handleFlushData(CheckerContext &C, const DeclaratorDecl *D
     }
     else
     {
-      //todo throw bug
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {
@@ -334,7 +327,6 @@ void OrderingChecker::handleFlushCheck(CheckerContext &C, const DeclaratorDecl *
       }
       else
       {
-        //todo throw bug
         ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
         if (!ErrNode)
         {
@@ -347,7 +339,6 @@ void OrderingChecker::handleFlushCheck(CheckerContext &C, const DeclaratorDecl *
 
   if (!seenCheck)
   {
-    //todo throw bug
     ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
     if (!ErrNode)
     {
@@ -380,7 +371,6 @@ void OrderingChecker::handlePFence(const CallEvent &Call,
     }
     else
     {
-      //todo throw bug
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {
@@ -402,7 +392,6 @@ void OrderingChecker::handlePFence(const CallEvent &Call,
     }
     else
     {
-      //todo throw bug
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {
@@ -429,7 +418,6 @@ void OrderingChecker::handleVFence(const CallEvent &Call,
     }
     else
     {
-      //todo throw bug
       ExplodedNode *ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode)
       {

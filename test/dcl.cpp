@@ -59,7 +59,7 @@ struct LogEntry{
 		clflush(&valid);
 	}
 
-	void persistent_code good(){
+	void persistent_code correctModelMethod(){
 		data = 1;
 		clflush(&data);
 		pfence();
@@ -68,7 +68,7 @@ struct LogEntry{
 		pfence();
 	}
 
-	void persistent_code bad(){
+	void persistent_code finalFenceMissing(){
 		data = 1;
 		clflush(&data);
 		pfence();
@@ -78,14 +78,19 @@ struct LogEntry{
 };
 
 
-void persistent_code good(){
-	LogEntry entry;
-	entry.setData(1);
-	entry.flushData();
+void persistent_code correctModelFunction(){
+	LogEntry* entry = new LogEntry;
+	entry->setData(1);
+	entry->flushData();
 	pfence();
-	entry.setValid(1);
-	entry.flushValid();
+	entry->setValid(1);
+	entry->flushValid();
 	pfence();
+}
+
+void persistent_code writeToValid(){
+	LogEntry* entry = new LogEntry;
+	entry->setValid(1);
 }
 
 void megaman(){
