@@ -34,7 +34,14 @@ struct LogEntry{
 	pdcl(LogEntry.valid) int data;
 	pcheck() int valid;
 
-	LogEntry():data(0), valid(0){}
+	LogEntry(){
+		data = 0;
+		clflush(&data);
+		pfence();
+		valid = 0;
+		clflush(&valid);
+		pfence();
+	}
 
 	void setData(int data_){
 		data = 1;
@@ -59,6 +66,14 @@ struct LogEntry{
 		valid = 1;
 		clflush(&valid);
 		pfence();
+	}
+
+	void persistent_code bad(){
+		data = 1;
+		clflush(&data);
+		pfence();
+		valid = 1;
+		clflush(&valid);
 	}
 };
 

@@ -11,16 +11,18 @@ namespace clang::ento::nvm
 {
 
 class OrderingChecker
-    : public Checker<check::BeginFunction, check::Bind,
-                     check::PreCall, check::ASTDecl<FunctionDecl>,
-                     check::ASTDecl<DeclaratorDecl>, check::DeadSymbols,
-                     check::PointerEscape>
+    : public Checker<check::BeginFunction, check::EndFunction,
+                     check::Bind, check::PreCall, 
+                     check::ASTDecl<FunctionDecl>, check::ASTDecl<DeclaratorDecl>,
+                     check::DeadSymbols, check::PointerEscape>
 {
 
 public:
-  OrderingChecker();
+  OrderingChecker() : BReporter(*this) {}
 
   void checkBeginFunction(CheckerContext &Ctx) const;
+
+  void checkEndFunction(CheckerContext &C) const;
 
   void checkPreCall(const CallEvent &Call, CheckerContext &C) const;
 
