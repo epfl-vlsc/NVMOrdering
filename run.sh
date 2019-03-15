@@ -1,5 +1,11 @@
 mode=$1
-test_file=../test/dcl.cpp
+test_name=$2
+if [ -z "$test_name" ]
+  then
+	test_name=dcl
+fi
+
+test_file=../test/$test_name.cpp
 
 create_build(){
 	mkdir -p build
