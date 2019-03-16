@@ -52,7 +52,7 @@ bool dclWriteCheckTrans(ProgramStateRef& State, const StringRef& checkName) {
         // update to WC
         DataInfo* DI = dclState.getDataInfo();
         State = State->set<DclMap>(dataDeclDecl, DclState::getWriteCheck(DI));
-        stateModified = false;
+        stateModified = true;
         // llvm::outs() << "dcl WC\n";
       } else {
         // todo throw bug
