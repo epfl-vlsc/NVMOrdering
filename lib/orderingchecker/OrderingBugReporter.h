@@ -6,19 +6,16 @@
 namespace clang::ento::nvm {
 
 class WrongModelWalker : public BugReporterVisitorImpl<WrongModelWalker> {
+  const Decl* D;
 
 public:
-  WrongModelWalker() {}
+  WrongModelWalker(const Decl* decl) : D(decl) {}
   void Profile(llvm::FoldingSetNodeID& ID) const {}
 
   std::shared_ptr<PathDiagnosticPiece> VisitNode(const ExplodedNode* N,
                                                  const ExplodedNode* PrevN,
                                                  BugReporterContext& BRC,
-                                                 BugReport& BR) {
-
-    llvm::outs() << "visit node\n";
-    return nullptr;
-  }
+                                                 BugReport& BR);
 };
 
 class OrderingBugReporter {
@@ -37,8 +34,7 @@ public:
   void reportWriteBug(CheckerContext& C, const DeclaratorDecl* D,
                       const ExplodedNode* const ExplNode,
                       BugReporter& BReporter) const;
-  void reportModelBug(CheckerContext& C, const ExplodedNode* const ExplNode,
-                      BugReporter& BReporter) const;
+  void reportModelBug(CheckerContext& C, BugReporter& BReporter) const;
 };
 
 } // namespace clang::ento::nvm

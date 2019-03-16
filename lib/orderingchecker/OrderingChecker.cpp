@@ -29,34 +29,8 @@ void OrderingChecker::checkEndFunction(CheckerContext& C) const {
   if (isAnnotated && isTopFnc) {
     // ensured it is the top function and annotated
 
-    ProgramStateRef State = C.getState();
-    // iterate over dcl
-    for (auto& [dataDeclDecl, dclState] : State->get<DclMap>()) {
+    BReporter.reportModelBug(C, C.getBugReporter());
 
-      llvm::outs() << dataDeclDecl << " dcl " << dataDeclDecl->getName() << " "
-                   << dclState.getStateName() << "\n";
-      if (!dclState.isPFenceCheck()) {
-        ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
-        if (!ErrNode) {
-          return;
-        }
-        BReporter.reportModelBug(C, ErrNode, C.getBugReporter());
-      }
-    }
-
-    // iterate over scl
-    for (auto& [dataDeclDecl, sclState] : State->get<SclMap>()) {
-      llvm::outs() << dataDeclDecl << " scl " << dataDeclDecl->getName() << " "
-                   << sclState.getStateName() << "\n";
-      if (!sclState.isWriteCheck()) {
-        ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
-        if (!ErrNode) {
-          return;
-        }
-        BReporter.reportModelBug(C, ErrNode, C.getBugReporter());
-        BReporter.reportModelBug(C, ErrNode, C.getBugReporter());
-      }
-    }
   }
 }
 
