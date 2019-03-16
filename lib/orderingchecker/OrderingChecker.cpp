@@ -139,7 +139,7 @@ void OrderingChecker::handleWriteCheck(CheckerContext& C,
     if (!ErrNode) {
       return;
     }
-    BReporter.reportWriteCheckBug(C, D, ErrNode, C.getBugReporter());
+    BReporter.reportWriteBug(C, D, ErrNode, C.getBugReporter());
   }
 }
 

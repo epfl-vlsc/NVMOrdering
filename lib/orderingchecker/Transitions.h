@@ -1,3 +1,4 @@
+/*Only responsible for state transitions*/
 #pragma once
 #include "Common.h"
 #include "States.h"
