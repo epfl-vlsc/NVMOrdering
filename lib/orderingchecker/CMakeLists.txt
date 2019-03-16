@@ -1,6 +1,5 @@
 add_library(orderingchecker MODULE
   Common.cpp
-  OrderingBugReporter.cpp
   OrderingChecker.cpp
 )
 

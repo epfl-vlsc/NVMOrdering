@@ -16,6 +16,9 @@ public:
 };
 
 class DataInfo : public LabeledInfo {
+  static constexpr const char* DCL = "dcl";
+  static constexpr const char* SCL = "scl";
+  
   // todo if you have time optimize string comparison
   StringRef checkName_;
   bool isDcl_;
@@ -24,10 +27,18 @@ public:
   DataInfo(bool check, bool dcl, const StringRef& cName)
       : LabeledInfo(check), checkName_(cName), isDcl_(dcl) {}
 
-  bool isDcl() { return isDcl_; }
+  bool isDcl() const { return isDcl_; }
 
-  bool isSameCheckName(const StringRef& otherCheckName) {
+  bool isSameCheckName(const StringRef& otherCheckName) const{
     return checkName_.equals(otherCheckName);
+  }
+
+  std::string getCheckName() const{
+    return checkName_.str();
+  }
+
+  const char* getClStr() const{
+    return (isDcl_) ? DCL : SCL;
   }
 };
 
@@ -39,9 +50,9 @@ public:
   CheckInfo(bool check, bool msk, StringRef maskVal)
       : LabeledInfo(check), hasMask_(msk), maskStr_(maskVal) {}
 
-  bool hasMask() { return hasMask_; }
+  bool hasMask() const { return hasMask_; }
 
-  StringRef getMask() { return maskStr_; }
+  StringRef getMask() const { return maskStr_; }
 };
 
 class CheckDataInfo : public CheckInfo {
@@ -53,14 +64,14 @@ public:
                 StringRef maskVal)
       : CheckInfo(check, msk, maskVal), checkName_(cName), isDcl_(dcl) {}
 
-  bool isDcl() { return isDcl_; }
+  bool isDcl() const { return isDcl_; }
 
-  bool isSameCheckName(const StringRef& otherCheckName) {
+  bool isSameCheckName(const StringRef& otherCheckName) const {
     return checkName_.equals(otherCheckName);
   }
 
   // todo use smart pointer
-  DataInfo* getDI() { return new DataInfo(false, false, checkName_); }
+  DataInfo* getDI() const{ return new DataInfo(false, false, checkName_); }
 };
 
 class NVMTypeInfo {

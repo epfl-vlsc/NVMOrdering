@@ -42,6 +42,10 @@ struct DclState
     static DclState getFlushCheck(DataInfo *DI) { return DclState(FC, DI); }
     static DclState getPFenceCheck(DataInfo *DI) { return DclState(PC, DI); }
 
+    int getStateKind() const{
+        return static_cast<int>(K);
+    }
+
     bool isSameCheckName(const StringRef &otherCheckName) const
     {
         return DI_->isSameCheckName(otherCheckName);
@@ -94,6 +98,10 @@ struct SclState
     static SclState getWriteData(DataInfo *DI) { return SclState(WD, DI); }
     static SclState getVFenceData(DataInfo *DI) { return SclState(VD, DI); }
     static SclState getWriteCheck(DataInfo *DI) { return SclState(WC, DI); }
+
+    int getStateKind() const{
+        return static_cast<int>(K);
+    }
 
     bool operator==(const SclState &X) const
     {
