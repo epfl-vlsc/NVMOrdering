@@ -54,6 +54,7 @@ void OrderingChecker::checkEndFunction(CheckerContext& C) const {
           return;
         }
         BReporter.reportModelBug(C, ErrNode, C.getBugReporter());
+        BReporter.reportModelBug(C, ErrNode, C.getBugReporter());
       }
     }
   }

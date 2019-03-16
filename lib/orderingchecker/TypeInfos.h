@@ -1,58 +1,10 @@
 #pragma once
 
 #include "Common.h"
-#include "clang/AST/StmtVisitor.h"
 #include <set>
 #include <sstream>
 
 namespace clang::ento::nvm {
-
-class MaskWalker : public ConstStmtVisitor<MaskWalker> {
-  bool usesMask_;
-  StringRef mask_;
-
-public:
-  MaskWalker(StringRef mask) : usesMask_(false), mask_(mask) {}
-
-  void VisitDeclRefExpr(const DeclRefExpr* DRE) {
-    StringRef currentMask =
-        DRE->getNameInfo().getName().getAsIdentifierInfo()->getName();
-    if (currentMask.equals(mask_)) {
-      usesMask_ = true;
-    }
-  }
-
-  void VisitStmt(const Stmt* S) { VisitChildren(S); }
-
-  void VisitUnaryOperator(const UnaryOperator* UOp) {
-    // using another mask
-    usesMask_ = false;
-  }
-
-  void VisitChildren(const Stmt* S) {
-    for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
-         I != E; ++I) {
-      if (const Stmt* Child = *I) {
-        Visit(Child);
-      }
-    }
-  }
-
-  bool usesMask() { return usesMask_; }
-};
-
-bool usesMask(const Stmt* S, StringRef mask) {
-  MaskWalker maskWalker(mask);
-  maskWalker.Visit(S);
-  return maskWalker.usesMask();
-}
-
-int hasInt(const std::string& in) {
-  std::stringstream sstr(in);
-  int val = 0;
-  sstr >> val;
-  return val;
-}
 
 class LabeledInfo {
   bool isCheck_;
