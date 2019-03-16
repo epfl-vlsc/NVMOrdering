@@ -1,40 +1,50 @@
 #pragma once
 
 #include "Common.h"
+#include "clang/AST/StmtVisitor.h"
 #include <set>
 #include <sstream>
 
 namespace clang::ento::nvm {
 
-void maskTraverse(const Stmt* S, StringRef mask, bool& usesMask,
-                  bool& usesNegate) {
-  if (S) {
-    if (const UnaryOperator* D = dyn_cast_or_null<UnaryOperator>(S)) {
-      usesNegate = true;
-    }
+class MaskWalker : public ConstStmtVisitor<MaskWalker> {
+  bool usesMask_;
+  StringRef mask_;
 
-    if (const DeclRefExpr* D = dyn_cast_or_null<DeclRefExpr>(S)) {
-      StringRef currentMask =
-          D->getNameInfo().getName().getAsIdentifierInfo()->getName();
-      if (currentMask.equals(mask)) {
-        usesMask = true;
-      }
-    }
+public:
+  MaskWalker(StringRef mask) : usesMask_(false), mask_(mask) {}
 
+  void VisitDeclRefExpr(const DeclRefExpr* DRE) {
+    StringRef currentMask =
+        DRE->getNameInfo().getName().getAsIdentifierInfo()->getName();
+    if (currentMask.equals(mask_)) {
+      usesMask_ = true;
+    }
+  }
+
+  void VisitStmt(const Stmt* S) { VisitChildren(S); }
+
+  void VisitUnaryOperator(const UnaryOperator* UOp) {
+    // using another mask
+    usesMask_ = false;
+  }
+
+  void VisitChildren(const Stmt* S) {
     for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
          I != E; ++I) {
       if (const Stmt* Child = *I) {
-        maskTraverse(Child, mask, usesMask, usesNegate);
+        Visit(Child);
       }
     }
   }
-}
+
+  bool usesMask() { return usesMask_; }
+};
 
 bool usesMask(const Stmt* S, StringRef mask) {
-  bool usesMask = false;
-  bool usesNegate = false;
-  maskTraverse(S, mask, usesMask, usesNegate);
-  return (usesMask && !usesNegate);
+  MaskWalker maskWalker(mask);
+  maskWalker.Visit(S);
+  return maskWalker.usesMask();
 }
 
 int hasInt(const std::string& in) {
