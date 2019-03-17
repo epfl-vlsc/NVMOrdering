@@ -38,11 +38,12 @@ bool sclWriteDataTrans(ProgramStateRef& State, const DeclaratorDecl* D,
   }
 }
 
-bool dclWriteCheckTrans(ProgramStateRef& State, const StringRef& checkName) {
+bool dclWriteCheckTrans(ProgramStateRef& State, const StringRef& checkName, bool& seen) {
   // iterate for dcl
   bool stateModified = false;
   for (auto& [dataDeclDecl, dclState] : State->get<DclMap>()) {
     if (dclState.isSameCheckName(checkName)) {
+      seen = true;
       // update state
       if (dclState.isPFenceData()) {
         // update to WC
@@ -60,11 +61,12 @@ bool dclWriteCheckTrans(ProgramStateRef& State, const StringRef& checkName) {
   return stateModified;
 }
 
-bool sclWriteCheckTrans(ProgramStateRef& State, const StringRef& checkName) {
+bool sclWriteCheckTrans(ProgramStateRef& State, const StringRef& checkName, bool& seen) {
   // iterate for scl
   bool stateModified = false;
   for (auto& [dataDeclDecl, sclState] : State->get<SclMap>()) {
     if (sclState.isSameCheckName(checkName)) {
+      seen = true;
       // update state
       if (sclState.isVFenceData()) {
         // update to WC

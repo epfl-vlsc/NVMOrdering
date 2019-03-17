@@ -146,19 +146,22 @@ void OrderingChecker::handleWriteCheck(SVal Loc, CheckerContext& C,
                                        CheckInfo* CI) const {
   ProgramStateRef State = C.getState();
   StringRef checkName = D->getName();
+  bool seen = false;
 
-  bool stateModified = dclWriteCheckTrans(State, checkName);
+  bool stateModified = dclWriteCheckTrans(State, checkName, seen);
 
-  stateModified |= sclWriteCheckTrans(State, checkName);
+  stateModified |= sclWriteCheckTrans(State, checkName, seen);
 
   if (stateModified) {
     C.addTransition(State);
-  } else {
+  } else if(!seen){
     ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
     if (!ErrNode) {
       return;
     }
     BReporter.reportWriteBug(Loc, C, D, ErrNode, C.getBugReporter());
+  }else{
+    //todo throw bug
   }
 }
 
