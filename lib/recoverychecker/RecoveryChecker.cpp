@@ -77,24 +77,26 @@ void RecoveryChecker::handleReadData(SVal Loc, CheckerContext& C,
     StringRef checkName = checkDD->getName();
     if (DI->isSameCheckName(checkName)) {
       // pair
+      checked = true;
       if (recState.isReadCheck()) {
+        llvm::outs() << "lol\n";
         recReadDataTrans(State, checkDD, recState.getCheckInfo());
         C.addTransition(State);
       } else {
         // check already read
       }
-      checked = true;
+
     } else {
       // not pair
     }
+  }
 
-    if (!checked) {
-      ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
-      if (!ErrNode) {
-        return;
-      }
-      BReporter.reportReadBug(Loc, C, DD, ErrNode, C.getBugReporter());
+  if (!checked) {
+    ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
+    if (!ErrNode) {
+      return;
     }
+    BReporter.reportReadBug(Loc, C, DD, ErrNode, C.getBugReporter());
   }
 }
 
@@ -106,8 +108,6 @@ void RecoveryChecker::handleReadCheck(CheckerContext& C,
 
   if (stateModified) {
     C.addTransition(State);
-  } else {
-    // already read check
   }
 }
 

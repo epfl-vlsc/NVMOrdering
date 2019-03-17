@@ -10,9 +10,8 @@ bool recReadCheckTrans(ProgramStateRef& State, const DeclaratorDecl* DD,
                        CheckInfo* CI) {
   const RecState* RS = State->get<RecMap>(DD);
 
-  // check if in correct state
   if (!RS) {
-    // update to RC state
+    // if not checked, update to RC state
     State = State->set<RecMap>(DD, RecState::getReadCheck(CI));
     return true;
     // llvm::outs() << "RC\n";
