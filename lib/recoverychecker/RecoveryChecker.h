@@ -11,22 +11,17 @@ constexpr const char* CHECKER_PLUGIN_NAME = "nvm.recoverychecker";
 namespace clang::ento::nvm {
 
 class RecoveryChecker
-    : public Checker<check::BeginFunction, check::EndFunction, check::Location,
-                     check::ASTDecl<FunctionDecl>, check::BranchCondition,
+    : public Checker<check::BeginFunction, check::Location,
+                     check::ASTDecl<FunctionDecl>,
                      check::ASTDecl<DeclaratorDecl>, check::DeadSymbols,
                      check::PointerEscape> {
-
 public:
   RecoveryChecker() : BReporter(*this), nvmFncInfo("RecoveryCode") {}
 
   void checkBeginFunction(CheckerContext& Ctx) const;
 
-  void checkEndFunction(CheckerContext& C) const;
-
   void checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
-                     CheckerContext&) const {}
-
-  void checkBranchCondition(const Stmt* Condition, CheckerContext& Ctx) const {}
+                     CheckerContext& C) const;
 
   void checkASTDecl(const FunctionDecl* D, AnalysisManager& Mgr,
                     BugReporter& BR) const;
@@ -42,6 +37,15 @@ public:
                                      PointerEscapeKind Kind) const;
 
 private:
+  void handleReadData(SVal Loc, CheckerContext& C, const DeclaratorDecl* DD,
+                      DataInfo* DI) const;
+
+  void handleReadCheck(CheckerContext& C, const DeclaratorDecl* DD,
+                       CheckInfo* CI) const;
+
+  void handleReadMask(CheckerContext& C, const DeclaratorDecl* DD,
+                      CheckInfo* CI) const;
+
   RecoveryBugReporter BReporter;
   mutable NVMFunctionInfo nvmFncInfo;
   mutable NVMTypeInfo nvmTypeInfo;

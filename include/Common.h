@@ -1,13 +1,28 @@
 #pragma once
+#include "clang/AST/StmtVisitor.h"
 #include "clang/StaticAnalyzer/Core/Checker.h"
 #include "clang/StaticAnalyzer/Core/CheckerRegistry.h"
 #include "clang/StaticAnalyzer/Core/PathSensitive/CallEvent.h"
 #include "clang/StaticAnalyzer/Core/PathSensitive/CheckerContext.h"
-#include "clang/AST/StmtVisitor.h"
 #include "llvm/Support/raw_ostream.h"
 #include <utility>
 
 namespace clang::ento::nvm {
+
+const FunctionDecl* getTopFunction(CheckerContext& C) {
+  LocationContext* LC = (LocationContext*)C.getLocationContext();
+  while (LC && LC->getParent()) {
+    LC = (LocationContext*)LC->getParent();
+  }
+
+  const Decl* BD = LC->getDecl();
+  if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(BD)) {
+    return FD;
+  } else {
+    llvm::report_fatal_error("always stack function");
+    return nullptr;
+  }
+}
 
 const FunctionDecl* getFuncDecl(const Decl* BD) {
   if (const FunctionDecl* D = dyn_cast_or_null<FunctionDecl>(BD)) {
@@ -43,44 +58,73 @@ const DeclaratorDecl* getDeclaratorDecl(const Decl* BD) {
 
 bool isTopFunction(CheckerContext& C) { return C.inTopFrame(); }
 
+class FieldWalker : public ConstStmtVisitor<FieldWalker> {
+  std::set<const DeclaratorDecl*> fieldSet;
+
+public:
+  void VisitStmt(const Stmt* S) { VisitChildren(S); }
+
+  void VisitChildren(const Stmt* S) {
+    for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
+         I != E; ++I) {
+      if (const Stmt* Child = *I) {
+        Visit(Child);
+      }
+    }
+  }
+
+  void VisitMemberExpr(const MemberExpr* ME) {
+    const ValueDecl* VD = ME->getMemberDecl();
+    if (const DeclaratorDecl* DD = dyn_cast<DeclaratorDecl>(VD)) {
+      fieldSet.insert(DD);
+    } else {
+      llvm::report_fatal_error("only annotate proper fields");
+    }
+  }
+
+  std::set<const DeclaratorDecl*>& getFieldSet() { return fieldSet; }
+};
+
 class MaskWalker : public ConstStmtVisitor<MaskWalker> {
-  bool usesMask_;
-  StringRef mask_;
+  StringRef mask;
+  bool usesMask;
+  bool writeMode;
 
 public:
   void VisitDeclRefExpr(const DeclRefExpr* DRE) {
-  StringRef currentMask =
-      DRE->getNameInfo().getName().getAsIdentifierInfo()->getName();
-  if (currentMask.equals(mask_)) {
-    usesMask_ = true;
-  }
-}
-
-MaskWalker(StringRef mask) : usesMask_(false), mask_(mask) {}
-
-void VisitStmt(const Stmt* S) { VisitChildren(S); }
-
-void VisitUnaryOperator(const UnaryOperator* UOp) {
-  // using another mask
-  usesMask_ = false;
-}
-
-void VisitChildren(const Stmt* S) {
-  for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
-       I != E; ++I) {
-    if (const Stmt* Child = *I) {
-      Visit(Child);
+    StringRef currentMask =
+        DRE->getNameInfo().getName().getAsIdentifierInfo()->getName();
+    if (currentMask.equals(mask)) {
+      usesMask = true;
     }
   }
-}
 
-bool usesMask() { return usesMask_; }
+  MaskWalker(StringRef mask_, bool writeMode_)
+      : mask(mask_), usesMask(false), writeMode(writeMode_) {}
+
+  void VisitStmt(const Stmt* S) { VisitChildren(S); }
+
+  void VisitUnaryOperator(const UnaryOperator* UOp) {
+    // using another mask
+    usesMask = false;
+  }
+
+  void VisitChildren(const Stmt* S) {
+    for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
+         I != E; ++I) {
+      if (const Stmt* Child = *I) {
+        Visit(Child);
+      }
+    }
+  }
+
+  bool useMask() { return usesMask; }
 };
 
-bool usesMask(const Stmt* S, StringRef mask) {
-  MaskWalker maskWalker(mask);
+bool usesMask(const Stmt* S, StringRef mask, bool writeMode = true) {
+  MaskWalker maskWalker(mask, writeMode);
   maskWalker.Visit(S);
-  return maskWalker.usesMask();
+  return maskWalker.useMask();
 }
 
 } // namespace clang::ento::nvm

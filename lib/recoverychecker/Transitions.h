@@ -6,5 +6,26 @@
 
 namespace clang::ento::nvm {
 
+bool recReadCheckTrans(ProgramStateRef& State, const DeclaratorDecl* DD,
+                       CheckInfo* CI) {
+  const RecState* RS = State->get<RecMap>(DD);
+
+  // check if in correct state
+  if (!RS) {
+    // update to RC state
+    State = State->set<RecMap>(DD, RecState::getReadCheck(CI));
+    return true;
+    // llvm::outs() << "RC\n";
+  } else {
+    // todo already read check
+    return false;
+  }
+}
+
+void recReadDataTrans(ProgramStateRef& State, const DeclaratorDecl* DD,
+                       CheckInfo* CI) {
+      State = State->set<RecMap>(DD, RecState::getReadData(CI));
+      // llvm::outs() << "pfence VD\n";
+}
 
 } // namespace clang::ento::nvm

@@ -142,21 +142,6 @@ class OrderingBugReporter {
   std::unique_ptr<BugType> WrongWriteBugType;
   std::unique_ptr<BugType> WrongModelBugType;
 
-  const FunctionDecl* getTopFunction(CheckerContext& C) const {
-    LocationContext* LC = (LocationContext*)C.getLocationContext();
-    while (LC && LC->getParent()) {
-      LC = (LocationContext*)LC->getParent();
-    }
-
-    const Decl* BD = LC->getDecl();
-    if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(BD)) {
-      return FD;
-    } else {
-      llvm::report_fatal_error("always stack function");
-      return nullptr;
-    }
-  }
-
 public:
   OrderingBugReporter(const CheckerBase& CB) {
     WrongWriteBugType.reset(new BugType(&CB, "Wrong write", OrderingError));
