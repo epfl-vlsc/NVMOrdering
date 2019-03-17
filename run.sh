@@ -1,8 +1,14 @@
-mode=$1
-test_name=$2
+mode=$1 #run, scan, ast
+test_name=$2 #dcl, scl, dscl, mask, simple_masstree
+tool_name=$3 #ordering, recovery, transactional
 if [ -z "$test_name" ]
   then
 	test_name=dcl
+fi
+
+if [ -z "$tool_name" ]
+  then
+	tool_name=recovery
 fi
 
 test_file=../test/$test_name.cpp
@@ -25,8 +31,8 @@ run_make(){
 run_tool(){
     cd build
     clang++ \
-        -fsyntax-only -fplugin=lib/liborderingchecker.so -Xclang -analyzer-max-loop -Xclang 2 \
-        -Xclang -analyze -Xclang -analyzer-checker=nvm.orderingchecker \
+        -fsyntax-only -fplugin=lib/lib${tool_name}checker.so -Xclang -analyzer-max-loop -Xclang 2 \
+        -Xclang -analyze -Xclang -analyzer-checker=nvm.${tool_name}checker \
         $test_file -Xclang -analyzer-display-progress
     cd ..
 }
@@ -34,8 +40,8 @@ run_tool(){
 run_tool2(){
     cd build
     clang++ \
-        -fsyntax-only -fplugin=lib/liborderingchecker.so -Xclang -analyzer-max-loop -Xclang 2 \
-        -Xclang -analyze -Xclang -analyzer-checker=nvm.orderingchecker \
+        -fsyntax-only -fplugin=lib/lib${tool_name}checker.so -Xclang -analyzer-max-loop -Xclang 2 \
+        -Xclang -analyze -Xclang -analyzer-checker=nvm.${tool_name}checker \
         $test_file -Xclang -analyzer-display-progress
     cd ..
 }
@@ -53,9 +59,9 @@ run_scanbuild(){
         -disable-checker optin -disable-checker security  \
         -disable-checker osx -disable-checker unix -disable-checker core \
         clang++ \
-        -fsyntax-only -fplugin=lib/liborderingchecker.so \
+        -fsyntax-only -fplugin=lib/lib${tool_name}checker.so \
         -Xclang -analyzer-max-loop -Xclang 2 \
-        -Xclang -analyze -Xclang -analyzer-checker=nvm.orderingchecker \
+        -Xclang -analyze -Xclang -analyzer-checker=nvm.${tool_name}checker \
         $test_file -Xclang -analyzer-display-progress
     cd ..
 }
