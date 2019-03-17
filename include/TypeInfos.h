@@ -128,4 +128,12 @@ public:
   }
 };
 
+std::string getPairStr(const DeclaratorDecl* DD, const DataInfo* DI) {
+  std::string sbuf;
+  llvm::raw_string_ostream PairOs(sbuf);
+  PairOs << "<" << DD->getNameAsString() << "," << DI->getCheckName()
+         << ">:" << DI->getClStr();
+  return PairOs.str();
+}
+
 } // namespace clang::ento::nvm

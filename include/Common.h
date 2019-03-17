@@ -1,6 +1,14 @@
-#include "Common.h"
+#pragma once
+#include "clang/StaticAnalyzer/Core/Checker.h"
+#include "clang/StaticAnalyzer/Core/CheckerRegistry.h"
+#include "clang/StaticAnalyzer/Core/PathSensitive/CallEvent.h"
+#include "clang/StaticAnalyzer/Core/PathSensitive/CheckerContext.h"
+#include "clang/AST/StmtVisitor.h"
+#include "llvm/Support/raw_ostream.h"
+#include <utility>
 
 namespace clang::ento::nvm {
+
 const FunctionDecl* getFuncDecl(const Decl* BD) {
   if (const FunctionDecl* D = dyn_cast_or_null<FunctionDecl>(BD)) {
     return D;
@@ -19,6 +27,12 @@ const FunctionDecl* getFuncDecl(const LocationContext* LC) {
   return getFuncDecl(BD);
 }
 
+const FunctionDecl* getFuncDecl(CheckerContext& C) {
+  const LocationContext* LC = C.getLocationContext();
+  const Decl* BD = LC->getDecl();
+  return getFuncDecl(BD);
+}
+
 const DeclaratorDecl* getDeclaratorDecl(const Decl* BD) {
   if (const DeclaratorDecl* D = dyn_cast_or_null<DeclaratorDecl>(BD)) {
     return D;
@@ -29,7 +43,12 @@ const DeclaratorDecl* getDeclaratorDecl(const Decl* BD) {
 
 bool isTopFunction(CheckerContext& C) { return C.inTopFrame(); }
 
-void MaskWalker::VisitDeclRefExpr(const DeclRefExpr* DRE) {
+class MaskWalker : public ConstStmtVisitor<MaskWalker> {
+  bool usesMask_;
+  StringRef mask_;
+
+public:
+  void VisitDeclRefExpr(const DeclRefExpr* DRE) {
   StringRef currentMask =
       DRE->getNameInfo().getName().getAsIdentifierInfo()->getName();
   if (currentMask.equals(mask_)) {
@@ -37,16 +56,16 @@ void MaskWalker::VisitDeclRefExpr(const DeclRefExpr* DRE) {
   }
 }
 
-MaskWalker::MaskWalker(StringRef mask) : usesMask_(false), mask_(mask) {}
+MaskWalker(StringRef mask) : usesMask_(false), mask_(mask) {}
 
-void MaskWalker::VisitStmt(const Stmt* S) { VisitChildren(S); }
+void VisitStmt(const Stmt* S) { VisitChildren(S); }
 
-void MaskWalker::VisitUnaryOperator(const UnaryOperator* UOp) {
+void VisitUnaryOperator(const UnaryOperator* UOp) {
   // using another mask
   usesMask_ = false;
 }
 
-void MaskWalker::VisitChildren(const Stmt* S) {
+void VisitChildren(const Stmt* S) {
   for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
        I != E; ++I) {
     if (const Stmt* Child = *I) {
@@ -55,7 +74,8 @@ void MaskWalker::VisitChildren(const Stmt* S) {
   }
 }
 
-bool MaskWalker::usesMask() { return usesMask_; }
+bool usesMask() { return usesMask_; }
+};
 
 bool usesMask(const Stmt* S, StringRef mask) {
   MaskWalker maskWalker(mask);

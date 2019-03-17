@@ -5,14 +5,6 @@
 
 namespace clang::ento::nvm {
 
-std::string getPairStr(const DeclaratorDecl* DD, const DataInfo* DI) {
-  std::string sbuf;
-  llvm::raw_string_ostream PairOs(sbuf);
-  PairOs << "<" << DD->getNameAsString() << "," << DI->getCheckName()
-         << ">:" << DI->getClStr();
-  return PairOs.str();
-}
-
 struct BugInfo {
   const DeclaratorDecl* DD;
   const DataInfo* DI;

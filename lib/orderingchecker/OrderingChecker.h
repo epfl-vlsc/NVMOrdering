@@ -17,7 +17,7 @@ class OrderingChecker
                      check::PointerEscape> {
 
 public:
-  OrderingChecker() : BReporter(*this) {}
+  OrderingChecker() : BReporter(*this), nvmFncInfo("PersistentCode") {}
 
   void checkBeginFunction(CheckerContext& Ctx) const;
 

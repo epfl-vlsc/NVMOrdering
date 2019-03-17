@@ -269,9 +269,9 @@ void OrderingChecker::handleVFence(const CallEvent& Call,
   }
 }
 
-void OrderingChecker::checkASTDecl(const FunctionDecl* D, AnalysisManager& Mgr,
+void OrderingChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
                                    BugReporter& BR) const {
-  nvmFncInfo.checkFunction(D);
+  nvmFncInfo.insertIfKnown(FD);
 }
 
 void OrderingChecker::checkASTDecl(const DeclaratorDecl* D,
