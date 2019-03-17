@@ -28,9 +28,51 @@ void OrderingChecker::checkEndFunction(CheckerContext& C) const {
   bool isTopFnc = isTopFunction(C);
   if (isAnnotated && isTopFnc) {
     // ensured it is the top function and annotated
+    ProgramStateRef State = C.getState();
+    bool errNodeGenerated = false;
+    ExplodedNode* ErrNode = nullptr;
 
-    BReporter.reportModelBug(C, C.getBugReporter());
+    // iterate over dcl
+    for (auto& [dataDD, dclState] : State->get<DclMap>()) {
+      llvm::outs() << dataDD << " dcl " << dataDD->getName() << " "
+                   << dclState.getStateName() << "\n";
+      if (!dclState.isPFenceCheck()) {
+        if (!errNodeGenerated) {
+          ErrNode = C.generateNonFatalErrorNode();
+          errNodeGenerated = true;
+        }
 
+        // might return nullptr based on optimizations
+        if (!ErrNode) {
+          return;
+        }
+
+        BugInfo BI{dataDD, dclState.getDataInfo(), dclState.getStateName(),
+                        dclState.getStateKind(), true};
+        BReporter.reportModelBug(C, BI, ErrNode, C.getBugReporter());
+      }
+    }
+
+    // iterate over scl
+    for (auto& [dataDD, sclState] : State->get<SclMap>()) {
+      llvm::outs() << dataDD << " scl " << dataDD->getName() << " "
+                   << sclState.getStateName() << "\n";
+      if (!sclState.isWriteCheck()) {
+        if (!errNodeGenerated) {
+          ErrNode = C.generateNonFatalErrorNode();
+          errNodeGenerated = true;
+        }
+
+        // might return nullptr based on optimizations
+        if (!ErrNode) {
+          return;
+        }
+        llvm::outs() << dataDD << "datadd\n";
+        BugInfo BI{dataDD, sclState.getDataInfo(), sclState.getStateName(),
+                        sclState.getStateKind(), false};
+        BReporter.reportModelBug(C, BI, ErrNode, C.getBugReporter());
+      }
+    }
   }
 }
 
