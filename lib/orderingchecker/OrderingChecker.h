@@ -50,10 +50,10 @@ private:
   void handleWriteData(CheckerContext& C, const DeclaratorDecl* D,
                        DataInfo* DI) const;
 
-  void handleWriteCheck(CheckerContext& C, const DeclaratorDecl* D,
+  void handleWriteCheck(SVal Loc, CheckerContext& C, const DeclaratorDecl* D,
                         CheckInfo* CI) const;
 
-  void handleWriteMask(const Stmt* S, CheckerContext& C,
+  void handleWriteMask(SVal Loc, const Stmt* S, CheckerContext& C,
                        const DeclaratorDecl* D, CheckDataInfo* DCI) const;
 
   void handleFlushData(CheckerContext& C, const DeclaratorDecl* D,

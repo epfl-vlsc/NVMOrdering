@@ -50,7 +50,8 @@ class WrongModelWalker : public BugReporterVisitorImpl<WrongModelWalker> {
     }
     std::string sbuf;
     llvm::raw_string_ostream MsgOs(sbuf);
-    MsgOs << getPairStr(DD, CGS->getDataInfo()) << " " << CGS->getStateName() << "\n";
+    MsgOs << getPairStr(DD, CGS->getDataInfo()) << " " << CGS->getStateName()
+          << "\n";
 
     if (PGS) {
       // the pair exists in previous state
@@ -89,7 +90,8 @@ class WrongModelWalker : public BugReporterVisitorImpl<WrongModelWalker> {
     }
     std::string sbuf;
     llvm::raw_string_ostream MsgOs(sbuf);
-    MsgOs << getPairStr(DD, CGS->getDataInfo()) << " " << CGS->getStateName() << "\n";
+    MsgOs << getPairStr(DD, CGS->getDataInfo()) << " " << CGS->getStateName()
+          << "\n";
 
     if (PGS) {
       // the pair exists in previous state
@@ -148,18 +150,40 @@ class OrderingBugReporter {
   std::unique_ptr<BugType> WrongWriteBugType;
   std::unique_ptr<BugType> WrongModelBugType;
 
+  const FunctionDecl* getTopFunction(CheckerContext& C) const {
+    LocationContext* LC = (LocationContext*)C.getLocationContext();
+    while (LC && LC->getParent()) {
+      LC = (LocationContext*)LC->getParent();
+    }
+
+    const Decl* BD = LC->getDecl();
+    if (const FunctionDecl* FD = dyn_cast<FunctionDecl>(BD)) {
+      return FD;
+    } else {
+      llvm::report_fatal_error("always stack function");
+      return nullptr;
+    }
+  }
+
 public:
   OrderingBugReporter(const CheckerBase& CB) {
     WrongWriteBugType.reset(new BugType(&CB, "Wrong write", OrderingError));
     WrongModelBugType.reset(new BugType(&CB, "Wrong model", OrderingError));
   }
 
-  void reportWriteBug(CheckerContext& C, const DeclaratorDecl* D,
+  void reportWriteBug(SVal Loc, CheckerContext& C, const DeclaratorDecl* D,
                       const ExplodedNode* const ExplNode,
                       BugReporter& BReporter) const {
-    std::string ErrorText = "Wrong write usage";
-    auto Report =
-        llvm::make_unique<BugReport>(*WrongWriteBugType, ErrorText, ExplNode);
+
+    const FunctionDecl* FD = getTopFunction(C);
+
+    std::string sbuf;
+    llvm::raw_string_ostream ErrorOs(sbuf);
+    ErrorOs << "Wrong write usage at " + FD->getName();
+
+    auto Report = llvm::make_unique<BugReport>(*WrongWriteBugType,
+                                               ErrorOs.str(), ExplNode);
+    Report->markInteresting(Loc);
     BReporter.emitReport(std::move(Report));
   }
 
@@ -171,15 +195,14 @@ public:
     const FunctionDecl* FD = getFuncDecl(LC);
 
     std::string sbuf;
-    llvm::raw_string_ostream ErrorOS(sbuf);
-    ErrorOS << "Wrong state: " << BI.stateStr
+    llvm::raw_string_ostream ErrorOs(sbuf);
+    ErrorOs << "Wrong state: " << BI.stateStr
             << " for pair: " << getPairStr(BI.DD, BI.DI)
             << " at function: " << FD->getNameAsString();
     auto Report = llvm::make_unique<BugReport>(*WrongModelBugType,
-                                               ErrorOS.str(), ExplNode);
+                                               ErrorOs.str(), ExplNode);
     Report->markInteresting(LC);
     Report->addRange(FD->getSourceRange());
-    llvm::outs() << "visit\n";
     Report->addVisitor(llvm::make_unique<WrongModelWalker>(BI));
     BReporter.emitReport(std::move(Report));
   }

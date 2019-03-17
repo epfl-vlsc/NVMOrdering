@@ -48,7 +48,7 @@ void OrderingChecker::checkEndFunction(CheckerContext& C) const {
         }
 
         BugInfo BI{dataDD, dclState.getDataInfo(), dclState.getStateName(),
-                        dclState.getStateKind(), true};
+                   dclState.getStateKind(), true};
         BReporter.reportModelBug(C, BI, ErrNode, C.getBugReporter());
       }
     }
@@ -69,7 +69,7 @@ void OrderingChecker::checkEndFunction(CheckerContext& C) const {
         }
         llvm::outs() << dataDD << "datadd\n";
         BugInfo BI{dataDD, sclState.getDataInfo(), sclState.getStateName(),
-                        sclState.getStateKind(), false};
+                   sclState.getStateKind(), false};
         BReporter.reportModelBug(C, BI, ErrNode, C.getBugReporter());
       }
     }
@@ -107,9 +107,9 @@ void OrderingChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
           // can be data or check, if it is data, treat is as data
           // if it is check, treat it as check
           auto* CDI = static_cast<CheckDataInfo*>(I);
-          handleWriteMask(S, C, D, CDI);
+          handleWriteMask(Loc, S, C, D, CDI);
         } else {
-          handleWriteCheck(C, D, I);
+          handleWriteCheck(Loc, C, D, I);
         }
       } else {
         auto* I = static_cast<DataInfo*>(LI);
@@ -136,10 +136,12 @@ void OrderingChecker::handleWriteData(CheckerContext& C,
 
   if (stateModified) {
     C.addTransition(State);
+  } else {
+    // todo throw bug
   }
 }
 
-void OrderingChecker::handleWriteCheck(CheckerContext& C,
+void OrderingChecker::handleWriteCheck(SVal Loc, CheckerContext& C,
                                        const DeclaratorDecl* D,
                                        CheckInfo* CI) const {
   ProgramStateRef State = C.getState();
@@ -156,17 +158,18 @@ void OrderingChecker::handleWriteCheck(CheckerContext& C,
     if (!ErrNode) {
       return;
     }
-    BReporter.reportWriteBug(C, D, ErrNode, C.getBugReporter());
+    BReporter.reportWriteBug(Loc, C, D, ErrNode, C.getBugReporter());
   }
 }
 
-void OrderingChecker::handleWriteMask(const Stmt* S, CheckerContext& C,
+void OrderingChecker::handleWriteMask(SVal Loc, const Stmt* S,
+                                      CheckerContext& C,
                                       const DeclaratorDecl* D,
                                       CheckDataInfo* CDI) const {
   if (usesMask(S, CDI->getMask())) {
     // access validity part
     auto* I = static_cast<CheckInfo*>(CDI);
-    handleWriteCheck(C, D, I);
+    handleWriteCheck(Loc, C, D, I);
   } else {
     // access data part - guaranteeed to be scl
     ProgramStateRef State = C.getState();
@@ -175,6 +178,8 @@ void OrderingChecker::handleWriteMask(const Stmt* S, CheckerContext& C,
 
     if (stateModified) {
       C.addTransition(State);
+    } else {
+      // todo throw bug
     }
   }
 }
