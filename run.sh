@@ -1,6 +1,6 @@
 mode=$1 #run, scan, ast
 test_name=$2 #dcl, scl, dscl, mask, simple_masstree
-tool_name=$3 #ordering, recovery, transactional
+tool_name=$3 #ordering, recovery, transaction
 if [ -z "$test_name" ]
   then
 	test_name=dcl
@@ -8,7 +8,7 @@ fi
 
 if [ -z "$tool_name" ]
   then
-	tool_name=recovery
+	tool_name=transaction
 fi
 
 test_file=../test/$test_name.cpp
