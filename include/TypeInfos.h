@@ -33,6 +33,7 @@ public:
     return checkName_.equals(otherCheckName);
   }
 
+  //todo make stringref
   std::string getCheckName() const{
     return checkName_.str();
   }
@@ -68,6 +69,10 @@ public:
 
   bool isSameCheckName(const StringRef& otherCheckName) const {
     return checkName_.equals(otherCheckName);
+  }
+
+  StringRef getCheckName() const{
+    return checkName_;
   }
 
   // todo use smart pointer

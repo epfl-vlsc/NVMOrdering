@@ -34,33 +34,33 @@ struct LogEntry {
   LogEntry() {
     data = 0;
     cdata = 0;
-    chunk = (chunk & ~MASK) | 0;
-    vfence();
     chunk = (chunk & MASK) | 0;
+    vfence();
+    chunk = (chunk & ~MASK) | 0;
     valid = 0;
   }
 
   void setData(int data_) {
     data = 1;
     cdata = 1;
-    chunk = (chunk & ~MASK) | 1;
+    chunk = (chunk & MASK) | 1;
   }
 
   void setValid(int valid_) {
     valid = 1;
-    chunk = (chunk & MASK) | valid_;
+    chunk = (chunk & ~MASK) | valid_;
   }
 
   void persistent_code usingPfence() {
     cdata = 1;
-    chunk = (chunk & ~MASK) | 1;
-    pfence();
     chunk = (chunk & MASK) | 1;
+    pfence();
+    chunk = (chunk & ~MASK) | 1;
   }
 
   void persistent_code fenceMissing() {
-    chunk = (chunk & ~MASK) | 1;
     chunk = (chunk & MASK) | 1;
+    chunk = (chunk & ~MASK) | 1;
   }
 };
 

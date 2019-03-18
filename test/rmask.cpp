@@ -1,7 +1,5 @@
 #include "annot.h"
-#include <atomic>
 #include <stdio.h>
-#include <xmmintrin.h>
 
 struct LogEntry {
   enum {
@@ -11,7 +9,7 @@ struct LogEntry {
   pcheck(MASK) int chunk;
 
   int readData() {
-    return (chunk & MASK);
+    return (chunk & ~MASK);
   }
 
   int readValid() {
@@ -30,4 +28,5 @@ int recovery_code correctModelFunction() {
   if(entry->readValid()){
       return entry->readData();
   }
+  return 0;
 }

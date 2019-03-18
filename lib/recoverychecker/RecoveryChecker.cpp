@@ -54,8 +54,9 @@ void RecoveryChecker::checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
           // bit field special case
           // can be data or check, if it is data, treat is as data
           // if it is check, treat it as check
+
           auto* CDI = static_cast<CheckDataInfo*>(I);
-          // handle read mask
+          handleReadMask(Loc, S, C, DD, CDI);
         } else {
           handleReadCheck(C, DD, I);
         }
@@ -70,26 +71,8 @@ void RecoveryChecker::checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
 void RecoveryChecker::handleReadData(SVal Loc, CheckerContext& C,
                                      const DeclaratorDecl* DD,
                                      DataInfo* DI) const {
-  ProgramStateRef State = C.getState();
-  bool checked = false;
 
-  for (auto& [checkDD, recState] : State->get<RecMap>()) {
-    StringRef checkName = checkDD->getName();
-    if (DI->isSameCheckName(checkName)) {
-      // pair
-      checked = true;
-      if (recState.isReadCheck()) {
-        llvm::outs() << "lol\n";
-        recReadDataTrans(State, checkDD, recState.getCheckInfo());
-        C.addTransition(State);
-      } else {
-        // check already read
-      }
-
-    } else {
-      // not pair
-    }
-  }
+  bool checked = recReadDataTrans(C, DD, DI);
 
   if (!checked) {
     ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
@@ -111,9 +94,24 @@ void RecoveryChecker::handleReadCheck(CheckerContext& C,
   }
 }
 
-void RecoveryChecker::handleReadMask(CheckerContext& C,
+void RecoveryChecker::handleReadMask(SVal Loc, const Stmt* S, CheckerContext& C,
                                      const DeclaratorDecl* DD,
-                                     CheckInfo* CI) const {}
+                                     CheckDataInfo* CDI) const {
+
+  // go up one level to get the full expression
+  const Stmt* PS = getParentStmt(S, C);
+  
+  if (usesMask(PS, CDI->getMask(), true)) {
+    // access validity part
+    auto* CI = static_cast<CheckInfo*>(CDI);
+    handleReadCheck(C, DD, CI);
+  } else {
+    // access data part - guaranteeed to be scl
+    // todo fix leak
+    DataInfo* DI = CDI->getDI();
+    handleReadData(Loc, C, DD, DI);
+  }
+}
 
 void RecoveryChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
                                    BugReporter& BR) const {

@@ -154,14 +154,14 @@ void OrderingChecker::handleWriteCheck(SVal Loc, CheckerContext& C,
 
   if (stateModified) {
     C.addTransition(State);
-  } else if(!seen){
+  } else if (!seen) {
     ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
     if (!ErrNode) {
       return;
     }
     BReporter.reportWriteBug(Loc, C, D, ErrNode, C.getBugReporter());
-  }else{
-    //todo throw bug
+  } else {
+    // todo throw bug
   }
 }
 
@@ -169,7 +169,7 @@ void OrderingChecker::handleWriteMask(SVal Loc, const Stmt* S,
                                       CheckerContext& C,
                                       const DeclaratorDecl* D,
                                       CheckDataInfo* CDI) const {
-  if (usesMask(S, CDI->getMask())) {
+  if (usesMask(S, CDI->getMask(), false)) {
     // access validity part
     auto* I = static_cast<CheckInfo*>(CDI);
     handleWriteCheck(Loc, C, D, I);

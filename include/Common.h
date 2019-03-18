@@ -9,6 +9,23 @@
 
 namespace clang::ento::nvm {
 
+const Stmt* getParentStmt(const Stmt* S, CheckerContext& C) {
+  ASTContext& AC = C.getASTContext();
+  const auto& parents = AC.getParents(*S);
+  if (parents.empty()) {
+    llvm::report_fatal_error("cannot find parent");
+    return nullptr;
+  }
+
+  const Stmt* PS = parents[0].get<Stmt>();
+  if (!PS) {
+    llvm::report_fatal_error("parent does not exist");
+    return nullptr;
+  }
+
+  return PS;
+}
+
 const FunctionDecl* getTopFunction(CheckerContext& C) {
   LocationContext* LC = (LocationContext*)C.getLocationContext();
   while (LC && LC->getParent()) {
@@ -87,26 +104,31 @@ public:
 
 class MaskWalker : public ConstStmtVisitor<MaskWalker> {
   StringRef mask;
-  bool usesMask;
-  bool writeMode;
+  bool maskUse;
+  bool usesUnary;
+  bool readMode;
 
 public:
+  MaskWalker(StringRef mask_, bool readMode_)
+      : mask(mask_), maskUse(false), usesUnary(false), readMode(readMode_) {}
+
   void VisitDeclRefExpr(const DeclRefExpr* DRE) {
     StringRef currentMask =
         DRE->getNameInfo().getName().getAsIdentifierInfo()->getName();
     if (currentMask.equals(mask)) {
-      usesMask = true;
+      maskUse = true;
     }
-  }
 
-  MaskWalker(StringRef mask_, bool writeMode_)
-      : mask(mask_), usesMask(false), writeMode(writeMode_) {}
+    VisitChildren(DRE);
+  }
 
   void VisitStmt(const Stmt* S) { VisitChildren(S); }
 
   void VisitUnaryOperator(const UnaryOperator* UOp) {
     // using another mask
-    usesMask = false;
+    usesUnary = true;
+
+    VisitChildren(UOp);
   }
 
   void VisitChildren(const Stmt* S) {
@@ -118,13 +140,20 @@ public:
     }
   }
 
-  bool useMask() { return usesMask; }
+  bool usesMask() {
+    if (!maskUse) {
+      llvm::report_fatal_error("check mask usage");
+    }
+
+    return (usesUnary ^ readMode);
+  }
 };
 
-bool usesMask(const Stmt* S, StringRef mask, bool writeMode = true) {
-  MaskWalker maskWalker(mask, writeMode);
+bool usesMask(const Stmt* S, StringRef mask, bool readMode) {
+  //S->dump();
+  MaskWalker maskWalker(mask, readMode);
   maskWalker.Visit(S);
-  return maskWalker.useMask();
+  return maskWalker.usesMask();
 }
 
 } // namespace clang::ento::nvm

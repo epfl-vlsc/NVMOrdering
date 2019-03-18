@@ -24,7 +24,7 @@ public:
 
     std::string sbuf;
     llvm::raw_string_ostream ErrorOs(sbuf);
-    ErrorOs << "Wrong read usage at " + FD->getName();
+    ErrorOs << "Wrong data usage at " + FD->getName();
 
     auto Report = llvm::make_unique<BugReport>(*WrongReadBugType,
                                                ErrorOs.str(), ExplNode);

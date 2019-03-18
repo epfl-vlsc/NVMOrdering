@@ -21,10 +21,28 @@ bool recReadCheckTrans(ProgramStateRef& State, const DeclaratorDecl* DD,
   }
 }
 
-void recReadDataTrans(ProgramStateRef& State, const DeclaratorDecl* DD,
-                       CheckInfo* CI) {
-      State = State->set<RecMap>(DD, RecState::getReadData(CI));
-      // llvm::outs() << "pfence VD\n";
+bool recReadDataTrans(CheckerContext& C, const DeclaratorDecl* DD,
+                      DataInfo* DI) {
+  ProgramStateRef State = C.getState();
+  bool checked = false;
+  for (auto& [checkDD, recState] : State->get<RecMap>()) {
+    StringRef checkName = checkDD->getName();
+    if (DI->isSameCheckName(checkName)) {
+      // pair
+      checked = true;
+      if (recState.isReadCheck()) {
+        CheckInfo* CI = recState.getCheckInfo();
+        State = State->set<RecMap>(DD, RecState::getReadData(CI));
+        C.addTransition(State);
+      } else {
+        // check already read
+      }
+    } else {
+      // not pair, not checked
+    }
+  }
+
+  return checked;
 }
 
 } // namespace clang::ento::nvm

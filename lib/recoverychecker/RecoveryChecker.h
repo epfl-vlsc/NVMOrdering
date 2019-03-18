@@ -43,8 +43,8 @@ private:
   void handleReadCheck(CheckerContext& C, const DeclaratorDecl* DD,
                        CheckInfo* CI) const;
 
-  void handleReadMask(CheckerContext& C, const DeclaratorDecl* DD,
-                      CheckInfo* CI) const;
+  void handleReadMask(SVal Loc, const Stmt* S, CheckerContext& C,
+                      const DeclaratorDecl* DD, CheckDataInfo* CDI) const;
 
   RecoveryBugReporter BReporter;
   mutable NVMFunctionInfo nvmFncInfo;
