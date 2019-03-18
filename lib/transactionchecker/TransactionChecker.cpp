@@ -5,24 +5,82 @@
 
 namespace clang::ento::nvm {
 
-void checkBeginFunction(CheckerContext& Ctx) const{
-  //if analysis takes time, consider implementing keyword specific unc
+void TransactionChecker::checkBeginFunction(CheckerContext& C) const {
+  bool isPFnc = nvmTxInfo.isPFunction(C);
+  bool isTopFnc = isTopFunction(C);
+
+  // if top special function, do not analyze
+  if (isPFnc && isTopFnc) {
+    llvm::outs() << "skip analysis\n";
+    ExplodedNode* ErrNode = C.generateErrorNode();
+    if (!ErrNode)
+      return;
+  }
 }
 
-  void checkBind(SVal Loc, SVal Val, const Stmt *S, CheckerContext &) const;
+void TransactionChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
+                                   CheckerContext&) const {
+  /*
+  llvm::outs() << "checkBind\n";
+  llvm::outs() << "Loc\n";
+  Loc.dump();
+  llvm::outs() << "\nVal\n";
+  Val.dump();
+  llvm::outs() << "\n";
+  S->dump();
+  llvm::outs() << "\n";
+  */
+}
 
-  void checkASTDecl(const FunctionDecl* D, AnalysisManager& Mgr,
-                    BugReporter& BR) const;
+void TransactionChecker::checkASTDecl(const FunctionDecl* D,
+                                      AnalysisManager& Mgr,
+                                      BugReporter& BR) const {
+  nvmTxInfo.insertFunction(D);
+}
 
-  void checkASTDecl(const DeclaratorDecl* D, AnalysisManager& Mgr,
-                    BugReporter& BR) const;
+void TransactionChecker::checkDeadSymbols(SymbolReaper& SymReaper,
+                                          CheckerContext& C) const {
+  // llvm::outs() << "checkDeadSymbols\n";
+}
 
-  void checkDeadSymbols(SymbolReaper& SymReaper, CheckerContext& C) const;
+ProgramStateRef TransactionChecker::checkPointerEscape(
+    ProgramStateRef State, const InvalidatedSymbols& Escaped,
+    const CallEvent* Call, PointerEscapeKind Kind) const {
+  // llvm::outs() << "checkPointerEscape\n";
 
-  ProgramStateRef checkPointerEscape(ProgramStateRef State,
-                                     const InvalidatedSymbols& Escaped,
-                                     const CallEvent* Call,
-                                     PointerEscapeKind Kind) const;
+  return State;
+}
+
+void TransactionChecker::checkPostCall(const CallEvent &Call, CheckerContext &C) const{
+  const FunctionDecl* FD = getFuncDecl(Call);
+  if(nvmTxInfo.isTxBeg(FD)){
+    handleTxBegin(C);
+  }else if(nvmTxInfo.isTxEnd(FD)){
+    handleTxEnd(C);
+  }else{
+    //nothing
+  }
+}
+
+void TransactionChecker::handleTxBegin(CheckerContext& C) const{
+  ProgramStateRef State = C.getState();
+  unsigned txCount = State->get<TxCounter>();
+  txCount += 1;
+  State = State->set<TxCounter>(txCount);
+  C.addTransition(State);
+}
+
+void TransactionChecker::handleTxEnd(CheckerContext& C) const{
+  ProgramStateRef State = C.getState();
+  unsigned txCount = State->get<TxCounter>();
+  if(txCount){
+    //todo report bug that begin does not match end
+  }
+  txCount -= 1;
+  State = State->set<TxCounter>(txCount);
+  C.addTransition(State);
+}
+
 
 } // namespace clang::ento::nvm
 

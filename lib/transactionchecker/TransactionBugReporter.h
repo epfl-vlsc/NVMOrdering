@@ -1,6 +1,5 @@
 #pragma once
 #include "Common.h"
-#include "States.h"
 #include "clang/StaticAnalyzer/Core/BugReporter/BugType.h"
 
 namespace clang::ento::nvm {

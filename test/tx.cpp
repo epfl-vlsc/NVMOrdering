@@ -45,3 +45,12 @@ void deleteOutsideTransaction(){
     tx_end
     pfree(a);
 }
+
+void writeIndirectOutTx(){
+    int *ptr = nullptr;
+    tx_beg
+    int *a = (int*)pmalloc(sizeof(int));
+    ptr = a;
+    tx_end
+    assign(ptr, 2);
+}

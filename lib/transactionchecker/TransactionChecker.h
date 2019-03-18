@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "States.h"
 #include "TransactionBugReporter.h"
 #include "TransactionInfos.h"
 
@@ -9,20 +10,18 @@ namespace clang::ento::nvm {
 
 class TransactionChecker
     : public Checker<check::BeginFunction, check::Bind,
-                     check::ASTDecl<FunctionDecl>,
-                     check::ASTDecl<DeclaratorDecl>, check::DeadSymbols,
-                     check::PointerEscape> {
+                     check::ASTDecl<FunctionDecl>, check::DeadSymbols,
+                     check::PointerEscape, check::PostCall> {
 public:
   TransactionChecker() : BReporter(*this) {}
 
-  void checkBeginFunction(CheckerContext& Ctx) const;
+  void checkBeginFunction(CheckerContext& C) const;
 
-  void checkBind(SVal Loc, SVal Val, const Stmt *S, CheckerContext &) const;
+  void checkBind(SVal Loc, SVal Val, const Stmt* S, CheckerContext& C) const;
+
+  void checkPostCall(const CallEvent& Call, CheckerContext& C) const;
 
   void checkASTDecl(const FunctionDecl* D, AnalysisManager& Mgr,
-                    BugReporter& BR) const;
-
-  void checkASTDecl(const DeclaratorDecl* D, AnalysisManager& Mgr,
                     BugReporter& BR) const;
 
   void checkDeadSymbols(SymbolReaper& SymReaper, CheckerContext& C) const;
@@ -31,8 +30,11 @@ public:
                                      const InvalidatedSymbols& Escaped,
                                      const CallEvent* Call,
                                      PointerEscapeKind Kind) const;
-                                     
+
 private:
+  void handleTxBegin(CheckerContext& C) const;
+
+  void handleTxEnd(CheckerContext& C) const;
 
   TransactionBugReporter BReporter;
   mutable NVMTransactionInfo nvmTxInfo;
