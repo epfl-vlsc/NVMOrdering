@@ -1,24 +1,40 @@
 #include "annot.h"
-#include <atomic>
 #include <stdio.h>
-#include <xmmintrin.h>
+#include <utility>
 
 struct LogEntry {
-  pdcl(LogEntry.valid) int data;
-  pcheck() int valid;
+  pdcl(LogEntry.dvalid) int ddata1;
+  pdcl(LogEntry.dvalid) int ddata2;
+  pcheck() int dvalid;
 
-  int getData() { return data; }
+  pscl(LogEntry.svalid) int sdata;
+  pcheck() int svalid;
 
-  int getValid() { return valid; }
+  int dfix1;
+  int dfix2;
+  int sfix;
 
-  int recovery_code correctModelMethod() {  
-    if(valid){
-        return data;
+  void recovery_code correctModelMethod() {
+    if (dvalid) {
+      dfix1 = ddata1;
+      dfix2 = ddata2;
     }
-    return 0;
+    if (svalid) {
+      sfix = sdata;
+    }
   }
 
-  int recovery_code wrongDataAccess() {  
-    return data;
+  void recovery_code correctModelMethod2() {
+    if (dvalid && svalid) {
+      dfix1 = ddata1;
+      dfix2 = ddata2;
+      sfix = sdata;
+    }
+  }
+
+  void recovery_code wrongDataAccess() {
+    dfix1 = ddata1;
+    dfix2 = ddata2;
+    sfix = sdata;
   }
 };

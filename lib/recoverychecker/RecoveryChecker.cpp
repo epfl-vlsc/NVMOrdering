@@ -49,20 +49,20 @@ void RecoveryChecker::checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
     if (nvmTypeInfo.inLabels(DD)) {
       LabeledInfo* LI = nvmTypeInfo.getDeclaratorInfo(DD);
       if (LI->isCheck()) {
-        auto* I = static_cast<CheckInfo*>(LI);
-        if (I->hasMask()) {
+        auto* CI = static_cast<CheckInfo*>(LI);
+        if (CI->hasMask()) {
           // bit field special case
           // can be data or check, if it is data, treat is as data
           // if it is check, treat it as check
 
-          auto* CDI = static_cast<CheckDataInfo*>(I);
+          auto* CDI = static_cast<CheckDataInfo*>(CI);
           handleReadMask(Loc, S, C, DD, CDI);
         } else {
-          handleReadCheck(C, DD, I);
+          handleReadCheck(C, DD, CI);
         }
       } else {
-        auto* I = static_cast<DataInfo*>(LI);
-        handleReadData(Loc, C, DD, I);
+        auto* DI = static_cast<DataInfo*>(LI);
+        handleReadData(Loc, C, DD, DI);
       }
     }
   }

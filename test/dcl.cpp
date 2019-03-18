@@ -51,7 +51,7 @@ struct LogEntry {
     pfence();
   }
 
-  void persistent_code finalFenceMissing() {
+  void persistent_code wrongFinalFenceMissing() {
     data = 1;
     clflush(&data);
     pfence();
@@ -82,13 +82,13 @@ void persistent_code wrongBranchFunction(bool useNVM) {
   }
 }
 
-void persistent_code writeToValid() {
+void persistent_code wrongWriteToValid() {
   LogEntry* entry = new LogEntry;
   entry->setValid(1);
 }
 
-void megaman() {
-  int zeman;
+void unexaminedCode() {
+  int unusedVar;
   LogEntry entry;
   entry.setData(1);
   entry.flushData();

@@ -22,7 +22,7 @@ void correctAccess(){
     tx_end
 }
 
-void allocateOutsideTransaction(){
+void wrongAllocateOutsideTransaction(){
     int *a = (int*)pmalloc(sizeof(int));
     tx_beg
     assign(a, 2);
@@ -30,7 +30,7 @@ void allocateOutsideTransaction(){
     tx_end
 }
 
-void writeOutsideTransaction(){
+void wrongWriteOutsideTransaction(){
     tx_beg
     int *a = (int*)pmalloc(sizeof(int));
     tx_end
@@ -38,7 +38,7 @@ void writeOutsideTransaction(){
     pfree(a);
 }
 
-void deleteOutsideTransaction(){
+void wrongDeleteOutsideTransaction(){
     tx_beg
     int *a = (int*)pmalloc(sizeof(int));
     assign(a, 2);
@@ -46,7 +46,7 @@ void deleteOutsideTransaction(){
     pfree(a);
 }
 
-void writeIndirectOutTx(){
+void wrongWriteIndirectOutTx(){
     int *ptr = nullptr;
     tx_beg
     int *a = (int*)pmalloc(sizeof(int));

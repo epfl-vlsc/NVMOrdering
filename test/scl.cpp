@@ -35,13 +35,13 @@ struct LogEntry {
 
   void setValid(int valid_) { valid = 1; }
 
-  void persistent_code usingPfence() {
+  void persistent_code correctUsingPfence() {
     data = 1;
     pfence();
     valid = 1;
   }
 
-  void persistent_code fenceMissing() {
+  void persistent_code wrongFenceMissing() {
     data = 1;
     valid = 1;
   }
@@ -54,7 +54,7 @@ void persistent_code correctModelFunction() {
   entry->setValid(1);
 }
 
-void persistent_code writeToValid() {
+void persistent_code wrongWriteToValid() {
   LogEntry* entry = new LogEntry;
   entry->setValid(1);
 }

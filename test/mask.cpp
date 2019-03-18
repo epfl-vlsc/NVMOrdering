@@ -51,14 +51,14 @@ struct LogEntry {
     chunk = (chunk & ~MASK) | valid_;
   }
 
-  void persistent_code usingPfence() {
+  void persistent_code correctUsingPfence() {
     cdata = 1;
     chunk = (chunk & MASK) | 1;
     pfence();
     chunk = (chunk & ~MASK) | 1;
   }
 
-  void persistent_code fenceMissing() {
+  void persistent_code wrongFenceMissing() {
     chunk = (chunk & MASK) | 1;
     chunk = (chunk & ~MASK) | 1;
   }
@@ -71,7 +71,7 @@ void persistent_code correctModelFunction() {
   entry->setValid(1);
 }
 
-void persistent_code writeToValid() {
+void persistent_code wrongWriteToValid() {
   LogEntry* entry = new LogEntry;
   entry->setValid(1);
 }

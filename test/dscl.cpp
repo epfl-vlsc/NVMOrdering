@@ -44,7 +44,7 @@ void persistent_code correctModelFunction() {
   pfence();
 }
 
-void persistent_code noFinalFence() {
+void persistent_code wrongFenceMissing() {
   LogEntry* entry = new LogEntry;
   entry->setData(1);
   entry->flushData();
