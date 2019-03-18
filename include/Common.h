@@ -115,6 +115,7 @@ public:
   void VisitDeclRefExpr(const DeclRefExpr* DRE) {
     StringRef currentMask =
         DRE->getNameInfo().getName().getAsIdentifierInfo()->getName();
+    //llvm::outs() << currentMask << " " << mask << "\n";
     if (currentMask.equals(mask)) {
       maskUse = true;
     }
