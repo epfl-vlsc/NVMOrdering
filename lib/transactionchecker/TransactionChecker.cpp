@@ -9,9 +9,8 @@ void TransactionChecker::checkBeginFunction(CheckerContext& C) const {
   bool isPFnc = nvmTxInfo.isPFunction(C);
   bool isTopFnc = isTopFunction(C);
 
-  // if top special function, do not analyze
+  // if pmalloc or pfree function, do not analyze
   if (isPFnc && isTopFnc) {
-    llvm::outs() << "skip analysis\n";
     ExplodedNode* ErrNode = C.generateErrorNode();
     if (!ErrNode)
       return;
@@ -19,17 +18,20 @@ void TransactionChecker::checkBeginFunction(CheckerContext& C) const {
 }
 
 void TransactionChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
-                                   CheckerContext&) const {
-  /*
-  llvm::outs() << "checkBind\n";
-  llvm::outs() << "Loc\n";
-  Loc.dump();
-  llvm::outs() << "\nVal\n";
-  Val.dump();
-  llvm::outs() << "\n";
-  S->dump();
-  llvm::outs() << "\n";
-  */
+                                   CheckerContext& C) const {
+  ProgramStateRef State = C.getState();
+  const MemRegion* Region = Loc.getAsRegion();
+
+  const MemRegion* BR = Region->getBaseRegion();
+
+  bool isNvm = State->get<PMap>(BR);
+  if(isNvm){
+    unsigned txCount = State->get<TxCounter>();
+    if(txCount == 0){
+      //report bug
+      llvm::outs() << "bug\n";
+    }
+  }
 }
 
 void TransactionChecker::checkASTDecl(const FunctionDecl* D,
@@ -57,9 +59,60 @@ void TransactionChecker::checkPostCall(const CallEvent &Call, CheckerContext &C)
     handleTxBegin(C);
   }else if(nvmTxInfo.isTxEnd(FD)){
     handleTxEnd(C);
+  }else if(nvmTxInfo.isPalloc(FD)){
+    handlePalloc(Call, C);
+  }else if(nvmTxInfo.isPfree(FD)){
+    handlePfree(Call, C);
   }else{
     //nothing
   }
+}
+
+void TransactionChecker::handlePalloc(const CallEvent &Call, CheckerContext& C) const{
+  //taint
+  ProgramStateRef State = C.getState();
+  SVal RV = Call.getReturnValue();
+  const MemRegion* Region = RV.getAsRegion();
+
+  //taint regions
+  //todo might lead to bugs due to underlying implementation, this is not how it is used
+  
+  unsigned txCount = State->get<TxCounter>();
+  if(txCount == 0){
+    //report bug
+    llvm::outs() << "bug\n";
+  }
+
+
+  State = State->set<PMap>(Region, true);
+  C.addTransition(State);
+}
+
+void TransactionChecker::handlePfree(const CallEvent &Call, CheckerContext& C) const{
+  if (Call.getNumArgs() > 1) {
+    llvm::report_fatal_error("check pfree function");
+    return;
+  }
+
+  ProgramStateRef State = C.getState();
+  SVal Loc = Call.getArgSVal(0);
+  const MemRegion* Region = Loc.getAsRegion();
+
+  const MemRegion* BR = Region->getBaseRegion();
+
+  bool isNvm = State->get<PMap>(BR);
+  if(isNvm){
+    //check transaction
+    unsigned txCount = State->get<TxCounter>();
+    if(txCount == 0){
+      //report bug
+      llvm::outs() << "bug\n";
+    }
+   
+    //clear the region
+    State = State->set<PMap>(BR, false);
+    C.addTransition(State);
+  }  
 }
 
 void TransactionChecker::handleTxBegin(CheckerContext& C) const{

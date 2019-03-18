@@ -41,13 +41,13 @@ public:
     return pallocFncSet.count(FD) || pfreeFncSet.count(FD);
   }
 
-  bool isTxBeg(const FunctionDecl* FD) {
-    return txBegSet.count(FD);
-  }
+  bool isTxBeg(const FunctionDecl* FD) { return txBegSet.count(FD); }
 
-  bool isTxEnd(const FunctionDecl* FD) {
-    return txEndSet.count(FD);
-  }
+  bool isTxEnd(const FunctionDecl* FD) { return txEndSet.count(FD); }
+
+  bool isPalloc(const FunctionDecl* FD) { return pallocFncSet.count(FD); }
+
+  bool isPfree(const FunctionDecl* FD) { return pfreeFncSet.count(FD); }
 
   void dumpFunctions() {
     std::set<const FunctionDecl*>* functionSets[] = {

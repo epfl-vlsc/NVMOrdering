@@ -36,6 +36,10 @@ private:
 
   void handleTxEnd(CheckerContext& C) const;
 
+  void handlePalloc(const CallEvent &Call, CheckerContext& C) const;
+
+  void handlePfree(const CallEvent &Call, CheckerContext& C) const;
+
   TransactionBugReporter BReporter;
   mutable NVMTransactionInfo nvmTxInfo;
 };
