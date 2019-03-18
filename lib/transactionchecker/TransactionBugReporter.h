@@ -16,21 +16,19 @@ public:
         new BugType(&CB, "Wrong write outside transaction", TransactionError));
   }
 
-  void reportOutTxWriteBug(SVal Loc, CheckerContext& C, const DeclaratorDecl* D,
+  void reportOutTxWriteBug(const MemRegion* Region, CheckerContext& C,
                            const ExplodedNode* const ExplNode,
                            BugReporter& BReporter) const {
-    /*
     const FunctionDecl* FD = getTopFunction(C);
-
+    
     std::string sbuf;
     llvm::raw_string_ostream ErrorOs(sbuf);
-    ErrorOs << "Wrong data usage at " + FD->getName();
+    ErrorOs << "Access outside transaction at function: " + FD->getName();
 
-    auto Report = llvm::make_unique<BugReport>(*OutTxWriteBugType, ErrorOs.str(),
-                                               ExplNode);
-    Report->markInteresting(Loc);
+    auto Report = llvm::make_unique<BugReport>(*OutTxWriteBugType,
+                                               ErrorOs.str(), ExplNode);
+    Report->markInteresting(Region);
     BReporter.emitReport(std::move(Report));
-    */
   }
 };
 

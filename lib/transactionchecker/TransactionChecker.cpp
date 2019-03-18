@@ -25,11 +25,14 @@ void TransactionChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   const MemRegion* BR = Region->getBaseRegion();
 
   bool isNvm = State->get<PMap>(BR);
-  if(isNvm){
+  if (isNvm) {
     unsigned txCount = State->get<TxCounter>();
-    if(txCount == 0){
-      //report bug
-      llvm::outs() << "bug\n";
+    if (txCount == 0) {
+      ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
+      if (!ErrNode) {
+        return;
+      }
+      BReporter.reportOutTxWriteBug(BR, C, ErrNode, C.getBugReporter());
     }
   }
 }
@@ -53,42 +56,48 @@ ProgramStateRef TransactionChecker::checkPointerEscape(
   return State;
 }
 
-void TransactionChecker::checkPostCall(const CallEvent &Call, CheckerContext &C) const{
+void TransactionChecker::checkPostCall(const CallEvent& Call,
+                                       CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(Call);
-  if(nvmTxInfo.isTxBeg(FD)){
+  if (nvmTxInfo.isTxBeg(FD)) {
     handleTxBegin(C);
-  }else if(nvmTxInfo.isTxEnd(FD)){
+  } else if (nvmTxInfo.isTxEnd(FD)) {
     handleTxEnd(C);
-  }else if(nvmTxInfo.isPalloc(FD)){
+  } else if (nvmTxInfo.isPalloc(FD)) {
     handlePalloc(Call, C);
-  }else if(nvmTxInfo.isPfree(FD)){
+  } else if (nvmTxInfo.isPfree(FD)) {
     handlePfree(Call, C);
-  }else{
-    //nothing
+  } else {
+    // nothing
   }
 }
 
-void TransactionChecker::handlePalloc(const CallEvent &Call, CheckerContext& C) const{
-  //taint
+void TransactionChecker::handlePalloc(const CallEvent& Call,
+                                      CheckerContext& C) const {
+  // taint
   ProgramStateRef State = C.getState();
   SVal RV = Call.getReturnValue();
   const MemRegion* Region = RV.getAsRegion();
 
-  //taint regions
-  //todo might lead to bugs due to underlying implementation, this is not how it is used
-  
-  unsigned txCount = State->get<TxCounter>();
-  if(txCount == 0){
-    //report bug
-    llvm::outs() << "bug\n";
-  }
+  // taint regions
+  // todo might lead to bugs due to underlying implementation, this is not how
+  // it is used
 
+  unsigned txCount = State->get<TxCounter>();
+  if (txCount == 0) {
+    ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
+    if (!ErrNode) {
+      return;
+    }
+    BReporter.reportOutTxWriteBug(Region, C, ErrNode, C.getBugReporter());
+  }
 
   State = State->set<PMap>(Region, true);
   C.addTransition(State);
 }
 
-void TransactionChecker::handlePfree(const CallEvent &Call, CheckerContext& C) const{
+void TransactionChecker::handlePfree(const CallEvent& Call,
+                                     CheckerContext& C) const {
   if (Call.getNumArgs() > 1) {
     llvm::report_fatal_error("check pfree function");
     return;
@@ -101,21 +110,24 @@ void TransactionChecker::handlePfree(const CallEvent &Call, CheckerContext& C) c
   const MemRegion* BR = Region->getBaseRegion();
 
   bool isNvm = State->get<PMap>(BR);
-  if(isNvm){
-    //check transaction
+  if (isNvm) {
+    // check transaction
     unsigned txCount = State->get<TxCounter>();
-    if(txCount == 0){
-      //report bug
-      llvm::outs() << "bug\n";
+    if (txCount == 0) {
+      ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
+      if (!ErrNode) {
+        return;
+      }
+      BReporter.reportOutTxWriteBug(BR, C, ErrNode, C.getBugReporter());
     }
-   
-    //clear the region
+
+    // clear the region
     State = State->set<PMap>(BR, false);
     C.addTransition(State);
-  }  
+  }
 }
 
-void TransactionChecker::handleTxBegin(CheckerContext& C) const{
+void TransactionChecker::handleTxBegin(CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   unsigned txCount = State->get<TxCounter>();
   txCount += 1;
@@ -123,17 +135,16 @@ void TransactionChecker::handleTxBegin(CheckerContext& C) const{
   C.addTransition(State);
 }
 
-void TransactionChecker::handleTxEnd(CheckerContext& C) const{
+void TransactionChecker::handleTxEnd(CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   unsigned txCount = State->get<TxCounter>();
-  if(txCount){
-    //todo report bug that begin does not match end
+  if (txCount) {
+    // todo report bug that begin does not match end
   }
   txCount -= 1;
   State = State->set<TxCounter>(txCount);
   C.addTransition(State);
 }
-
 
 } // namespace clang::ento::nvm
 
