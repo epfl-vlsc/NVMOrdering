@@ -2,7 +2,6 @@
 
 #include "Common.h"
 #include <set>
-#include <sstream>
 
 namespace clang::ento::nvm {
 
