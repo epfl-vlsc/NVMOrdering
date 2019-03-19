@@ -125,7 +125,7 @@ class leafnode : public basenode {
   int find_idx(int key) { return (rand() + key) % 14; }
 
 public:
-  void persistent_code setInCLL(bool InCLLallowed, uint64_t permInCLL,
+  void setInCLL(bool InCLLallowed, uint64_t permInCLL,
                                 ValInCLL valInCLL1, ValInCLL valInCLL2) {
     if (globalEpoch != nodeEpoch) {
       InsAllowed = true;
@@ -147,21 +147,21 @@ public:
     vfence();
   }
 
-  void remove(uint64_t key) {
+  void persistent_code remove(uint64_t key) {
     int idx = find_idx(key);
     setInCLL(true, permutation, ValInCLL(), ValInCLL());
     InsAllowed = false;
     remove_idx(&permutation, idx);
   }
 
-  void insert(uint64_t key, uint64_t* val) {
+  void persistent_code insert(uint64_t key, uint64_t* val) {
     int idx = insert_idx(&permutation);
     setInCLL(InsAllowed, permutation, ValInCLL(), ValInCLL());
     keys[idx] = key;
     vals[idx] = val;
   }
 
-  void update(int idx, uint64_t* val) {
+  void persistent_code update(int idx, uint64_t* val) {
     if (idx <= 6) {
       ValInCLL& incll = InCLL1;
       bool InCLLallowed =
