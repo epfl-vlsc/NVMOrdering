@@ -32,9 +32,10 @@ void OrderingChecker::checkEndFunction(CheckerContext& C) const {
     bool errNodeGenerated = false;
     ExplodedNode* ErrNode = nullptr;
 
+    llvm::outs() << "state values\n";
     // iterate over dcl
     for (auto& [dataDD, dclState] : State->get<DclMap>()) {
-      llvm::outs() << dataDD << " dcl " << dataDD->getName() << " "
+      llvm::outs() << getPairStr(dataDD, dclState.getDataInfo()) << " "
                    << dclState.getStateName() << "\n";
       if (!dclState.isPFenceCheck()) {
         if (!errNodeGenerated) {
@@ -55,7 +56,7 @@ void OrderingChecker::checkEndFunction(CheckerContext& C) const {
 
     // iterate over scl
     for (auto& [dataDD, sclState] : State->get<SclMap>()) {
-      llvm::outs() << dataDD << " scl " << dataDD->getName() << " "
+      llvm::outs() << getPairStr(dataDD, sclState.getDataInfo()) << " "
                    << sclState.getStateName() << "\n";
       if (!sclState.isWriteCheck()) {
         if (!errNodeGenerated) {
@@ -67,7 +68,6 @@ void OrderingChecker::checkEndFunction(CheckerContext& C) const {
         if (!ErrNode) {
           return;
         }
-        llvm::outs() << dataDD << "datadd\n";
         BugInfo BI{dataDD, sclState.getDataInfo(), sclState.getStateName(),
                    sclState.getStateKind(), false};
         BReporter.reportModelBug(C, BI, ErrNode, C.getBugReporter());
@@ -159,6 +159,7 @@ void OrderingChecker::handleWriteCheck(SVal Loc, CheckerContext& C,
     if (!ErrNode) {
       return;
     }
+    llvm::outs() << "report bug\n";
     BReporter.reportWriteBug(Loc, C, D, ErrNode, C.getBugReporter());
   } else {
     // todo throw bug
