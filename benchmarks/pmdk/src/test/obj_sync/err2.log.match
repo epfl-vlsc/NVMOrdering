@@ -1,1 +1,0 @@
-{obj_sync.c:$(N) mutex_$(nW)_worker} obj_sync/TEST2: pmemobj_mutex_lock
