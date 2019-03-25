@@ -1,14 +1,14 @@
 //===-- OrderingChecker.cpp -----------------------------------------*
 // ensure main handle functions only add one state
 
-#include "RecoveryChecker.h"
+#include "ReadChecker.h"
 
 namespace clang::ento::nvm {
 
 /**
  * Skip analysis of unimportant functions
  */
-void RecoveryChecker::checkBeginFunction(CheckerContext& C) const {
+void ReadChecker::checkBeginFunction(CheckerContext& C) const {
   bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
   bool isTopFnc = isTopFunction(C);
 
@@ -20,13 +20,13 @@ void RecoveryChecker::checkBeginFunction(CheckerContext& C) const {
   }
 }
 
-void RecoveryChecker::checkDeadSymbols(SymbolReaper& SymReaper,
+void ReadChecker::checkDeadSymbols(SymbolReaper& SymReaper,
                                        CheckerContext& C) const {
   // todo implement
   // llvm::outs() << "consider implementing checkDeadSymbols\n";
 }
 
-ProgramStateRef RecoveryChecker::checkPointerEscape(
+ProgramStateRef ReadChecker::checkPointerEscape(
     ProgramStateRef State, const InvalidatedSymbols& Escaped,
     const CallEvent* Call, PointerEscapeKind Kind) const {
   // todo implement
@@ -34,7 +34,7 @@ ProgramStateRef RecoveryChecker::checkPointerEscape(
   return State;
 }
 
-void RecoveryChecker::checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
+void ReadChecker::checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
                                     CheckerContext& C) const {
   // only interested in reads
   if (!IsLoad) {
@@ -68,7 +68,7 @@ void RecoveryChecker::checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
   }
 }
 
-void RecoveryChecker::handleReadData(SVal Loc, CheckerContext& C,
+void ReadChecker::handleReadData(SVal Loc, CheckerContext& C,
                                      const DeclaratorDecl* DD,
                                      DataInfo* DI) const {
 
@@ -83,7 +83,7 @@ void RecoveryChecker::handleReadData(SVal Loc, CheckerContext& C,
   }
 }
 
-void RecoveryChecker::handleReadCheck(CheckerContext& C,
+void ReadChecker::handleReadCheck(CheckerContext& C,
                                       const DeclaratorDecl* DD,
                                       CheckInfo* CI) const {
   ProgramStateRef State = C.getState();
@@ -94,7 +94,7 @@ void RecoveryChecker::handleReadCheck(CheckerContext& C,
   }
 }
 
-void RecoveryChecker::handleReadMask(SVal Loc, const Stmt* S, CheckerContext& C,
+void ReadChecker::handleReadMask(SVal Loc, const Stmt* S, CheckerContext& C,
                                      const DeclaratorDecl* DD,
                                      CheckDataInfo* CDI) const {
 
@@ -113,12 +113,12 @@ void RecoveryChecker::handleReadMask(SVal Loc, const Stmt* S, CheckerContext& C,
   }
 }
 
-void RecoveryChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
+void ReadChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
                                    BugReporter& BR) const {
   nvmFncInfo.insertIfKnown(FD);
 }
 
-void RecoveryChecker::checkASTDecl(const DeclaratorDecl* D,
+void ReadChecker::checkASTDecl(const DeclaratorDecl* D,
                                    AnalysisManager& Mgr,
                                    BugReporter& BR) const {
   nvmTypeInfo.analyzeMemLabel(D);
@@ -130,6 +130,6 @@ extern "C" const char clang_analyzerAPIVersionString[] =
     CLANG_ANALYZER_API_VERSION_STRING;
 
 extern "C" void clang_registerCheckers(clang::ento::CheckerRegistry& registry) {
-  registry.addChecker<clang::ento::nvm::RecoveryChecker>(
+  registry.addChecker<clang::ento::nvm::ReadChecker>(
       CHECKER_PLUGIN_NAME, "Checks cache line pair usage");
 }

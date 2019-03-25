@@ -5,15 +5,15 @@
 
 namespace clang::ento::nvm {
 
-class RecoveryBugReporter {
-  const std::string RecoveryError = "NVM Recovery Error";
+class ReadBugReporter {
+  const std::string ReadError = "NVM Recovery Error";
 
   // path-sensitive bug types
   std::unique_ptr<BugType> WrongReadBugType;
 
 public:
-  RecoveryBugReporter(const CheckerBase& CB) {
-    WrongReadBugType.reset(new BugType(&CB, "Wrong read", RecoveryError));
+  ReadBugReporter(const CheckerBase& CB) {
+    WrongReadBugType.reset(new BugType(&CB, "Wrong read", ReadError));
   }
 
   void reportReadBug(SVal Loc, CheckerContext& C, const DeclaratorDecl* D,

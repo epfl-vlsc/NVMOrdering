@@ -2,7 +2,7 @@
 #include "Common.h"
 #include "clang/StaticAnalyzer/Core/BugReporter/BugType.h"
 
-constexpr const char* CHECKER_PLUGIN_NAME = "nvm.multicompilechecker";
+constexpr const char* CHECKER_PLUGIN_NAME = "nvm.mcchecker";
 
 namespace clang::ento::nvm {
 

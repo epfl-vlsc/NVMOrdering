@@ -3,22 +3,21 @@
     ./run.sh build
        
 ## How to run ##
-	
-	./run.sh run
-
     ./run.sh <report type> <test file> <checker type> 
 
-    ./run.sh scan simple_masstree ordering
+    ./run.sh scan simple_masstree write
 
 * look at `output/index.html` for results
 
-* <report type>: scan, run
-* <test file>: dcl, dscl, mask, rec, rmask, scl, simple_masstree, tx
-* <checker type>: ordering, recovery, transaction
-
-
--analyzer-display-progress
-clang -cc1 -analyze -analyzer-checker=core  f2.c -analyzer-display-progress
-
-the most optimal solution to finding which functions to analyze would be to modify 
-lib/Frontend/AnalysisConsumer.cpp, for now we will implement the features on the checker
+* <report type>: 
+    * run - generate command line report
+    * scan - generate visual bug report
+    * ast - generate ast of code to examine
+* <test file>: dcl, scl, dscl, mask, simple_masstree, rmask, rec, txm, txp
+* <checker type>: 
+    * write - main code checker
+    * read - recover code checker
+    * txm - transaction checker for mnemosyne
+    * txp - transaction checker for pmdk
+    * exp - experimental features
+    * mc - multi source compile tests

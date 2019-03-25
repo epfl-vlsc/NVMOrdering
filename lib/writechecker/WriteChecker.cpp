@@ -1,14 +1,14 @@
-//===-- OrderingChecker.cpp -----------------------------------------*
+//===-- WriteChecker.cpp -----------------------------------------*
 // ensure main handle functions only add one state
 
-#include "OrderingChecker.h"
+#include "WriteChecker.h"
 
 namespace clang::ento::nvm {
 
 /**
  * Skip analysis of unimportant functions
  */
-void OrderingChecker::checkBeginFunction(CheckerContext& C) const {
+void WriteChecker::checkBeginFunction(CheckerContext& C) const {
   bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
   bool isTopFnc = isTopFunction(C);
 
@@ -23,7 +23,7 @@ void OrderingChecker::checkBeginFunction(CheckerContext& C) const {
 /**
  * Check if model is correctly done
  */
-void OrderingChecker::checkEndFunction(CheckerContext& C) const {
+void WriteChecker::checkEndFunction(CheckerContext& C) const {
   bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
   bool isTopFnc = isTopFunction(C);
   if (isAnnotated && isTopFnc) {
@@ -76,13 +76,13 @@ void OrderingChecker::checkEndFunction(CheckerContext& C) const {
   }
 }
 
-void OrderingChecker::checkDeadSymbols(SymbolReaper& SymReaper,
+void WriteChecker::checkDeadSymbols(SymbolReaper& SymReaper,
                                        CheckerContext& C) const {
   // todo implement
   // llvm::outs() << "consider implementing checkDeadSymbols\n";
 }
 
-ProgramStateRef OrderingChecker::checkPointerEscape(
+ProgramStateRef WriteChecker::checkPointerEscape(
     ProgramStateRef State, const InvalidatedSymbols& Escaped,
     const CallEvent* Call, PointerEscapeKind Kind) const {
   // todo implement
@@ -90,7 +90,7 @@ ProgramStateRef OrderingChecker::checkPointerEscape(
   return State;
 }
 
-void OrderingChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
+void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                                 CheckerContext& C) const {
   // S->dump();
   const MemRegion* Region = Loc.getAsRegion();
@@ -119,7 +119,7 @@ void OrderingChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   }
 }
 
-void OrderingChecker::handleWriteData(CheckerContext& C,
+void WriteChecker::handleWriteData(CheckerContext& C,
                                       const DeclaratorDecl* D,
                                       DataInfo* DI) const {
   ProgramStateRef State = C.getState();
@@ -141,7 +141,7 @@ void OrderingChecker::handleWriteData(CheckerContext& C,
   }
 }
 
-void OrderingChecker::handleWriteCheck(SVal Loc, CheckerContext& C,
+void WriteChecker::handleWriteCheck(SVal Loc, CheckerContext& C,
                                        const DeclaratorDecl* D,
                                        CheckInfo* CI) const {
   ProgramStateRef State = C.getState();
@@ -166,7 +166,7 @@ void OrderingChecker::handleWriteCheck(SVal Loc, CheckerContext& C,
   }
 }
 
-void OrderingChecker::handleWriteMask(SVal Loc, const Stmt* S,
+void WriteChecker::handleWriteMask(SVal Loc, const Stmt* S,
                                       CheckerContext& C,
                                       const DeclaratorDecl* D,
                                       CheckDataInfo* CDI) const {
@@ -188,7 +188,7 @@ void OrderingChecker::handleWriteMask(SVal Loc, const Stmt* S,
   }
 }
 
-void OrderingChecker::checkPreCall(const CallEvent& Call,
+void WriteChecker::checkPreCall(const CallEvent& Call,
                                    CheckerContext& C) const {
   if (nvmFncInfo.isFlushFunction(Call)) {
     handleFlush(Call, C);
@@ -199,7 +199,7 @@ void OrderingChecker::checkPreCall(const CallEvent& Call,
   }
 }
 
-void OrderingChecker::handleFlush(const CallEvent& Call,
+void WriteChecker::handleFlush(const CallEvent& Call,
                                   CheckerContext& C) const {
   if (Call.getNumArgs() > 2) {
     llvm::report_fatal_error("check flush function");
@@ -224,7 +224,7 @@ void OrderingChecker::handleFlush(const CallEvent& Call,
   }
 }
 
-void OrderingChecker::handleFlushData(CheckerContext& C,
+void WriteChecker::handleFlushData(CheckerContext& C,
                                       const DeclaratorDecl* D,
                                       DataInfo* DI) const {
   ProgramStateRef State = C.getState();
@@ -237,7 +237,7 @@ void OrderingChecker::handleFlushData(CheckerContext& C,
   }
 }
 
-void OrderingChecker::handleFlushCheck(CheckerContext& C,
+void WriteChecker::handleFlushCheck(CheckerContext& C,
                                        const DeclaratorDecl* D,
                                        CheckInfo* CI) const {
   ProgramStateRef State = C.getState();
@@ -249,7 +249,7 @@ void OrderingChecker::handleFlushCheck(CheckerContext& C,
   }
 }
 
-void OrderingChecker::handlePFence(const CallEvent& Call,
+void WriteChecker::handlePFence(const CallEvent& Call,
                                    CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   bool stateModified = dclPFenceTrans(State);
@@ -260,7 +260,7 @@ void OrderingChecker::handlePFence(const CallEvent& Call,
   }
 }
 
-void OrderingChecker::handleVFence(const CallEvent& Call,
+void WriteChecker::handleVFence(const CallEvent& Call,
                                    CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   bool stateModified = sclVFenceTrans(State);
@@ -270,12 +270,12 @@ void OrderingChecker::handleVFence(const CallEvent& Call,
   }
 }
 
-void OrderingChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
+void WriteChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
                                    BugReporter& BR) const {
   nvmFncInfo.insertIfKnown(FD);
 }
 
-void OrderingChecker::checkASTDecl(const DeclaratorDecl* D,
+void WriteChecker::checkASTDecl(const DeclaratorDecl* D,
                                    AnalysisManager& Mgr,
                                    BugReporter& BR) const {
   nvmTypeInfo.analyzeMemLabel(D);
@@ -287,6 +287,6 @@ extern "C" const char clang_analyzerAPIVersionString[] =
     CLANG_ANALYZER_API_VERSION_STRING;
 
 extern "C" void clang_registerCheckers(clang::ento::CheckerRegistry& registry) {
-  registry.addChecker<clang::ento::nvm::OrderingChecker>(
+  registry.addChecker<clang::ento::nvm::WriteChecker>(
       CHECKER_PLUGIN_NAME, "Checks cache line pair usage");
 }

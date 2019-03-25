@@ -1,11 +1,10 @@
-//===-- OrderingChecker.cpp -----------------------------------------*
-// ensure main handle functions only add one state
+//===-- TxPChecker.cpp -----------------------------------------*
 
-#include "TransactionChecker.h"
+#include "TxPChecker.h"
 
 namespace clang::ento::nvm {
 
-void TransactionChecker::checkBeginFunction(CheckerContext& C) const {
+void TxPChecker::checkBeginFunction(CheckerContext& C) const {
   bool isPFnc = nvmTxInfo.isPFunction(C);
   bool isTopFnc = isTopFunction(C);
 
@@ -17,7 +16,7 @@ void TransactionChecker::checkBeginFunction(CheckerContext& C) const {
   }
 }
 
-void TransactionChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
+void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                                    CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   const MemRegion* Region = Loc.getAsRegion();
@@ -37,18 +36,18 @@ void TransactionChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   }
 }
 
-void TransactionChecker::checkASTDecl(const FunctionDecl* D,
+void TxPChecker::checkASTDecl(const FunctionDecl* D,
                                       AnalysisManager& Mgr,
                                       BugReporter& BR) const {
   nvmTxInfo.insertFunction(D);
 }
 
-void TransactionChecker::checkDeadSymbols(SymbolReaper& SymReaper,
+void TxPChecker::checkDeadSymbols(SymbolReaper& SymReaper,
                                           CheckerContext& C) const {
   // llvm::outs() << "checkDeadSymbols\n";
 }
 
-ProgramStateRef TransactionChecker::checkPointerEscape(
+ProgramStateRef TxPChecker::checkPointerEscape(
     ProgramStateRef State, const InvalidatedSymbols& Escaped,
     const CallEvent* Call, PointerEscapeKind Kind) const {
   // llvm::outs() << "checkPointerEscape\n";
@@ -56,7 +55,7 @@ ProgramStateRef TransactionChecker::checkPointerEscape(
   return State;
 }
 
-void TransactionChecker::checkPostCall(const CallEvent& Call,
+void TxPChecker::checkPostCall(const CallEvent& Call,
                                        CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(Call);
   if (nvmTxInfo.isTxBeg(FD)) {
@@ -72,7 +71,7 @@ void TransactionChecker::checkPostCall(const CallEvent& Call,
   }
 }
 
-void TransactionChecker::handlePalloc(const CallEvent& Call,
+void TxPChecker::handlePalloc(const CallEvent& Call,
                                       CheckerContext& C) const {
   // taint
   ProgramStateRef State = C.getState();
@@ -96,7 +95,7 @@ void TransactionChecker::handlePalloc(const CallEvent& Call,
   C.addTransition(State);
 }
 
-void TransactionChecker::handlePfree(const CallEvent& Call,
+void TxPChecker::handlePfree(const CallEvent& Call,
                                      CheckerContext& C) const {
   if (Call.getNumArgs() > 1) {
     llvm::report_fatal_error("check pfree function");
@@ -127,7 +126,7 @@ void TransactionChecker::handlePfree(const CallEvent& Call,
   }
 }
 
-void TransactionChecker::handleTxBegin(CheckerContext& C) const {
+void TxPChecker::handleTxBegin(CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   unsigned txCount = State->get<TxCounter>();
   txCount += 1;
@@ -135,7 +134,7 @@ void TransactionChecker::handleTxBegin(CheckerContext& C) const {
   C.addTransition(State);
 }
 
-void TransactionChecker::handleTxEnd(CheckerContext& C) const {
+void TxPChecker::handleTxEnd(CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   unsigned txCount = State->get<TxCounter>();
   if (txCount) {
@@ -152,6 +151,6 @@ extern "C" const char clang_analyzerAPIVersionString[] =
     CLANG_ANALYZER_API_VERSION_STRING;
 
 extern "C" void clang_registerCheckers(clang::ento::CheckerRegistry& registry) {
-  registry.addChecker<clang::ento::nvm::TransactionChecker>(
+  registry.addChecker<clang::ento::nvm::TxPChecker>(
       CHECKER_PLUGIN_NAME, "Checks cache line pair usage");
 }
