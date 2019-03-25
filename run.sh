@@ -13,6 +13,16 @@ fi
 
 test_file=../test/$test_name.cpp
 
+
+compile_multi(){
+    MC_DIR=experimental/multicompile    
+    cd build
+    scan-build -load-plugin lib/libmulticompilechecker.so \
+        -enable-checker nvm.multicompilechecker
+        make
+    cd ..
+}
+
 create_build(){
 	mkdir -p build
 	cd build
@@ -88,6 +98,8 @@ elif [ "$mode" == "build" ] ;then
     run_make
 elif [ "$mode" == "ast" ] ;then 
     dump_ast
+elif [ "$mode" == "multi" ] ;then 
+    compile_multi
 else
 	echo "run, build, ast"
 fi

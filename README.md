@@ -6,7 +6,11 @@
 	
 	./run.sh run
 
+    ./run.sh <report type> <test file> <checker type> 
 
+* <report type>: scan, run
+* <test file>: dcl, dscl, mask, rec, rmask, scl, simple_masstree, tx
+* <checker type>: ordering, recovery, transaction
 
 
 -analyzer-display-progress
