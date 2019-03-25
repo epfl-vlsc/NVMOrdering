@@ -8,25 +8,42 @@ class TxPBugReporter {
   const std::string TxPError = "NVM Transaction PMDK Error";
 
   // path-sensitive bug types
-  std::unique_ptr<BugType> OutTxWriteBugType;
+  std::unique_ptr<BugType> TxWriteBugType;
+  std::unique_ptr<BugType> TxLogBugType;
 
 public:
   TxPBugReporter(const CheckerBase& CB) {
-    OutTxWriteBugType.reset(
-        new BugType(&CB, "Wrong write outside transaction", TxPError));
+    TxWriteBugType.reset(
+        new BugType(&CB, "Writing outside transaction", TxPError));
+    TxLogBugType.reset(new BugType(&CB, "Writing without logging", TxPError));
   }
 
-  void reportOutTxWriteBug(const MemRegion* Region, CheckerContext& C,
-                           const ExplodedNode* const ExplNode,
-                           BugReporter& BReporter) const {
+  void reportTxWriteBug(const MemRegion* Region, CheckerContext& C,
+                        const ExplodedNode* const ExplNode,
+                        BugReporter& BReporter) const {
     const FunctionDecl* FD = getTopFunction(C);
-    
+
     std::string sbuf;
     llvm::raw_string_ostream ErrorOs(sbuf);
     ErrorOs << "Access outside transaction at function: " + FD->getName();
 
-    auto Report = llvm::make_unique<BugReport>(*OutTxWriteBugType,
-                                               ErrorOs.str(), ExplNode);
+    auto Report =
+        llvm::make_unique<BugReport>(*TxWriteBugType, ErrorOs.str(), ExplNode);
+    Report->markInteresting(Region);
+    BReporter.emitReport(std::move(Report));
+  }
+
+  void reportTxLogBug(const MemRegion* Region, CheckerContext& C,
+                      const ExplodedNode* const ExplNode,
+                      BugReporter& BReporter) const {
+    const FunctionDecl* FD = getTopFunction(C);
+
+    std::string sbuf;
+    llvm::raw_string_ostream ErrorOs(sbuf);
+    ErrorOs << "Writing without logging: " + FD->getName();
+
+    auto Report =
+        llvm::make_unique<BugReport>(*TxLogBugType, ErrorOs.str(), ExplNode);
     Report->markInteresting(Region);
     BReporter.emitReport(std::move(Report));
   }

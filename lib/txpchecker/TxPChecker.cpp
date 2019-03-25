@@ -17,33 +17,48 @@ void TxPChecker::checkBeginFunction(CheckerContext& C) const {
 }
 
 void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
-                                   CheckerContext& C) const {
+                           CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   const MemRegion* Region = Loc.getAsRegion();
 
   const MemRegion* BR = Region->getBaseRegion();
 
-  bool isNvm = State->get<PMap>(BR);
-  if (isNvm) {
+  const WriteState* WS = State->get<PMap>(BR);
+  if (WS) {
+    // is a palloced region
+
+    // check tx region
     unsigned txCount = State->get<TxCounter>();
     if (txCount == 0) {
       ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
       if (!ErrNode) {
         return;
       }
-      BReporter.reportOutTxWriteBug(BR, C, ErrNode, C.getBugReporter());
+      BReporter.reportTxWriteBug(BR, C, ErrNode, C.getBugReporter());
+    }
+
+    // check mem usage
+    if (WS->isLogged()) {
+      State = State->set<PMap>(BR, WriteState::getWritten());
+      C.addTransition(State);
+    } else {
+      // not logged
+      ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
+      if (!ErrNode) {
+        return;
+      }
+      BReporter.reportTxLogBug(BR, C, ErrNode, C.getBugReporter());
     }
   }
 }
 
-void TxPChecker::checkASTDecl(const FunctionDecl* D,
-                                      AnalysisManager& Mgr,
-                                      BugReporter& BR) const {
+void TxPChecker::checkASTDecl(const FunctionDecl* D, AnalysisManager& Mgr,
+                              BugReporter& BR) const {
   nvmTxInfo.insertFunction(D);
 }
 
 void TxPChecker::checkDeadSymbols(SymbolReaper& SymReaper,
-                                          CheckerContext& C) const {
+                                  CheckerContext& C) const {
   // llvm::outs() << "checkDeadSymbols\n";
 }
 
@@ -55,8 +70,7 @@ ProgramStateRef TxPChecker::checkPointerEscape(
   return State;
 }
 
-void TxPChecker::checkPostCall(const CallEvent& Call,
-                                       CheckerContext& C) const {
+void TxPChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(Call);
   if (nvmTxInfo.isTxBeg(FD)) {
     handleTxBegin(C);
@@ -66,13 +80,44 @@ void TxPChecker::checkPostCall(const CallEvent& Call,
     handlePalloc(Call, C);
   } else if (nvmTxInfo.isPfree(FD)) {
     handlePfree(Call, C);
+  } else if (nvmTxInfo.isTxAdd(FD)) {
+    handleTxAdd(Call, C);
   } else {
     // nothing
   }
 }
 
-void TxPChecker::handlePalloc(const CallEvent& Call,
-                                      CheckerContext& C) const {
+void TxPChecker::handleTxAdd(const CallEvent& Call, CheckerContext& C) const {
+  if (Call.getNumArgs() > 1) {
+    llvm::report_fatal_error("check tx_add function");
+    return;
+  }
+
+  ProgramStateRef State = C.getState();
+  SVal Loc = Call.getArgSVal(0);
+  const MemRegion* Region = Loc.getAsRegion();
+
+  const MemRegion* BR = Region->getBaseRegion();
+
+  const WriteState* WS = State->get<PMap>(BR);
+  if (WS) {
+    // check transaction
+    unsigned txCount = State->get<TxCounter>();
+    if (txCount == 0) {
+      ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
+      if (!ErrNode) {
+        return;
+      }
+      BReporter.reportTxWriteBug(BR, C, ErrNode, C.getBugReporter());
+    }
+
+    // clear the region
+    State = State->set<PMap>(BR, WriteState::getLogged());
+    C.addTransition(State);
+  }
+}
+
+void TxPChecker::handlePalloc(const CallEvent& Call, CheckerContext& C) const {
   // taint
   ProgramStateRef State = C.getState();
   SVal RV = Call.getReturnValue();
@@ -88,15 +133,14 @@ void TxPChecker::handlePalloc(const CallEvent& Call,
     if (!ErrNode) {
       return;
     }
-    BReporter.reportOutTxWriteBug(Region, C, ErrNode, C.getBugReporter());
+    BReporter.reportTxWriteBug(Region, C, ErrNode, C.getBugReporter());
   }
 
-  State = State->set<PMap>(Region, true);
+  State = State->set<PMap>(Region, WriteState::getInit());
   C.addTransition(State);
 }
 
-void TxPChecker::handlePfree(const CallEvent& Call,
-                                     CheckerContext& C) const {
+void TxPChecker::handlePfree(const CallEvent& Call, CheckerContext& C) const {
   if (Call.getNumArgs() > 1) {
     llvm::report_fatal_error("check pfree function");
     return;
@@ -117,11 +161,11 @@ void TxPChecker::handlePfree(const CallEvent& Call,
       if (!ErrNode) {
         return;
       }
-      BReporter.reportOutTxWriteBug(BR, C, ErrNode, C.getBugReporter());
+      BReporter.reportTxWriteBug(BR, C, ErrNode, C.getBugReporter());
     }
 
     // clear the region
-    State = State->set<PMap>(BR, false);
+    State = State->remove<PMap>(BR);
     C.addTransition(State);
   }
 }

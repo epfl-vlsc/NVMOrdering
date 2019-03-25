@@ -5,10 +5,8 @@
 namespace clang::ento::nvm {
 
 class NVMTransactionInfo {
-  static constexpr const char* TXBEG = "TX_BEG";
-  static constexpr const char* TXEND = "TX_END";
-
   std::set<const FunctionDecl*> txBegSet;
+  std::set<const FunctionDecl*> txAddSet;
   std::set<const FunctionDecl*> txEndSet;
 
   std::set<const FunctionDecl*> pallocFncSet;
@@ -24,6 +22,8 @@ public:
         pfreeFncSet.insert(FD);
       } else if (II->isStr("tx_begin")) {
         txBegSet.insert(FD);
+      } else if (II->isStr("tx_add")) {
+        txAddSet.insert(FD);
       } else if (II->isStr("tx_end")) {
         txEndSet.insert(FD);
       } else {
@@ -41,6 +41,8 @@ public:
     return pallocFncSet.count(FD) || pfreeFncSet.count(FD);
   }
 
+  bool isTxAdd(const FunctionDecl* FD) { return txAddSet.count(FD); }
+
   bool isTxBeg(const FunctionDecl* FD) { return txBegSet.count(FD); }
 
   bool isTxEnd(const FunctionDecl* FD) { return txEndSet.count(FD); }
@@ -51,7 +53,7 @@ public:
 
   void dumpFunctions() {
     std::set<const FunctionDecl*>* functionSets[] = {
-        &txBegSet, &txEndSet, &pallocFncSet, &pfreeFncSet};
+        &txBegSet, &txAddSet, &txEndSet, &pallocFncSet, &pfreeFncSet};
     for (auto* fncSet : functionSets) {
       for (const FunctionDecl* FD : *fncSet) {
         llvm::outs() << FD->getQualifiedNameAsString() << "\n";

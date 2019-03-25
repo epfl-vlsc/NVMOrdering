@@ -9,10 +9,10 @@
 #define recovery_code __attribute((annotate("RecoveryCode")))
 #define persistent_code __attribute((annotate("PersistentCode")))
 
-
 void tx_begin(){}
 void tx_end(){}
-
+void tx_add(void* ptr){}
 
 #define tx_beg tx_begin();
 #define tx_end tx_end();
+#define tx_add(P) tx_add(P)

@@ -35,6 +35,8 @@ public:
 private:
   void handleTxBegin(CheckerContext& C) const;
 
+  void handleTxAdd(const CallEvent &Call, CheckerContext& C) const;
+
   void handleTxEnd(CheckerContext& C) const;
 
   void handlePalloc(const CallEvent &Call, CheckerContext& C) const;
