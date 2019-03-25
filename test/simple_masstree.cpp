@@ -15,9 +15,9 @@ void vfence() { std::atomic_thread_fence(std::memory_order_release); }
 void pfence() { _mm_sfence(); }
 void clflush(void const* p) { _mm_clflush(p); }
 
-uint64_t higher(uint64_t h) { return h; }
+uint64_t higher(uint64_t h) { return h >> 2; }
 
-uint64_t lower(uint64_t l) { return l; }
+uint64_t lower(uint64_t l) { return l << 2; }
 
 class leafnode;
 struct Log {
@@ -103,8 +103,8 @@ class leafnode : public basenode {
   basenode* prev;
   basenode* next;
   pcheck() uint64_t nodeEpoch;
-  pscl(leafnode.nodeEpoch) bool logged;
-  pscl(leafnode.nodeEpoch) bool InsAllowed;
+  bool logged;
+  bool InsAllowed;
   pscl(leafnode.nodeEpoch) uint64_t permutationInCLL;
   uint64_t permutation;
   uint64_t keys[14];

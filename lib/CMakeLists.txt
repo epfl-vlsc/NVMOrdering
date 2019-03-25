@@ -1,4 +1,6 @@
 add_subdirectory(orderingchecker)
 add_subdirectory(recoverychecker)
 add_subdirectory(transactionchecker)
+add_subdirectory(multicompilechecker)
+add_subdirectory(expchecker)
 

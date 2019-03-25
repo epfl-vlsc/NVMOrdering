@@ -8,18 +8,28 @@ fi
 
 if [ -z "$tool_name" ]
   then
-	tool_name=transaction
+	tool_name=multicompile
 fi
 
 test_file=../test/$test_name.cpp
 
 
 compile_multi(){
-    MC_DIR=experimental/multicompile    
+    #todo -analyzer-opt-analyze-headers
     cd build
-    scan-build -load-plugin lib/libmulticompilechecker.so \
-        -enable-checker nvm.multicompilechecker
-        make
+    OUT_DIR=../output
+    #rm -r $OUT_DIR/*
+    scan-build -load-plugin lib/libmulticompilechecker.so -o $OUT_DIR \
+        -disable-checker alpha -disable-checker apiModeling \
+        -disable-checker valist -disable-checker cplusplus \
+        -disable-checker deadcode -disable-checker debug \
+        -disable-checker llvm -disable-checker nullability  \
+        -disable-checker optin -disable-checker security  \
+        -disable-checker osx -disable-checker unix -disable-checker core \
+        clang++ \
+        -fsyntax-only  \
+        -Xclang -analyzer-max-loop -Xclang 2 \
+        $test_file -Xclang -analyzer-display-progress
     cd ..
 }
 
@@ -92,6 +102,8 @@ if [ "$mode" == "run" ] ;then
 elif [ "$mode" == "scan" ] ;then
 	run_make
 	run_scanbuild
+elif [ "$mode" == "make" ] ;then
+	run_make
 elif [ "$mode" == "build" ] ;then
     rm -r build
 	create_build
@@ -99,6 +111,7 @@ elif [ "$mode" == "build" ] ;then
 elif [ "$mode" == "ast" ] ;then 
     dump_ast
 elif [ "$mode" == "multi" ] ;then 
+    run_make
     compile_multi
 else
 	echo "run, build, ast"
