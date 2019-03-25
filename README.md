@@ -8,6 +8,10 @@
 
     ./run.sh <report type> <test file> <checker type> 
 
+    ./run.sh scan simple_masstree ordering
+
+* look at `output/index.html` for results
+
 * <report type>: scan, run
 * <test file>: dcl, dscl, mask, rec, rmask, scl, simple_masstree, tx
 * <checker type>: ordering, recovery, transaction
