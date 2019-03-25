@@ -135,17 +135,17 @@ public:
   }
 };
 
-class OrderingBugReporter {
-  const std::string OrderingError = "NVM Ordering Error";
+class WriteBugReporter {
+  const std::string WriteError = "NVM Write Error";
 
   // path-sensitive bug types
   std::unique_ptr<BugType> WrongWriteBugType;
   std::unique_ptr<BugType> WrongModelBugType;
 
 public:
-  OrderingBugReporter(const CheckerBase& CB) {
-    WrongWriteBugType.reset(new BugType(&CB, "Wrong write", OrderingError));
-    WrongModelBugType.reset(new BugType(&CB, "Wrong model", OrderingError));
+  WriteBugReporter(const CheckerBase& CB) {
+    WrongWriteBugType.reset(new BugType(&CB, "Wrong write", WriteError));
+    WrongModelBugType.reset(new BugType(&CB, "Wrong model", WriteError));
   }
 
   void reportWriteBug(SVal Loc, CheckerContext& C, const DeclaratorDecl* D,

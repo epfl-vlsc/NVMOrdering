@@ -1,23 +1,23 @@
 #pragma once
 #include "Common.h"
 #include "FunctionInfos.h"
-#include "OrderingBugReporter.h"
+#include "WriteBugReporter.h"
 #include "States.h"
 #include "Transitions.h"
 #include "TypeInfos.h"
 
-constexpr const char* CHECKER_PLUGIN_NAME = "nvm.orderingchecker";
+constexpr const char* CHECKER_PLUGIN_NAME = "nvm.writechecker";
 
 namespace clang::ento::nvm {
 
-class OrderingChecker
+class WriteChecker
     : public Checker<check::BeginFunction, check::EndFunction, check::Bind,
                      check::PreCall, check::ASTDecl<FunctionDecl>,
                      check::ASTDecl<DeclaratorDecl>, check::DeadSymbols,
                      check::PointerEscape> {
 
 public:
-  OrderingChecker() : BReporter(*this), nvmFncInfo("PersistentCode") {}
+  WriteChecker() : BReporter(*this), nvmFncInfo("PersistentCode") {}
 
   void checkBeginFunction(CheckerContext& Ctx) const;
 
@@ -62,7 +62,7 @@ private:
   void handleFlushCheck(CheckerContext& C, const DeclaratorDecl* D,
                         CheckInfo* CI) const;
 
-  OrderingBugReporter BReporter;
+  WriteBugReporter BReporter;
   mutable NVMFunctionInfo nvmFncInfo;
   mutable NVMTypeInfo nvmTypeInfo;
 };

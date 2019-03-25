@@ -1,6 +1,6 @@
 mode=$1 #run, scan, ast
-test_name=$2 #dcl, scl, dscl, mask, simple_masstree
-tool_name=$3 #ordering, recovery, transaction
+test_name=$2 #dcl, scl, dscl, mask, simple_masstree, rmask, rec, txm, txp
+tool_name=$3 #low level(write, read), high level(txm, txp), experimental(exp, mc)
 if [ -z "$test_name" ]
   then
 	test_name=dcl

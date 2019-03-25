@@ -1,19 +1,20 @@
+// transaction pmdk checker
 #pragma once
 #include "Common.h"
 #include "States.h"
-#include "TransactionBugReporter.h"
+#include "TxPBugReporter.h"
 #include "TransactionInfos.h"
 
-constexpr const char* CHECKER_PLUGIN_NAME = "nvm.transactionchecker";
+constexpr const char* CHECKER_PLUGIN_NAME = "nvm.txpchecker";
 
 namespace clang::ento::nvm {
 
-class TransactionChecker
+class TxPChecker
     : public Checker<check::BeginFunction, check::Bind,
                      check::ASTDecl<FunctionDecl>, check::DeadSymbols,
                      check::PointerEscape, check::PostCall> {
 public:
-  TransactionChecker() : BReporter(*this) {}
+  TxPChecker() : BReporter(*this) {}
 
   void checkBeginFunction(CheckerContext& C) const;
 
@@ -40,7 +41,7 @@ private:
 
   void handlePfree(const CallEvent &Call, CheckerContext& C) const;
 
-  TransactionBugReporter BReporter;
+  TxPBugReporter BReporter;
   mutable NVMTransactionInfo nvmTxInfo;
 };
 

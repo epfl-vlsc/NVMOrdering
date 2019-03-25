@@ -1,22 +1,22 @@
 #pragma once
 #include "Common.h"
 #include "FunctionInfos.h"
-#include "RecoveryBugReporter.h"
+#include "ReadBugReporter.h"
 #include "States.h"
 #include "Transitions.h"
 #include "TypeInfos.h"
 
-constexpr const char* CHECKER_PLUGIN_NAME = "nvm.recoverychecker";
+constexpr const char* CHECKER_PLUGIN_NAME = "nvm.readchecker";
 
 namespace clang::ento::nvm {
 
-class RecoveryChecker
+class ReadChecker
     : public Checker<check::BeginFunction, check::Location,
                      check::ASTDecl<FunctionDecl>,
                      check::ASTDecl<DeclaratorDecl>, check::DeadSymbols,
                      check::PointerEscape> {
 public:
-  RecoveryChecker() : BReporter(*this), nvmFncInfo("RecoveryCode") {}
+  ReadChecker() : BReporter(*this), nvmFncInfo("RecoveryCode") {}
 
   void checkBeginFunction(CheckerContext& Ctx) const;
 
@@ -46,7 +46,7 @@ private:
   void handleReadMask(SVal Loc, const Stmt* S, CheckerContext& C,
                       const DeclaratorDecl* DD, CheckDataInfo* CDI) const;
 
-  RecoveryBugReporter BReporter;
+  ReadBugReporter BReporter;
   mutable NVMFunctionInfo nvmFncInfo;
   mutable NVMTypeInfo nvmTypeInfo;
 };

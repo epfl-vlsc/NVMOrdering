@@ -4,16 +4,16 @@
 
 namespace clang::ento::nvm {
 
-class TransactionBugReporter {
-  const std::string TransactionError = "NVM Transaction Error";
+class TxPBugReporter {
+  const std::string TxPError = "NVM Transaction PMDK Error";
 
   // path-sensitive bug types
   std::unique_ptr<BugType> OutTxWriteBugType;
 
 public:
-  TransactionBugReporter(const CheckerBase& CB) {
+  TxPBugReporter(const CheckerBase& CB) {
     OutTxWriteBugType.reset(
-        new BugType(&CB, "Wrong write outside transaction", TransactionError));
+        new BugType(&CB, "Wrong write outside transaction", TxPError));
   }
 
   void reportOutTxWriteBug(const MemRegion* Region, CheckerContext& C,
