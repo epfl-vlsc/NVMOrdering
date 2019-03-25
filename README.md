@@ -9,12 +9,12 @@
 
 * look at `output/index.html` for results
 
-* <report type>: 
+* \<report type>
     * run - generate command line report
     * scan - generate visual bug report
     * ast - generate ast of code to examine
-* <test file>: dcl, scl, dscl, mask, simple_masstree, rmask, rec, txm, txp
-* <checker type>: 
+* \<test file> dcl, scl, dscl, mask, simple_masstree, rmask, rec, txm, txp
+* \<checker type>
     * write - main code checker
     * read - recover code checker
     * txm - transaction checker for mnemosyne
