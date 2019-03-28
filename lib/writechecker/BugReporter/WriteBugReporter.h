@@ -10,7 +10,6 @@ protected:
   const std::string WriteError = "NVM Write Error";
 
   std::unique_ptr<BugType> DataAlreadyWritten;
-  std::unique_ptr<BugType> WrongModel;
 
   std::string getErrorMessage(CheckerContext& C, const ValueDecl* VD,
                               const char* msg) const {
@@ -35,7 +34,6 @@ public:
   BaseBugReporter(const CheckerBase& CB) {
     DataAlreadyWritten.reset(
         new BugType(&CB, "Already wrote data", WriteError));
-    WrongModel.reset(new BugType(&CB, "Wrong model use", WriteError));
   }
 
   void reportDataAlreadyWritten(SVal Loc, CheckerContext& C,
