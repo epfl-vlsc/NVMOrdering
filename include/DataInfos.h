@@ -20,7 +20,9 @@ public:
 
   void dump(){
     for(auto& [VD, BI]: annotVars){
-      llvm::outs() << VD->getQualifiedNameAsString() << "\n";
+      llvm::outs() << VD->getQualifiedNameAsString() << " ";
+      BI->dump();
+      llvm::outs() << "\n";
     }
   }
 };

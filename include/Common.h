@@ -5,19 +5,27 @@
 #include "clang/StaticAnalyzer/Core/PathSensitive/CallEvent.h"
 #include "clang/StaticAnalyzer/Core/PathSensitive/CheckerContext.h"
 #include "llvm/Support/raw_ostream.h"
-#include <utility>
+#include <array>
 #include <map>
 #include <set>
-#include <array>
+#include <utility>
 
-
-#define dbg_assert(map, key, msg)                                             \
-  if (!map.count(key)) {                                                      \
-    llvm::errs() << key << " does not exist\n";                            \
+#define dbg_assert(map, key, msg)                                              \
+  if (!map.count(key)) {                                                       \
+    llvm::errs() << key << " does not exist\n";                                \
     assert(0 && msg);                                                          \
   }
 
 namespace clang::ento::nvm {
+
+const AnnotateAttr* getAnnotation(const ValueDecl* VD) {
+  for (const auto* Ann : VD->specific_attrs<AnnotateAttr>()) {
+    // add to annotated vars
+    return Ann;
+  }
+
+  return nullptr;
+}
 
 const Stmt* getParentStmt(const Stmt* S, CheckerContext& C) {
   ASTContext& AC = C.getASTContext();

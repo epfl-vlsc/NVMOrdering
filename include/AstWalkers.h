@@ -17,6 +17,7 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
   static constexpr const char* SCL = "scl";
   static constexpr const char* DCLM = "dclm";
   static constexpr const char* SCLM = "sclm";
+  static constexpr const char* MASK = "mask";
 
   static constexpr const std::array<const char*, 3> ANNOTS = {DCL, SCL, CHECK};
 
@@ -40,34 +41,65 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
 
   void createAnnotVar(const ValueDecl* VD) {
     for (const auto* Ann : VD->specific_attrs<AnnotateAttr>()) {
-      StringRef annotation = Ann->getAnnotation();
       // add to annotated vars
-      addBasedOnAnnot(VD, annotation);
+      addBasedOnAnnot(VD, Ann);
     }
   }
 
   const ValueDecl* getCheckVD(const StringRef& checkNameRef) {
+    if (checkNameRef.empty()) {
+      // empty body masked dcl, scl
+      return nullptr;
+    }
+
     auto checkName = checkNameRef.str();
     dbg_assert(varMap, checkName, "check not tracked correctly");
     return varMap[checkName];
   }
 
-  void addBasedOnAnnot(const ValueDecl* dataVD, const StringRef& annotation) {
-    auto [annotInfo, textInfo] = annotation.split(SEP);
+  void addBasedOnAnnot(const ValueDecl* dataVD, const AnnotateAttr* dataAA) {
+    StringRef dataAnnotation = dataAA->getAnnotation();
+    auto [annotInfo, textInfo] = dataAnnotation.split(SEP);
     if (annotInfo.contains(CHECK)) {
       // is check, single variable
-      declInfoMap[dataVD] = new PCheckInfo(dataVD);
+      declInfoMap[dataVD] = new CheckInfo(dataVD);
     } else {
       // not check, pair variables
       const ValueDecl* checkVD = getCheckVD(textInfo);
       if (annotInfo.contains(DCLM)) {
-        declInfoMap[dataVD] = new PDclmInfo(dataVD, checkVD);
+        // checkVD is either some other VD or nullptr
+        declInfoMap[dataVD] = new DclMaskToValidInfo(dataVD, checkVD, dataAA);
       } else if (annotInfo.contains(SCLM)) {
-        declInfoMap[dataVD] = new PSclmInfo(dataVD, checkVD);
+        // checkVD is either some other VD or nullptr
+        declInfoMap[dataVD] = new SclMaskToValidInfo(dataVD, checkVD, dataAA);
       } else if (annotInfo.contains(DCL)) {
-        declInfoMap[dataVD] = new PDclInfo(dataVD, checkVD);
+        const AnnotateAttr* checkAA = getAnnotation(checkVD);
+        if (checkAA) {
+          StringRef checkAnnotation = checkAA->getAnnotation();
+          if (checkAnnotation.contains(MASK)) {
+            // valid is mask
+            declInfoMap[dataVD] = new DclDataToMaskInfo(dataVD, checkVD);
+          } else {
+            // valid is normal
+            declInfoMap[dataVD] = new DclInfo(dataVD, checkVD);
+          }
+        } else {
+          declInfoMap[dataVD] = new DclInfo(dataVD, checkVD);
+        }
       } else if (annotInfo.contains(SCL)) {
-        declInfoMap[dataVD] = new PSclInfo(dataVD, checkVD);
+        const AnnotateAttr* checkAA = getAnnotation(checkVD);
+        if (checkAA) {
+          StringRef checkAnnotation = checkAA->getAnnotation();
+          if (checkAnnotation.contains(MASK)) {
+            // valid is mask
+            declInfoMap[dataVD] = new SclDataToMaskInfo(dataVD, checkVD);
+          } else {
+            // valid is normal
+            declInfoMap[dataVD] = new SclInfo(dataVD, checkVD);
+          }
+        } else {
+          declInfoMap[dataVD] = new SclInfo(dataVD, checkVD);
+        }
       } else {
         llvm::report_fatal_error("annotation not found - not possible");
       }

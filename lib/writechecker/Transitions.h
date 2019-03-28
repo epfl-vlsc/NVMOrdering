@@ -5,7 +5,7 @@
 #include "TypeInfos.h"
 
 namespace clang::ento::nvm {
-
+/*
 bool dclWriteDataTrans(ProgramStateRef& State, const DeclaratorDecl* D,
                        DataInfo* DI) {
   const DclState* SS = State->get<DclMap>(D);
@@ -192,5 +192,5 @@ bool sclVFenceTrans(ProgramStateRef& State) {
   }
   return stateModified;
 }
-
+*/
 } // namespace clang::ento::nvm

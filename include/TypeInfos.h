@@ -4,7 +4,7 @@
 #include <set>
 
 namespace clang::ento::nvm {
-
+/*
 class LabeledInfo {
   bool isCheck_;
 
@@ -118,7 +118,7 @@ public:
           /*
           llvm::outs() << "m: " << textInfo << " f: " << fieldName
                        << " " << annot << "\n";
-          */
+          
         }
       }
     }
@@ -139,5 +139,5 @@ std::string getPairStr(const DeclaratorDecl* DD, const DataInfo* DI) {
          << ">:" << DI->getClStr();
   return PairOs.str();
 }
-
+*/
 } // namespace clang::ento::nvm

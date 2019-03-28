@@ -3,7 +3,7 @@
 #include "TypeInfos.h"
 
 namespace clang::ento::nvm {
-
+/*
 struct DclState {
 private:
   enum Kind { WD, FD, PD, WC, FC, PC } K;
@@ -84,10 +84,11 @@ public:
     ID.AddPointer(Str);
   }
 };
-
+*/
 } // namespace clang::ento::nvm
 
+/*
 REGISTER_MAP_WITH_PROGRAMSTATE(SclMap, const clang::DeclaratorDecl*,
                                clang::ento::nvm::SclState)
 REGISTER_MAP_WITH_PROGRAMSTATE(DclMap, const clang::DeclaratorDecl*,
-                               clang::ento::nvm::DclState)
+                               clang::ento::nvm::DclState)*/
