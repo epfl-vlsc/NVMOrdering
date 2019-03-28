@@ -6,10 +6,11 @@
 namespace clang::ento::nvm {
 
 class VarWalker : public RecursiveASTVisitor<VarWalker> {
-  using ValueMap = std::set<const ValueDecl*>;
+  using ValueSet = std::set<const ValueDecl*>;
   using StringSet = std::set<std::string>;
   using StringMap = std::map<std::string, const ValueDecl*>;
-  using DeclInfoMap = std::map<const ValueDecl*, BaseInfo*>;
+  using BIVec = std::vector<BaseInfo*>;
+  using ValueMap = std::map<const ValueDecl*, BIVec>;
 
   static constexpr const char* SEP = "-";
   static constexpr const char* CHECK = "check";
@@ -22,8 +23,8 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
   static constexpr const std::array<const char*, 3> ANNOTS = {DCL, SCL, CHECK};
 
   StringMap varMap;
-  ValueMap annotatedVars;
-  DeclInfoMap& declInfoMap;
+  ValueSet annotatedVars;
+  ValueMap& usedVars;
 
   void addIfAnnotated(const FieldDecl* FD, StringRef annotation) {
     if (auto [annotInfo, textInfo] = annotation.split(SEP);
@@ -39,7 +40,7 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
     }
   }
 
-  void createAnnotVar(const ValueDecl* VD) {
+  void createUsedVar(const ValueDecl* VD) {
     for (const auto* Ann : VD->specific_attrs<AnnotateAttr>()) {
       // add to annotated vars
       addBasedOnAnnot(VD, Ann);
@@ -57,34 +58,48 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
     return varMap[checkName];
   }
 
+  void addToUsedVars(const ValueDecl* VD, BaseInfo* BI) {
+    if (!usedVars.count(VD)) {
+      // not exist
+      usedVars[VD];
+    }
+    usedVars[VD].push_back(BI);
+  }
+
   void addBasedOnAnnot(const ValueDecl* dataVD, const AnnotateAttr* dataAA) {
     StringRef dataAnnotation = dataAA->getAnnotation();
     auto [annotInfo, textInfo] = dataAnnotation.split(SEP);
     if (annotInfo.contains(CHECK)) {
       // is check, single variable
-      declInfoMap[dataVD] = new CheckInfo(dataVD);
+      addToUsedVars(dataVD, new CheckInfo(dataVD));
     } else {
       // not check, pair variables
       const ValueDecl* checkVD = getCheckVD(textInfo);
+      BaseInfo* BI = nullptr;
       if (annotInfo.contains(DCLM)) {
         // checkVD is either some other VD or nullptr
-        declInfoMap[dataVD] = new DclMaskToValidInfo(dataVD, checkVD, dataAA);
+        BI = new DclMaskToValidInfo(dataVD, checkVD, dataAA);
+        addToUsedVars(dataVD, BI);
       } else if (annotInfo.contains(SCLM)) {
         // checkVD is either some other VD or nullptr
-        declInfoMap[dataVD] = new SclMaskToValidInfo(dataVD, checkVD, dataAA);
+        BI = new SclMaskToValidInfo(dataVD, checkVD, dataAA);
+        addToUsedVars(dataVD, BI);
       } else if (annotInfo.contains(DCL)) {
         const AnnotateAttr* checkAA = getAnnotation(checkVD);
         if (checkAA) {
           StringRef checkAnnotation = checkAA->getAnnotation();
           if (checkAnnotation.contains(MASK)) {
             // valid is mask
-            declInfoMap[dataVD] = new DclDataToMaskInfo(dataVD, checkVD);
+            BI = new DclDataToMaskInfo(dataVD, checkVD);
+            addToUsedVars(dataVD, BI);
           } else {
             // valid is normal
-            declInfoMap[dataVD] = new DclInfo(dataVD, checkVD);
+            BI = new DclInfo(dataVD, checkVD);
+            addToUsedVars(dataVD, BI);
           }
         } else {
-          declInfoMap[dataVD] = new DclInfo(dataVD, checkVD);
+          BI = new DclInfo(dataVD, checkVD);
+          addToUsedVars(dataVD, BI);
         }
       } else if (annotInfo.contains(SCL)) {
         const AnnotateAttr* checkAA = getAnnotation(checkVD);
@@ -92,22 +107,30 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
           StringRef checkAnnotation = checkAA->getAnnotation();
           if (checkAnnotation.contains(MASK)) {
             // valid is mask
-            declInfoMap[dataVD] = new SclDataToMaskInfo(dataVD, checkVD);
+            BI = new SclDataToMaskInfo(dataVD, checkVD);
+            addToUsedVars(dataVD, BI);
           } else {
             // valid is normal
-            declInfoMap[dataVD] = new SclInfo(dataVD, checkVD);
+            BI = new SclInfo(dataVD, checkVD);
+            addToUsedVars(dataVD, BI);
           }
         } else {
-          declInfoMap[dataVD] = new SclInfo(dataVD, checkVD);
+          BI = new SclInfo(dataVD, checkVD);
+          addToUsedVars(dataVD, BI);
         }
       } else {
         llvm::report_fatal_error("annotation not found - not possible");
+      }
+
+      // also subscribe valids
+      if (BI) {
+        addToUsedVars(checkVD, BI);
       }
     }
   }
 
 public:
-  VarWalker(DeclInfoMap& declInfoMap_) : declInfoMap(declInfoMap_) {}
+  VarWalker(ValueMap& usedVars_) : usedVars(usedVars_) {}
 
   // todo add a visitor to support local var declaration
   bool VisitFieldDecl(const FieldDecl* FD) {
@@ -125,9 +148,9 @@ public:
     return true;
   }
 
-  void createAnnotVars() {
+  void createUsedVars() {
     for (auto VD : annotatedVars) {
-      createAnnotVar(VD);
+      createUsedVar(VD);
     }
   }
 

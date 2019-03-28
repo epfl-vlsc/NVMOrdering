@@ -1,6 +1,6 @@
 #pragma once
-#include "AnnotationInfos.h"
 #include "Common.h"
+#include "AnnotationInfos.h"
 
 namespace clang::ento::nvm {
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "AnnotationInfos.h"
 
 namespace clang::ento::nvm {
 
@@ -40,4 +41,6 @@ public:
 } // namespace clang::ento::nvm
 
 REGISTER_MAP_WITH_PROGRAMSTATE(DclMap, clang::ento::nvm::BaseInfo*,
+                               clang::ento::nvm::DclState)
+REGISTER_MAP_WITH_PROGRAMSTATE(DclmMap, clang::AnnotateAttr*,
                                clang::ento::nvm::DclState)

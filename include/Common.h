@@ -8,6 +8,7 @@
 #include <array>
 #include <map>
 #include <set>
+#include <vector>
 #include <utility>
 
 #define dbg_assert(map, key, msg)                                              \

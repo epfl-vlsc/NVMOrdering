@@ -6,23 +6,26 @@
 namespace clang::ento::nvm {
 
 class VarInfos {
-  using DeclInfoMap = std::map<const ValueDecl*, BaseInfo*>;
-  DeclInfoMap annotVars;
+  using BIVec = std::vector<BaseInfo*>;
+  using ValueMap = std::map<const ValueDecl*, BIVec>;
+  ValueMap usedVars;
 
 public:
   void collectUsedVars(const TranslationUnitDecl* CTUD) {
     TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
-    VarWalker varWalker(annotVars);
+    VarWalker varWalker(usedVars);
     varWalker.TraverseDecl(TUD);
-    varWalker.createAnnotVars();
+    varWalker.createUsedVars();
   }
 
-
-  void dump(){
-    for(auto& [VD, BI]: annotVars){
-      llvm::outs() << VD->getQualifiedNameAsString() << " ";
-      BI->dump();
-      llvm::outs() << "\n";
+  void dump() {
+    for (auto& [VD, BIV] : usedVars) {
+      llvm::outs() << VD->getQualifiedNameAsString() << "\n";
+      for (auto& BI : BIV) {
+        llvm::outs() << "\t";
+        BI->dump();
+        llvm::outs() << "\n";
+      }
     }
   }
 };

@@ -9,7 +9,7 @@ namespace clang::ento::nvm {
 void WriteChecker::checkASTDecl(const TranslationUnitDecl* TUD,
                               AnalysisManager& Mgr, BugReporter& BR) const {
   varInfos.collectUsedVars(TUD);
-  //varInfos.dump();
+  varInfos.dump();
 }
 
 /*
