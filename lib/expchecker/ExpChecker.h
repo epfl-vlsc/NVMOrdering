@@ -6,10 +6,9 @@ constexpr const char* CHECKER_PLUGIN_NAME = "nvm.expchecker";
 
 namespace clang::ento::nvm {
 
-class ExpChecker : public Checker<check::Bind,
-                                  check::BranchCondition, 
-                                  check::PostCall,
-                                  check::PreCall> {
+class ExpChecker
+    : public Checker<check::Bind, check::BranchCondition, check::PostCall,
+                     check::PreCall, check::ASTDecl<TranslationUnitDecl>> {
 
 public:
   ExpChecker() { bug.reset(new BugType(this, "bug", "bug")); }
@@ -20,6 +19,9 @@ public:
   void checkBranchCondition(const Stmt* Condition, CheckerContext& C) const;
 
   void checkPostCall(const CallEvent& Call, CheckerContext& C) const;
+
+  void checkASTDecl(const TranslationUnitDecl* D, AnalysisManager& Mgr,
+                    BugReporter& BR) const;
 
   mutable std::unique_ptr<BugType> bug;
 };

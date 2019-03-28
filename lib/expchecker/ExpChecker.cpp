@@ -52,6 +52,12 @@ void ExpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   }
 }
 
+void ExpChecker::checkASTDecl(const TranslationUnitDecl* D,
+                              AnalysisManager& Mgr, BugReporter& BR) const {
+
+  llvm::outs() << "lol\n";
+}
+
 } // namespace clang::ento::nvm
 
 extern "C" const char clang_analyzerAPIVersionString[] =
