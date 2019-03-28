@@ -6,7 +6,7 @@ namespace clang::ento::nvm {
 
 class BaseBugReporter {
 protected:
-//todo report model bug, valid bug
+  // todo report model bug, valid bug
   const std::string WriteError = "NVM Write Error";
 
   std::unique_ptr<BugType> DataAlreadyWritten;
@@ -22,6 +22,15 @@ protected:
     return ErrorOs.str();
   }
 
+  void reportDirect(SVal Loc, const std::string& ErrMsg,
+                      const ExplodedNode* const ExplNode,
+                      BugReporter& BReporter) const{
+    auto Report =
+        llvm::make_unique<BugReport>(*DataAlreadyWritten, ErrMsg, ExplNode);
+    Report->markInteresting(Loc);
+    BReporter.emitReport(std::move(Report));
+  }
+
 public:
   BaseBugReporter(const CheckerBase& CB) {
     DataAlreadyWritten.reset(
@@ -34,10 +43,7 @@ public:
                                 const ExplodedNode* const ExplNode,
                                 BugReporter& BReporter) const {
     std::string ErrMsg = getErrorMessage(C, VD, "already written");
-    auto Report =
-        llvm::make_unique<BugReport>(*DataAlreadyWritten, ErrMsg, ExplNode);
-    Report->markInteresting(Loc);
-    BReporter.emitReport(std::move(Report));
+    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
   }
 };
 
@@ -56,7 +62,8 @@ public:
         new BugType(&CB, "Already fenced data", WriteError));
     DataNotFlushed.reset(new BugType(&CB, "Data is not flushed", WriteError));
     DataNotFenced.reset(new BugType(&CB, "Data is not fenced", WriteError));
-    CheckAlreadyWritten.reset(new BugType(&CB, "Already wrote valid", WriteError));
+    CheckAlreadyWritten.reset(
+        new BugType(&CB, "Already wrote valid", WriteError));
   }
 
   void reportDataAlreadyFlushed(SVal Loc, CheckerContext& C,
@@ -64,50 +71,36 @@ public:
                                 const ExplodedNode* const ExplNode,
                                 BugReporter& BReporter) const {
     std::string ErrMsg = getErrorMessage(C, VD, "already flushed");
-    auto Report =
-        llvm::make_unique<BugReport>(*DataAlreadyWritten, ErrMsg, ExplNode);
-    Report->markInteresting(Loc);
-    BReporter.emitReport(std::move(Report));
+    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
   }
 
   void reportDataAlreadyFenced(SVal Loc, CheckerContext& C, const ValueDecl* VD,
                                const ExplodedNode* const ExplNode,
                                BugReporter& BReporter) const {
     std::string ErrMsg = getErrorMessage(C, VD, "already fenced");
-    auto Report =
-        llvm::make_unique<BugReport>(*DataAlreadyWritten, ErrMsg, ExplNode);
-    Report->markInteresting(Loc);
-    BReporter.emitReport(std::move(Report));
+    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
   }
 
   void reportDataNotFlushed(SVal Loc, CheckerContext& C, const ValueDecl* VD,
                             const ExplodedNode* const ExplNode,
                             BugReporter& BReporter) const {
     std::string ErrMsg = getErrorMessage(C, VD, "not flushed");
-    auto Report =
-        llvm::make_unique<BugReport>(*DataAlreadyWritten, ErrMsg, ExplNode);
-    Report->markInteresting(Loc);
-    BReporter.emitReport(std::move(Report));
+    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
   }
 
   void reportDataNotFenced(SVal Loc, CheckerContext& C, const ValueDecl* VD,
                            const ExplodedNode* const ExplNode,
                            BugReporter& BReporter) const {
     std::string ErrMsg = getErrorMessage(C, VD, "not fenced");
-    auto Report =
-        llvm::make_unique<BugReport>(*DataAlreadyWritten, ErrMsg, ExplNode);
-    Report->markInteresting(Loc);
-    BReporter.emitReport(std::move(Report));
+    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
   }
 
-  void reportCheckAlreadyWritten(SVal Loc, CheckerContext& C, const ValueDecl* VD,
-                           const ExplodedNode* const ExplNode,
-                           BugReporter& BReporter) const {
+  void reportCheckAlreadyWritten(SVal Loc, CheckerContext& C,
+                                 const ValueDecl* VD,
+                                 const ExplodedNode* const ExplNode,
+                                 BugReporter& BReporter) const {
     std::string ErrMsg = getErrorMessage(C, VD, "already written");
-    auto Report =
-        llvm::make_unique<BugReport>(*DataAlreadyWritten, ErrMsg, ExplNode);
-    Report->markInteresting(Loc);
-    BReporter.emitReport(std::move(Report));
+    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
   }
 };
 
