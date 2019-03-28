@@ -5,7 +5,7 @@
 #define psclm(CHECKER) __attribute((annotate("sclmask-" TOSTRING(CHECKER))))
 #define pdcl(CHECKER) __attribute((annotate("dcl-" TOSTRING(CHECKER))))
 #define pscl(CHECKER) __attribute((annotate("scl-" TOSTRING(CHECKER))))
-#define pcheck __attribute((annotate("check")))
+#define pcheck __attribute((annotate("check-")))
 
 #define recovery_code __attribute((annotate("RecoveryCode")))
 #define persistent_code __attribute((annotate("PersistentCode")))

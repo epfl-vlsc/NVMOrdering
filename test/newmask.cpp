@@ -47,7 +47,7 @@ struct SimpleMask2 {
     NON_MASK = ~MASK,
   };
 
-  pdclm(SimpleMask2.valid) int data;
+  pdclm(SimpleMask2::valid) int data;
   int valid;
 
   void persistent_code correctModelMethod() {

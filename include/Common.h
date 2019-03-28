@@ -6,6 +6,16 @@
 #include "clang/StaticAnalyzer/Core/PathSensitive/CheckerContext.h"
 #include "llvm/Support/raw_ostream.h"
 #include <utility>
+#include <map>
+#include <set>
+#include <array>
+
+
+#define dbg_assert(map, key, msg)                                             \
+  if (!map.count(key)) {                                                      \
+    llvm::errs() << key << " does not exist\n";                            \
+    assert(0 && msg);                                                          \
+  }
 
 namespace clang::ento::nvm {
 
@@ -115,7 +125,7 @@ public:
   void VisitDeclRefExpr(const DeclRefExpr* DRE) {
     StringRef currentMask =
         DRE->getNameInfo().getName().getAsIdentifierInfo()->getName();
-    //llvm::outs() << currentMask << " " << mask << "\n";
+    // llvm::outs() << currentMask << " " << mask << "\n";
     if (currentMask.equals(mask)) {
       maskUse = true;
     }
@@ -151,7 +161,7 @@ public:
 };
 
 bool usesMask(const Stmt* S, StringRef mask, bool readMode) {
-  //S->dump();
+  // S->dump();
   MaskWalker maskWalker(mask, readMode);
   maskWalker.Visit(S);
   return maskWalker.usesMask();

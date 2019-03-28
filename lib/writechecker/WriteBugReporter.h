@@ -4,7 +4,7 @@
 #include "clang/StaticAnalyzer/Core/BugReporter/BugType.h"
 
 namespace clang::ento::nvm {
-
+/*
 struct BugInfo {
   const DeclaratorDecl* DD;
   const DataInfo* DI;
@@ -184,5 +184,5 @@ public:
     BReporter.emitReport(std::move(Report));
   }
 };
-
+*/
 } // namespace clang::ento::nvm

@@ -5,9 +5,14 @@
 
 namespace clang::ento::nvm {
 
-/**
- * Skip analysis of unimportant functions
- */
+
+void WriteChecker::checkASTDecl(const TranslationUnitDecl* TUD,
+                              AnalysisManager& Mgr, BugReporter& BR) const {
+  varInfos.collectUsedVars(TUD);
+  //varInfos.dump();
+}
+
+/*
 void WriteChecker::checkBeginFunction(CheckerContext& C) const {
   bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
   bool isTopFnc = isTopFunction(C);
@@ -20,9 +25,6 @@ void WriteChecker::checkBeginFunction(CheckerContext& C) const {
   }
 }
 
-/**
- * Check if model is correctly done
- */
 void WriteChecker::checkEndFunction(CheckerContext& C) const {
   bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
   bool isTopFnc = isTopFunction(C);
@@ -280,7 +282,7 @@ void WriteChecker::checkASTDecl(const DeclaratorDecl* D,
                                    BugReporter& BR) const {
   nvmTypeInfo.analyzeMemLabel(D);
 }
-
+*/
 } // namespace clang::ento::nvm
 
 extern "C" const char clang_analyzerAPIVersionString[] =

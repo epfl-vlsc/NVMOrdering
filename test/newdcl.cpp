@@ -12,7 +12,7 @@ void clflush(void const* p) { _mm_clflush(p); }
 
 
 struct SimpleDCL {
-  pdcl(SimpleDCL.valid) int data;
+  pdcl(SimpleDCL::valid) int data;
   int valid;
 
   void persistent_code correctModelMethod() {

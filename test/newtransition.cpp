@@ -12,8 +12,8 @@ void clflush(void const* p) { _mm_clflush(p); }
 
 
 struct Transition {
-  pdcl(Transition.valid1) int data;
-  pdcl(SimpleDCL.valid2) int valid1;
+  pdcl(Transition::valid1) int data;
+  pdcl(SimpleDCL::valid2) int valid1;
   pcheck int valid2;
 
   void persistent_code correctModelMethod() {

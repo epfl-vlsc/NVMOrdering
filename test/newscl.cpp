@@ -10,7 +10,7 @@ void pfence() { _mm_sfence(); }
 void clflush(void const* p) { _mm_clflush(p); }
 
 struct SimpleSCL {
-  pscl(SimpleSCL.valid) int data;
+  pscl(SimpleSCL::valid) int data;
   int valid;
 
   void persistent_code correctModelMethod() {
