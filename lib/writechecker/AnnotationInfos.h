@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.h"
+#include "StateMachine/Transitions.h"
 
 namespace clang::ento::nvm {
 
@@ -12,6 +13,14 @@ protected:
 
 public:
   virtual void dump() { llvm::outs() << data->getNameAsString(); }
+  virtual void write(SVal Loc, const Stmt* S, CheckerContext& C,
+                     const ValueDecl* VD, ExplodedNode*& EN) = 0;
+  virtual void flush(CheckerContext& C, const ValueDecl* VD,
+                     ExplodedNode*& EN) = 0;
+  virtual void pfence(CheckerContext& C, const ValueDecl* VD,
+                      ExplodedNode*& EN) = 0;
+  virtual void vfence(CheckerContext& C, const ValueDecl* VD,
+                      ExplodedNode*& EN) = 0;
 };
 
 class CheckInfo : public BaseInfo {
@@ -23,6 +32,18 @@ public:
     llvm::outs() << "CheckInfo: ";
     BaseInfo::dump();
   }
+
+  void write(SVal Loc, const Stmt* S, CheckerContext& C, const ValueDecl* VD,
+             ExplodedNode*& EN) {
+    // ProgramStateRef State = C.getState();
+  }
+  void flush(CheckerContext& C, const ValueDecl* VD, ExplodedNode*& EN) {
+    // ProgramStateRef State = C.getState();
+  }
+  void pfence(CheckerContext& C, const ValueDecl* VD, ExplodedNode*& EN) {
+    // ProgramStateRef State = C.getState();
+  }
+  void vfence(CheckerContext& C, const ValueDecl* VD, ExplodedNode*& EN) {}
 };
 
 class PairInfo : public BaseInfo {
@@ -30,6 +51,7 @@ protected:
   const ValueDecl* check;
   PairInfo(const ValueDecl* data_, Kind K_, const ValueDecl* check_)
       : BaseInfo(data_, K_), check(check_) {}
+
 public:
   virtual void dump() {
     BaseInfo::dump();
@@ -37,6 +59,21 @@ public:
       llvm::outs() << " " << check->getNameAsString();
     }
   }
+
+  virtual void write(SVal Loc, const Stmt* S, CheckerContext& C,
+                     const ValueDecl* VD, ExplodedNode*& EN) {
+    // ProgramStateRef State = C.getState();
+  }
+  virtual void flush(CheckerContext& C, const ValueDecl* VD,
+                     ExplodedNode*& EN) {
+    // ProgramStateRef State = C.getState();
+  }
+  virtual void pfence(CheckerContext& C, const ValueDecl* VD,
+                      ExplodedNode*& EN) {
+    // ProgramStateRef State = C.getState();
+  }
+  virtual void vfence(CheckerContext& C, const ValueDecl* VD,
+                      ExplodedNode*& EN) {}
 };
 
 class DclInfo : public PairInfo {

@@ -12,9 +12,8 @@ void WriteChecker::checkASTDecl(const TranslationUnitDecl* TUD,
   varInfos.dump();
 }
 
-/*
 void WriteChecker::checkBeginFunction(CheckerContext& C) const {
-  bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
+  bool isAnnotated = fncInfos.isAnnotatedFunction(C);
   bool isTopFnc = isTopFunction(C);
 
   // if not an annotated function, do not analyze
@@ -25,6 +24,7 @@ void WriteChecker::checkBeginFunction(CheckerContext& C) const {
   }
 }
 
+/*
 void WriteChecker::checkEndFunction(CheckerContext& C) const {
   bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
   bool isTopFnc = isTopFunction(C);
@@ -91,36 +91,29 @@ ProgramStateRef WriteChecker::checkPointerEscape(
   // llvm::outs() << "consider implementing checkPointerEscape\n";
   return State;
 }
+*/
+
 
 void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                                 CheckerContext& C) const {
   // S->dump();
+  ErrNode = nullptr;
+
   const MemRegion* Region = Loc.getAsRegion();
   if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
     const Decl* BD = FieldReg->getDecl();
-    const DeclaratorDecl* D = getDeclaratorDecl(BD);
+    const ValueDecl* VD = getValueDecl(BD);
 
-    if (nvmTypeInfo.inLabels(D)) {
-      LabeledInfo* LI = nvmTypeInfo.getDeclaratorInfo(D);
-      if (LI->isCheck()) {
-        auto* I = static_cast<CheckInfo*>(LI);
-        if (I->hasMask()) {
-          // bit field special case
-          // can be data or check, if it is data, treat is as data
-          // if it is check, treat it as check
-          auto* CDI = static_cast<CheckDataInfo*>(I);
-          handleWriteMask(Loc, S, C, D, CDI);
-        } else {
-          handleWriteCheck(Loc, C, D, I);
-        }
-      } else {
-        auto* I = static_cast<DataInfo*>(LI);
-        handleWriteData(C, D, I);
+    if (varInfos.isUsedVar(VD)) {
+      auto& infoList = varInfos.getInfoList(VD);
+      for(auto& BI: infoList){
+        BI->write(Loc, S, C, VD, ErrNode);
       }
     }
   }
 }
 
+/*
 void WriteChecker::handleWriteData(CheckerContext& C,
                                       const DeclaratorDecl* D,
                                       DataInfo* DI) const {
