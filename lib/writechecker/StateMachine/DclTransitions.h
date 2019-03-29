@@ -1,8 +1,8 @@
 #pragma once
 #include "Common.h"
-#include "States/DclState.h"
+#include "DclState.h"
 
-namespace clang::ento::nvm::dcl {
+namespace clang::ento::nvm::DclSpace {
 
 bool writeData(ProgramStateRef& State, char* D) {
   const DclState* DS = State->get<DclMap>(D);

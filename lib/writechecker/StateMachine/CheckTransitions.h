@@ -1,8 +1,8 @@
 #pragma once
 #include "Common.h"
-#include "States/CheckState.h"
+#include "CheckState.h"
 
-namespace clang::ento::nvm::check {
+namespace clang::ento::nvm::CheckSpace {
 
 bool writeData(ProgramStateRef& State, char* D) {
   const CheckState* CS = State->get<CheckMap>(D);

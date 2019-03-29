@@ -1,8 +1,8 @@
 #pragma once
 #include "Common.h"
-#include "States/SclState.h"
+#include "SclState.h"
 
-namespace clang::ento::nvm::scl
+namespace clang::ento::nvm::SclSpace
  {
 bool writeData(ProgramStateRef& State, char* D) {
   const SclState* SS = State->get<SclMap>(D);
