@@ -14,7 +14,7 @@ protected:
 
 public:
   virtual void dump() const { llvm::outs() << data->getNameAsString(); }
-  virtual bool write(const WriteTransInfos& WTI) const = 0;
+  virtual void write(ReportInfos& RI) const = 0;
 };
 
 class CheckInfo : public BaseInfo {
@@ -22,14 +22,12 @@ class CheckInfo : public BaseInfo {
 public:
   CheckInfo(const ValueDecl* data_) : BaseInfo(data_, Kind::C) {}
 
-  void dump() const{
+  void dump() const {
     llvm::outs() << "CheckInfo: ";
     BaseInfo::dump();
   }
 
-  bool write(const WriteTransInfos& WTI) const{
-    return CheckSpace::writeData(WTI);
-  }
+  void write(ReportInfos& RI) const { CheckSpace::writeData(RI); }
 };
 
 class PairInfo : public BaseInfo {
@@ -39,16 +37,14 @@ protected:
       : BaseInfo(data_, K_), check(check_) {}
 
 public:
-  virtual void dump() const{
+  virtual void dump() const {
     BaseInfo::dump();
     if (check) {
       llvm::outs() << " " << check->getNameAsString();
     }
   }
 
-  bool write(const WriteTransInfos& WTI) const{
-    return false;
-  }
+  void write(ReportInfos& RI) const {}
 };
 
 class DclInfo : public PairInfo {
@@ -68,7 +64,7 @@ public:
   SclInfo(const ValueDecl* data_, const ValueDecl* check_)
       : PairInfo(data_, Kind::SCL, check_) {}
 
-  void dump() const{
+  void dump() const {
     llvm::outs() << "SclInfo: ";
     PairInfo::dump();
   }
@@ -85,7 +81,7 @@ public:
   DclDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_)
       : MaskInfo(data_, Kind::DCLDM, check_) {}
 
-  void dump() const{
+  void dump() const {
     llvm::outs() << "DclDataToMaskInfo: ";
     PairInfo::dump();
   }
@@ -96,7 +92,7 @@ public:
   SclDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_)
       : MaskInfo(data_, Kind::SCLDM, check_) {}
 
-  void dump() const{
+  void dump() const {
     llvm::outs() << "SclDataToMaskInfo: ";
     PairInfo::dump();
   }
@@ -116,7 +112,7 @@ public:
                      const AnnotateAttr* ann_)
       : MaskToValidInfo(data_, Kind::DCLMV, check_, ann_) {}
 
-  void dump() const{
+  void dump() const {
     llvm::outs() << "DclMaskToValidInfo: ";
     PairInfo::dump();
   }
@@ -128,7 +124,7 @@ public:
                      const AnnotateAttr* ann_)
       : MaskToValidInfo(data_, Kind::SCLMV, check_, ann_) {}
 
-  void dump() const{
+  void dump() const {
     llvm::outs() << "SclMaskToValidInfo: ";
     PairInfo::dump();
   }

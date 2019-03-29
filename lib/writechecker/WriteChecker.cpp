@@ -113,9 +113,10 @@ void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
     if (varInfos.isUsedVar(VD)) {
       auto& infoList = varInfos.getInfoList(VD);
       for (auto& BI : infoList) {
-        auto WTI = WriteTransInfos::getWTI(C, State, (char*)VD, ErrNode,
-                                           BReporter, Loc, S);
-        stateChanged |= BI->write(WTI);
+        auto RI =
+            ReportInfos::getRI(C, State, (char*)VD, ErrNode, BReporter, Loc, S);
+        BI->write(RI);
+        stateChanged |= RI.stateChanged;
 
         const CheckState* CS = State->get<CheckMap>((char*)VD);
         if (CS)
