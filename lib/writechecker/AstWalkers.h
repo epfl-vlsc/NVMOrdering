@@ -74,10 +74,12 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
         // checkVD is either some other VD or nullptr
         BI = new DclMaskToValidInfo(dataVD, checkVD, dataAA);
         varInfos.addUsedVar(dataVD, BI);
+        varInfos.addUsedVar(dataAA, BI);
       } else if (annotInfo.contains(SCLM)) {
         // checkVD is either some other VD or nullptr
         BI = new SclMaskToValidInfo(dataVD, checkVD, dataAA);
         varInfos.addUsedVar(dataVD, BI);
+        varInfos.addUsedVar(dataAA, BI);
       } else if (annotInfo.contains(DCL)) {
         const AnnotateAttr* checkAA = getAnnotation(checkVD);
         if (checkAA) {

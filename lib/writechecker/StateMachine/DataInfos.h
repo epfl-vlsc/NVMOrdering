@@ -6,30 +6,46 @@ namespace clang::ento::nvm {
 
 class VarInfos {
   using InfoList = std::vector<BaseInfo*>;
-  using ValueMap = std::map<const ValueDecl*, InfoList>;
+  using ValueMap = std::map<const char*, InfoList>;
   ValueMap usedVars;
 
 public:
   InfoList& getInfoList(const ValueDecl* VD){
-    assert(usedVars.count(VD));
-    return usedVars[VD];
+    const char* D = (const char*) VD;
+    assert(usedVars.count(D));
+    return usedVars[D];
   }
 
   bool isUsedVar(const ValueDecl* VD){
-    return usedVars.count(VD);
+    const char* D = (const char*) VD;
+    return usedVars.count(D);
+  }
+
+  void addUsedVar(const AnnotateAttr* AA, BaseInfo* BI){
+    const char* D = (const char*) AA;
+    addUsedVar(D, BI);
   }
 
   void addUsedVar(const ValueDecl* VD, BaseInfo* BI){
-    if (!usedVars.count(VD)) {
+    const char* D = (const char*) VD;
+    addUsedVar(D, BI);
+  }
+
+  void addUsedVar(const char* D, BaseInfo* BI){
+    if (!usedVars.count(D)) {
       // not exist
-      usedVars[VD];
+      usedVars[D];
     }
-    usedVars[VD].push_back(BI);
+    usedVars[D].push_back(BI);
   }
 
   void dump() {
-    for (auto& [VD, BIV] : usedVars) {
-      llvm::outs() << VD->getQualifiedNameAsString() << "\n";
+    for (auto& [D, BIV] : usedVars) {
+      const Decl* BD = (const Decl*) D;
+      if (const ValueDecl* VD = dyn_cast_or_null<ValueDecl>(BD)) {
+        llvm::outs() << VD->getQualifiedNameAsString() << "\n";
+      }
+
       for (auto& BI : BIV) {
         llvm::outs() << "\t";
         BI->dump();

@@ -39,4 +39,4 @@ public:
 
 } // namespace clang::ento::nvm
 
-REGISTER_MAP_WITH_PROGRAMSTATE(DclMap, char*, clang::ento::nvm::DclState)
+REGISTER_MAP_WITH_PROGRAMSTATE(DclMap, const char*, clang::ento::nvm::DclState)

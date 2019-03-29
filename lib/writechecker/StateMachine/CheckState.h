@@ -36,4 +36,4 @@ public:
 
 } // namespace clang::ento::nvm
 
-REGISTER_MAP_WITH_PROGRAMSTATE(CheckMap, char*, clang::ento::nvm::CheckState)
+REGISTER_MAP_WITH_PROGRAMSTATE(CheckMap, const char*, clang::ento::nvm::CheckState)

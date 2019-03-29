@@ -15,12 +15,12 @@ struct TransOutInfos {
 struct TransInfos : public TransOutInfos {
   CheckerContext& C;
   ProgramStateRef& State;
-  char* D;
+  const char* D;
   ExplodedNode*& EN;
   const WriteBugReporter& BR;
 
 protected:
-  TransInfos(CheckerContext& C_, ProgramStateRef& State_, char* D_,
+  TransInfos(CheckerContext& C_, ProgramStateRef& State_, const char* D_,
              ExplodedNode*& EN_, const WriteBugReporter& BR_)
       : C(C_), State(State_), D(D_), EN(EN_), BR(BR_) {}
 };
@@ -30,7 +30,7 @@ struct WriteTransInfos : public TransInfos {
   const Stmt* S;
 
 protected:
-  WriteTransInfos(CheckerContext& C_, ProgramStateRef& State_, char* D_,
+  WriteTransInfos(CheckerContext& C_, ProgramStateRef& State_, const char* D_,
                   ExplodedNode*& EN_, const WriteBugReporter& BR_, SVal Loc_,
                   const Stmt* S_)
       : TransInfos(C_, State_, D_, EN_, BR_), Loc(Loc_), S(S_) {}
@@ -38,7 +38,7 @@ protected:
 
 struct ReportInfos : public WriteTransInfos {
   static ReportInfos getRI(CheckerContext& C_, ProgramStateRef& State_,
-                           char* D_, ExplodedNode*& EN_,
+                           const char* D_, ExplodedNode*& EN_,
                            const WriteBugReporter& BR_, SVal Loc_,
                            const Stmt* S_) {
     return ReportInfos(C_, State_, D_, EN_, BR_, Loc_, S_);
@@ -102,7 +102,7 @@ private:
     }
   }
 
-  ReportInfos(CheckerContext& C_, ProgramStateRef& State_, char* D_,
+  ReportInfos(CheckerContext& C_, ProgramStateRef& State_, const char* D_,
               ExplodedNode*& EN_, const WriteBugReporter& BR_, SVal Loc_,
               const Stmt* S_)
       : WriteTransInfos(C_, State_, D_, EN_, BR_, Loc_, S_) {}

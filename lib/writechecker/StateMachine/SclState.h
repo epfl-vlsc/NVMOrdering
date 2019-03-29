@@ -37,4 +37,4 @@ public:
 
 } // namespace clang::ento::nvm
 
-REGISTER_MAP_WITH_PROGRAMSTATE(SclMap, char*, clang::ento::nvm::SclState)
+REGISTER_MAP_WITH_PROGRAMSTATE(SclMap, const char*, clang::ento::nvm::SclState)
