@@ -100,13 +100,13 @@ public:
   }
 };
 
-class FlushBugReporter : public FenceCheckBugReporter {
+class WriteBugReporter : public FenceCheckBugReporter {
   std::unique_ptr<BugType> DataAlreadyFlushed;
   std::unique_ptr<BugType> DataNotFlushed;
   std::unique_ptr<BugType> DataNotPersisted;
 
 public:
-  FlushBugReporter(const CheckerBase& CB) : FenceCheckBugReporter(CB) {
+  WriteBugReporter(const CheckerBase& CB) : FenceCheckBugReporter(CB) {
     DataAlreadyFlushed.reset(
         new BugType(&CB, "Data is already flushed", WriteError));
     DataNotFlushed.reset(new BugType(&CB, "Data is not flushed", WriteError));
