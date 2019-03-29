@@ -1,24 +1,23 @@
 #pragma once
+#include "BugReporter/WriteBugReporter.h"
 #include "Common.h"
-#include "DataInfos.h"
-#include "FunctionInfos.h"
-#include "TypeInfos.h"
+#include "AstWalkers.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.writechecker";
 
 namespace clang::ento::nvm {
 
-/*check::EndFunction,
-              check::PreCall, check::ASTDecl<FunctionDecl>,
-              check::ASTDecl<DeclaratorDecl>, check::DeadSymbols,
+/*,check::EndFunction
+              check::PreCall, check::DeadSymbols,
               check::PointerEscape*/
-/*BReporter(*this),*/
+/*,*/
 
 class WriteChecker : public Checker<check::ASTDecl<TranslationUnitDecl>,
                                     check::BeginFunction, check::Bind> {
 
 public:
-  WriteChecker() : ErrNode(nullptr), fncInfos("PersistentCode") {}
+  WriteChecker()
+      : BReporter(*this), ErrNode(nullptr), fncInfos("PersistentCode") {}
 
   void checkBeginFunction(CheckerContext& Ctx) const;
   /*
@@ -29,11 +28,6 @@ public:
 
   void checkBind(SVal Loc, SVal Val, const Stmt* S, CheckerContext& C) const;
   /*
-      void checkASTDecl(const FunctionDecl* D, AnalysisManager& Mgr,
-                        BugReporter& BR) const;
-
-      void checkASTDecl(const DeclaratorDecl* D, AnalysisManager& Mgr,
-                        BugReporter& BR) const;
 
       void checkDeadSymbols(SymbolReaper& SymReaper, CheckerContext& C) const;
 
@@ -42,7 +36,7 @@ public:
                                          const CallEvent* Call,
                                          PointerEscapeKind Kind) const;
     */
-  void checkASTDecl(const TranslationUnitDecl* TUD, AnalysisManager& Mgr,
+  void checkASTDecl(const TranslationUnitDecl* CTUD, AnalysisManager& Mgr,
                     BugReporter& BR) const;
 
 private:
@@ -69,10 +63,11 @@ private:
   void handleFlushCheck(CheckerContext& C, const DeclaratorDecl* D,
                         CheckInfo* CI) const;
 
-  WriteBugReporter BReporter;
+
 
   */
 
+  WriteBugReporter BReporter;
   mutable ExplodedNode* ErrNode;
   mutable FunctionInfos fncInfos;
   mutable VarInfos varInfos;

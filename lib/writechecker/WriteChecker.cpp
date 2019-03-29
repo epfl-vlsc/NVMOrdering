@@ -5,10 +5,15 @@
 
 namespace clang::ento::nvm {
 
+void WriteChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
+                                AnalysisManager& Mgr, BugReporter& BR) const {
+  TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
+  //fill data structures
+  TUDWalker tudWalker(varInfos, fncInfos);
+  tudWalker.TraverseDecl(TUD);
+  tudWalker.createUsedVars();
 
-void WriteChecker::checkASTDecl(const TranslationUnitDecl* TUD,
-                              AnalysisManager& Mgr, BugReporter& BR) const {
-  varInfos.collectUsedVars(TUD);
+  fncInfos.dump();
   varInfos.dump();
 }
 
@@ -93,9 +98,8 @@ ProgramStateRef WriteChecker::checkPointerEscape(
 }
 */
 
-
 void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
-                                CheckerContext& C) const {
+                             CheckerContext& C) const {
   // S->dump();
   ErrNode = nullptr;
 
@@ -106,7 +110,7 @@ void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
 
     if (varInfos.isUsedVar(VD)) {
       auto& infoList = varInfos.getInfoList(VD);
-      for(auto& BI: infoList){
+      for (auto& BI : infoList) {
         BI->write(Loc, S, C, VD, ErrNode);
       }
     }
@@ -265,16 +269,6 @@ void WriteChecker::handleVFence(const CallEvent& Call,
   }
 }
 
-void WriteChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
-                                   BugReporter& BR) const {
-  nvmFncInfo.insertIfKnown(FD);
-}
-
-void WriteChecker::checkASTDecl(const DeclaratorDecl* D,
-                                   AnalysisManager& Mgr,
-                                   BugReporter& BR) const {
-  nvmTypeInfo.analyzeMemLabel(D);
-}
 */
 } // namespace clang::ento::nvm
 

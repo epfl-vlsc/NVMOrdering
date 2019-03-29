@@ -9,11 +9,9 @@ protected:
   std::set<const FunctionDecl*> functions;
 
 public:
-  bool inFunctions(const FunctionDecl* D) const {
-    return functions.count(D);
-  }
+  bool inFunctions(const FunctionDecl* D) const { return functions.count(D); }
 
-  void dumpFunctions() {
+  void dump() {
     for (const FunctionDecl* FD : functions) {
       llvm::outs() << FD->getQualifiedNameAsString() << "\n";
     }
@@ -22,7 +20,7 @@ public:
 
 class SpecialFunction : public BaseFunction {
 public:
-  virtual ~SpecialFunction(){}
+  virtual ~SpecialFunction() {}
 
   bool checkName(const FunctionDecl* FD) const {
     return checkName(FD->getIdentifier());
@@ -34,7 +32,7 @@ public:
     }
   }
 
-  virtual bool checkName(const IdentifierInfo* II) const=0;
+  virtual bool checkName(const IdentifierInfo* II) const = 0;
 };
 
 class FlushFunction : public SpecialFunction {
@@ -101,7 +99,7 @@ class FunctionInfos {
   NtiFunction ntiFnc;
 
 public:
-  FunctionInfos(const char* annotation_):annotFnc(annotation_){}
+  FunctionInfos(const char* annotation_) : annotFnc(annotation_) {}
 
   void insertIfKnown(const FunctionDecl* FD) {
     annotFnc.insertIfKnown(FD);
@@ -130,6 +128,15 @@ public:
   bool isVFenceFunction(const CallEvent& Call) const {
     const FunctionDecl* FD = getFuncDecl(Call);
     return vfenceFnc.inFunctions(FD);
+  }
+
+  void dump() {
+    annotFnc.dump();
+    vfenceFnc.dump();
+    pfenceFnc.dump();
+    flushFnc.dump();
+    flushOptFnc.dump();
+    ntiFnc.dump();
   }
 };
 

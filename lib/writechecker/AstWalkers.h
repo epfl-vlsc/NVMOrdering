@@ -1,11 +1,12 @@
 #pragma once
-#include "AnnotationInfos.h"
 #include "Common.h"
+#include "DataInfos.h"
+#include "FunctionInfos.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang::ento::nvm {
 
-class VarWalker : public RecursiveASTVisitor<VarWalker> {
+class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
   using ValueSet = std::set<const ValueDecl*>;
   using StringSet = std::set<std::string>;
   using StringMap = std::map<std::string, const ValueDecl*>;
@@ -24,7 +25,8 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
 
   StringMap varMap;
   ValueSet annotatedVars;
-  ValueMap& usedVars;
+  VarInfos& varInfos;
+  FunctionInfos& fncInfos;
 
   void addIfAnnotated(const FieldDecl* FD, StringRef annotation) {
     if (auto [annotInfo, textInfo] = annotation.split(SEP);
@@ -58,20 +60,12 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
     return varMap[checkName];
   }
 
-  void addToUsedVars(const ValueDecl* VD, BaseInfo* BI) {
-    if (!usedVars.count(VD)) {
-      // not exist
-      usedVars[VD];
-    }
-    usedVars[VD].push_back(BI);
-  }
-
   void addBasedOnAnnot(const ValueDecl* dataVD, const AnnotateAttr* dataAA) {
     StringRef dataAnnotation = dataAA->getAnnotation();
     auto [annotInfo, textInfo] = dataAnnotation.split(SEP);
     if (annotInfo.contains(CHECK)) {
       // is check, single variable
-      addToUsedVars(dataVD, new CheckInfo(dataVD));
+      varInfos.addUsedVar(dataVD, new CheckInfo(dataVD));
     } else {
       // not check, pair variables
       const ValueDecl* checkVD = getCheckVD(textInfo);
@@ -79,11 +73,11 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
       if (annotInfo.contains(DCLM)) {
         // checkVD is either some other VD or nullptr
         BI = new DclMaskToValidInfo(dataVD, checkVD, dataAA);
-        addToUsedVars(dataVD, BI);
+        varInfos.addUsedVar(dataVD, BI);
       } else if (annotInfo.contains(SCLM)) {
         // checkVD is either some other VD or nullptr
         BI = new SclMaskToValidInfo(dataVD, checkVD, dataAA);
-        addToUsedVars(dataVD, BI);
+        varInfos.addUsedVar(dataVD, BI);
       } else if (annotInfo.contains(DCL)) {
         const AnnotateAttr* checkAA = getAnnotation(checkVD);
         if (checkAA) {
@@ -91,15 +85,15 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
           if (checkAnnotation.contains(MASK)) {
             // valid is mask
             BI = new DclDataToMaskInfo(dataVD, checkVD);
-            addToUsedVars(dataVD, BI);
+            varInfos.addUsedVar(dataVD, BI);
           } else {
             // valid is normal
             BI = new DclInfo(dataVD, checkVD);
-            addToUsedVars(dataVD, BI);
+            varInfos.addUsedVar(dataVD, BI);
           }
         } else {
           BI = new DclInfo(dataVD, checkVD);
-          addToUsedVars(dataVD, BI);
+          varInfos.addUsedVar(dataVD, BI);
         }
       } else if (annotInfo.contains(SCL)) {
         const AnnotateAttr* checkAA = getAnnotation(checkVD);
@@ -108,15 +102,15 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
           if (checkAnnotation.contains(MASK)) {
             // valid is mask
             BI = new SclDataToMaskInfo(dataVD, checkVD);
-            addToUsedVars(dataVD, BI);
+            varInfos.addUsedVar(dataVD, BI);
           } else {
             // valid is normal
             BI = new SclInfo(dataVD, checkVD);
-            addToUsedVars(dataVD, BI);
+            varInfos.addUsedVar(dataVD, BI);
           }
         } else {
           BI = new SclInfo(dataVD, checkVD);
-          addToUsedVars(dataVD, BI);
+          varInfos.addUsedVar(dataVD, BI);
         }
       } else {
         llvm::report_fatal_error("annotation not found - not possible");
@@ -124,13 +118,14 @@ class VarWalker : public RecursiveASTVisitor<VarWalker> {
 
       // also subscribe valids
       if (BI) {
-        addToUsedVars(checkVD, BI);
+        varInfos.addUsedVar(checkVD, BI);
       }
     }
   }
 
 public:
-  VarWalker(ValueMap& usedVars_) : usedVars(usedVars_) {}
+  TUDWalker(VarInfos& varInfos_, FunctionInfos& fncInfos_)
+      : varInfos(varInfos_), fncInfos(fncInfos_) {}
 
   // todo add a visitor to support local var declaration
   bool VisitFieldDecl(const FieldDecl* FD) {
@@ -143,6 +138,13 @@ public:
     // add to known fields
     std::string varName = FD->getQualifiedNameAsString();
     varMap[varName] = FD;
+
+    // continue traversal
+    return true;
+  }
+
+  bool VisitFunctionDecl(const FunctionDecl* FD) {
+    fncInfos.insertIfKnown(FD);
 
     // continue traversal
     return true;

@@ -35,7 +35,9 @@ public:
 
   void write(SVal Loc, const Stmt* S, CheckerContext& C, const ValueDecl* VD,
              ExplodedNode*& EN) {
-    // ProgramStateRef State = C.getState();
+    ProgramStateRef State = C.getState();
+    CheckSpace::writeData(State, (char*)VD);
+    //llvm::outs() << State->get<SclMap>((char*)VD)->getStateName() << "\n";
   }
   void flush(CheckerContext& C, const ValueDecl* VD, ExplodedNode*& EN) {
     // ProgramStateRef State = C.getState();

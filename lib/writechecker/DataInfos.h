@@ -1,7 +1,6 @@
 #pragma once
-
-#include "AstWalkers.h"
 #include "Common.h"
+#include "AnnotationInfos.h"
 
 namespace clang::ento::nvm {
 
@@ -11,13 +10,6 @@ class VarInfos {
   ValueMap usedVars;
 
 public:
-  void collectUsedVars(const TranslationUnitDecl* CTUD) {
-    TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
-    VarWalker varWalker(usedVars);
-    varWalker.TraverseDecl(TUD);
-    varWalker.createUsedVars();
-  }
-
   InfoList& getInfoList(const ValueDecl* VD){
     assert(usedVars.count(VD));
     return usedVars[VD];
@@ -25,6 +17,14 @@ public:
 
   bool isUsedVar(const ValueDecl* VD){
     return usedVars.count(VD);
+  }
+
+  void addUsedVar(const ValueDecl* VD, BaseInfo* BI){
+    if (!usedVars.count(VD)) {
+      // not exist
+      usedVars[VD];
+    }
+    usedVars[VD].push_back(BI);
   }
 
   void dump() {
