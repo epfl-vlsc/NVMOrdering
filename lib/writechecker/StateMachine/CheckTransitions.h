@@ -15,10 +15,10 @@ void writeData(ReportInfos& RI) {
     State = State->set<CheckMap>(D, CheckState::getWriteData());
   }else if(CS->isWriteData()){
     //bug:already written data
-    
+    RI.reportDataAlreadyWritten();
   }else if(CS->isFlushData()){
     //bug:already written data
-    
+    RI.reportDataAlreadyWritten();
   }else if(CS->isPfenceData()){
     //write data
     State = State->set<CheckMap>(D, CheckState::getWriteData());
@@ -36,13 +36,17 @@ void flushData(ReportInfos& RI) {
 
   if(!CS){
     //bug:not written data
+    RI.reportDataNotWritten();
   }else if(CS->isWriteData()){
+    //flush data
     State = State->set<CheckMap>(D, CheckState::getFlushData());
     RI.stateChanged = true;
   }else if(CS->isFlushData()){
     //bug:already flushed
+    RI.reportDataAlreadyFlushed();
   }else if(CS->isPfenceData()){
     //bug: already flushed
+    RI.reportDataAlreadyFlushed();
   }else {
     llvm::report_fatal_error("not possible");
   }
@@ -59,7 +63,9 @@ void pfenceData(ReportInfos& RI) {
     //do nothing
   }else if(CS->isWriteData()){
     //bug:not flushed
+    RI.reportDataNotFlushed();
   }else if(CS->isFlushData()){
+    //pfence data
     State = State->set<CheckMap>(D, CheckState::getPfenceData());
     RI.stateChanged = true;
   }else if(CS->isPfenceData()){
