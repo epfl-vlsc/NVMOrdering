@@ -10,8 +10,13 @@ class VarInfos {
   ValueMap usedVars;
 
 public:
+
   InfoList& getInfoList(const ValueDecl* VD){
     const char* D = (const char*) VD;
+    return getInfoList(D);
+  }
+
+  InfoList& getInfoList(const char* D){
     assert(usedVars.count(D));
     return usedVars[D];
   }

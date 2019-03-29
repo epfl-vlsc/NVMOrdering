@@ -24,16 +24,18 @@ protected:
     return ErrorOs.str();
   }
 
-  void reportDirect(SVal Loc, const std::string& ErrMsg,
+  void reportDirect(SVal* Loc, const std::string& ErrMsg,
                     const ExplodedNode* const EN, const BugPtr& bugPtr,
                     BugReporter& BReporter) const {
     auto Report = llvm::make_unique<BugReport>(*bugPtr, ErrMsg, EN);
-    Report->markInteresting(Loc);
+    if(Loc){
+      Report->markInteresting(*Loc);
+    }
     BReporter.emitReport(std::move(Report));
   }
 
 public:
-  void report(CheckerContext& C, const char* D, const char* msg, SVal Loc,
+  void report(CheckerContext& C, const char* D, const char* msg, SVal* Loc,
               const ExplodedNode* const EN, const BugPtr& bugPtr) const {
     BugReporter& BReporter = C.getBugReporter();
     std::string ErrMsg = getErrorMessage(C, D, msg);

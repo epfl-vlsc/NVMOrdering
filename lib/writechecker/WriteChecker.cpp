@@ -109,8 +109,8 @@ void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
     if (varInfos.isUsedVar(VD)) {
       auto& infoList = varInfos.getInfoList(VD);
       for (auto& BI : infoList) {
-        auto RI =
-            ReportInfos::getRI(C, State, (char*)VD, ErrNode, BReporter, Loc, S);
+        auto RI = ReportInfos::getRI(C, State, (const char*)VD, ErrNode,
+                                     BReporter, &Loc, S);
         BI->write(RI);
         stateChanged |= RI.stateChanged;
       }
@@ -147,8 +147,8 @@ void WriteChecker::handleFlush(const CallEvent& Call, CheckerContext& C) const {
     if (varInfos.isUsedVar(VD)) {
       auto& infoList = varInfos.getInfoList(VD);
       for (auto& BI : infoList) {
-        auto RI = ReportInfos::getRI(C, State, (char*)VD, ErrNode, BReporter,
-                                     Loc, nullptr);
+        auto RI = ReportInfos::getRI(C, State, (const char*)VD, ErrNode,
+                                     BReporter, &Loc, nullptr);
         BI->flush(RI);
         stateChanged |= RI.stateChanged;
       }
@@ -165,6 +165,17 @@ void WriteChecker::handlePFence(const CallEvent& Call,
   ErrNode = nullptr;
   bool stateChanged = false;
 
+  for (auto& [D, _] : State->get<CheckMap>()) {
+    // todo optimize for repeats
+    auto& infoList = varInfos.getInfoList(D);
+    for (auto& BI : infoList) {
+      auto RI = ReportInfos::getRI(C, State, D, ErrNode,
+                                   BReporter, nullptr, nullptr);
+      BI->pfence(RI);
+      stateChanged |= RI.stateChanged;
+    }
+  }
+
   /*
   //go over all dcl data
   for (auto& [dataDD, dclState] : State->get<DclMap>()) {
@@ -173,7 +184,6 @@ void WriteChecker::handlePFence(const CallEvent& Call,
 
   //go over all scl data
   */
-
 
   addStateTransition(State, C, stateChanged);
 }

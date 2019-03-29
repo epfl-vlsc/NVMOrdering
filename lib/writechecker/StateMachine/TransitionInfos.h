@@ -26,12 +26,12 @@ protected:
 };
 
 struct WriteTransInfos : public TransInfos {
-  SVal Loc;
+  SVal* Loc;
   const Stmt* S;
 
 protected:
   WriteTransInfos(CheckerContext& C_, ProgramStateRef& State_, const char* D_,
-                  ExplodedNode*& EN_, const WriteBugReporter& BR_, SVal Loc_,
+                  ExplodedNode*& EN_, const WriteBugReporter& BR_, SVal* Loc_,
                   const Stmt* S_)
       : TransInfos(C_, State_, D_, EN_, BR_), Loc(Loc_), S(S_) {}
 };
@@ -39,7 +39,7 @@ protected:
 struct ReportInfos : public WriteTransInfos {
   static ReportInfos getRI(CheckerContext& C_, ProgramStateRef& State_,
                            const char* D_, ExplodedNode*& EN_,
-                           const WriteBugReporter& BR_, SVal Loc_,
+                           const WriteBugReporter& BR_, SVal* Loc_,
                            const Stmt* S_) {
     return ReportInfos(C_, State_, D_, EN_, BR_, Loc_, S_);
   }
@@ -103,7 +103,7 @@ private:
   }
 
   ReportInfos(CheckerContext& C_, ProgramStateRef& State_, const char* D_,
-              ExplodedNode*& EN_, const WriteBugReporter& BR_, SVal Loc_,
+              ExplodedNode*& EN_, const WriteBugReporter& BR_, SVal* Loc_,
               const Stmt* S_)
       : WriteTransInfos(C_, State_, D_, EN_, BR_, Loc_, S_) {}
 };
