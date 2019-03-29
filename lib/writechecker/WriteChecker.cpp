@@ -105,11 +105,7 @@ void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   ErrNode = nullptr;
   bool stateChanged = false;
 
-  const MemRegion* Region = Loc.getAsRegion();
-  if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
-    const Decl* BD = FieldReg->getDecl();
-    const ValueDecl* VD = getValueDecl(BD);
-
+  if (const ValueDecl* VD = getValueDecl(Loc); VD) {
     if (varInfos.isUsedVar(VD)) {
       auto& infoList = varInfos.getInfoList(VD);
       for (auto& BI : infoList) {
@@ -117,122 +113,84 @@ void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
             ReportInfos::getRI(C, State, (char*)VD, ErrNode, BReporter, Loc, S);
         BI->write(RI);
         stateChanged |= RI.stateChanged;
-
-        const CheckState* CS = State->get<CheckMap>((char*)VD);
-        if (CS)
-          llvm::outs() << CS->getStateName() << "\n";
       }
     }
   }
 
-  addStateTransition(C, stateChanged);
-}
-
-/*
-void WriteChecker::handleWriteData(CheckerContext& C,
-                                      const DeclaratorDecl* D,
-                                      DataInfo* DI) const {
-  ProgramStateRef State = C.getState();
-  bool stateModified = false;
-
-  // check if not completed or not initial throw error
-  if (DI->isDcl()) {
-    // different cache line
-    stateModified |= dclWriteDataTrans(State, D, DI);
-  } else {
-    // same cache line
-    stateModified |= sclWriteDataTrans(State, D, DI);
-  }
-
-  if (stateModified) {
-    C.addTransition(State);
-  } else {
-    // todo throw bug
-  }
-}
-
-void WriteChecker::handleWriteCheck(SVal Loc, CheckerContext& C,
-                                       const DeclaratorDecl* D,
-                                       CheckInfo* CI) const {
-  ProgramStateRef State = C.getState();
-  StringRef checkName = D->getName();
-  bool seen = false;
-
-  bool stateModified = dclWriteCheckTrans(State, checkName, seen);
-
-  stateModified |= sclWriteCheckTrans(State, checkName, seen);
-
-  if (stateModified) {
-    C.addTransition(State);
-  } else if (!seen) {
-    ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
-    if (!ErrNode) {
-      return;
-    }
-    llvm::outs() << "report bug\n";
-    BReporter.reportWriteBug(Loc, C, D, ErrNode, C.getBugReporter());
-  } else {
-    // todo throw bug
-  }
-}
-
-void WriteChecker::handleWriteMask(SVal Loc, const Stmt* S,
-                                      CheckerContext& C,
-                                      const DeclaratorDecl* D,
-                                      CheckDataInfo* CDI) const {
-  if (usesMask(S, CDI->getMask(), false)) {
-    // access validity part
-    auto* I = static_cast<CheckInfo*>(CDI);
-    handleWriteCheck(Loc, C, D, I);
-  } else {
-    // access data part - guaranteeed to be scl
-    ProgramStateRef State = C.getState();
-
-    bool stateModified = sclWriteMaskTrans(State, D, CDI);
-
-    if (stateModified) {
-      C.addTransition(State);
-    } else {
-      // todo throw bug
-    }
-  }
+  addStateTransition(State, C, stateChanged);
 }
 
 void WriteChecker::checkPreCall(const CallEvent& Call,
-                                   CheckerContext& C) const {
-  if (nvmFncInfo.isFlushFunction(Call)) {
+                                CheckerContext& C) const {
+
+  if (fncInfos.isFlushFunction(Call)) {
     handleFlush(Call, C);
-  } else if (nvmFncInfo.isPFenceFunction(Call)) {
+  } else if (fncInfos.isPFenceFunction(Call)) {
     handlePFence(Call, C);
-  } else if (nvmFncInfo.isVFenceFunction(Call)) {
+  } else if (fncInfos.isVFenceFunction(Call)) {
     handleVFence(Call, C);
   }
 }
 
-void WriteChecker::handleFlush(const CallEvent& Call,
-                                  CheckerContext& C) const {
+void WriteChecker::handleFlush(const CallEvent& Call, CheckerContext& C) const {
   if (Call.getNumArgs() > 2) {
     llvm::report_fatal_error("check flush function");
     return;
   }
 
+  ProgramStateRef State = C.getState();
+  ErrNode = nullptr;
+  bool stateChanged = false;
+
   SVal Loc = Call.getArgSVal(0);
-  const MemRegion* Region = Loc.getAsRegion();
-  if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
-    const Decl* BD = FieldReg->getDecl();
-    const DeclaratorDecl* D = getDeclaratorDecl(BD);
-    if (nvmTypeInfo.inLabels(D)) {
-      LabeledInfo* LI = nvmTypeInfo.getDeclaratorInfo(D);
-      if (LI->isCheck()) {
-        auto* I = static_cast<CheckInfo*>(LI);
-        handleFlushCheck(C, D, I);
-      } else {
-        auto* I = static_cast<DataInfo*>(LI);
-        handleFlushData(C, D, I);
+  if (const ValueDecl* VD = getValueDecl(Loc); VD) {
+    if (varInfos.isUsedVar(VD)) {
+      auto& infoList = varInfos.getInfoList(VD);
+      for (auto& BI : infoList) {
+        auto RI = ReportInfos::getRI(C, State, (char*)VD, ErrNode, BReporter,
+                                     Loc, nullptr);
+        BI->flush(RI);
+        stateChanged |= RI.stateChanged;
       }
     }
   }
+
+  addStateTransition(State, C, stateChanged);
 }
+
+void WriteChecker::handlePFence(const CallEvent& Call,
+                                CheckerContext& C) const {
+
+  ProgramStateRef State = C.getState();
+  ErrNode = nullptr;
+  bool stateChanged = false;
+
+  /*
+  //go over all dcl data
+  for (auto& [dataDD, dclState] : State->get<DclMap>()) {
+
+  }
+
+  //go over all scl data
+  */
+
+
+  addStateTransition(State, C, stateChanged);
+}
+
+void WriteChecker::handleVFence(const CallEvent& Call,
+                                CheckerContext& C) const {
+  /*
+  ProgramStateRef State = C.getState();
+  bool stateModified = sclVFenceTrans(State);
+
+  if (stateModified) {
+    C.addTransition(State);
+  }
+  */
+}
+
+/*
 
 void WriteChecker::handleFlushData(CheckerContext& C,
                                       const DeclaratorDecl* D,
@@ -259,27 +217,6 @@ void WriteChecker::handleFlushCheck(CheckerContext& C,
   }
 }
 
-void WriteChecker::handlePFence(const CallEvent& Call,
-                                   CheckerContext& C) const {
-  ProgramStateRef State = C.getState();
-  bool stateModified = dclPFenceTrans(State);
-  stateModified |= sclPFenceTrans(State);
-
-  if (stateModified) {
-    C.addTransition(State);
-  }
-}
-
-void WriteChecker::handleVFence(const CallEvent& Call,
-                                   CheckerContext& C) const {
-  ProgramStateRef State = C.getState();
-  bool stateModified = sclVFenceTrans(State);
-
-  if (stateModified) {
-    C.addTransition(State);
-  }
-}
-
 void WriteChecker::handleVFence(const CallEvent& Call,
                                    CheckerContext& C) const {
   ProgramStateRef State = C.getState();
@@ -291,10 +228,9 @@ void WriteChecker::handleVFence(const CallEvent& Call,
 }
 */
 
-void WriteChecker::addStateTransition(CheckerContext& C,
+void WriteChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,
                                       bool stateChanged) const {
   if (stateChanged) {
-    ProgramStateRef State = C.getState();
     C.addTransition(State);
   }
 }

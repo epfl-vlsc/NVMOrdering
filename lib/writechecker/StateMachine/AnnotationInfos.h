@@ -15,6 +15,7 @@ protected:
 public:
   virtual void dump() const { llvm::outs() << data->getNameAsString(); }
   virtual void write(ReportInfos& RI) const = 0;
+  virtual void flush(ReportInfos& RI) const = 0;
 };
 
 class CheckInfo : public BaseInfo {
@@ -28,6 +29,7 @@ public:
   }
 
   void write(ReportInfos& RI) const { CheckSpace::writeData(RI); }
+  void flush(ReportInfos& RI) const { CheckSpace::flushData(RI); }
 };
 
 class PairInfo : public BaseInfo {
@@ -45,6 +47,7 @@ public:
   }
 
   void write(ReportInfos& RI) const {}
+  void flush(ReportInfos& RI) const {}
 };
 
 class DclInfo : public PairInfo {

@@ -8,11 +8,13 @@ namespace clang::ento::nvm::CheckSpace {
 void writeData(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
   char* D = RI.D;
+
   const CheckState* CS = State->get<CheckMap>(D);
 
   if(!CS){
     //write data
     State = State->set<CheckMap>(D, CheckState::getWriteData());
+    RI.stateChanged = true;
   }else if(CS->isWriteData()){
     //bug:already written data
     RI.reportDataAlreadyWritten();
@@ -29,7 +31,7 @@ void writeData(ReportInfos& RI) {
 }
 
 void flushData(ReportInfos& RI) {
-  ProgramStateRef State = RI.State;
+  ProgramStateRef& State = RI.State;
   char* D = RI.D;
     
   const CheckState* CS = State->get<CheckMap>(D);
@@ -54,7 +56,7 @@ void flushData(ReportInfos& RI) {
 
 
 void pfenceData(ReportInfos& RI) {
-  ProgramStateRef State = RI.State;
+  ProgramStateRef& State = RI.State;
   char* D = RI.D;
     
   const CheckState* CS = State->get<CheckMap>(D);

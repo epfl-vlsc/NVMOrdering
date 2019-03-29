@@ -96,7 +96,18 @@ const ValueDecl* getValueDecl(const Decl* BD) {
   if (const ValueDecl* D = dyn_cast_or_null<ValueDecl>(BD)) {
     return D;
   }
-  llvm::report_fatal_error("All calls have function declaration");
+  llvm::report_fatal_error("must have value decl");
+  return nullptr;
+}
+
+const ValueDecl* getValueDecl(const SVal& Loc) {
+  const MemRegion* Region = Loc.getAsRegion();
+  if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
+    const Decl* BD = FieldReg->getDecl();
+    const ValueDecl* VD = getValueDecl(BD);
+    return VD;
+  }
+
   return nullptr;
 }
 

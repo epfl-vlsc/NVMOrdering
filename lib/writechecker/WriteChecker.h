@@ -1,18 +1,19 @@
 #pragma once
-#include "Common.h"
 #include "AstWalkers.h"
+#include "Common.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.writechecker";
 
 namespace clang::ento::nvm {
 
 /*,check::EndFunction
-              check::PreCall, check::DeadSymbols,
+              , check::DeadSymbols,
               check::PointerEscape*/
 /*,*/
 
-class WriteChecker : public Checker<check::ASTDecl<TranslationUnitDecl>,
-                                    check::BeginFunction, check::Bind> {
+class WriteChecker
+    : public Checker<check::ASTDecl<TranslationUnitDecl>, check::BeginFunction,
+                     check::PreCall, check::Bind> {
 
 public:
   WriteChecker()
@@ -22,8 +23,10 @@ public:
   /*
     void checkEndFunction(CheckerContext& C) const;
 
-    void checkPreCall(const CallEvent& Call, CheckerContext& C) const;
+
 */
+
+  void checkPreCall(const CallEvent& Call, CheckerContext& C) const;
 
   void checkBind(SVal Loc, SVal Val, const Stmt* S, CheckerContext& C) const;
   /*
@@ -39,15 +42,16 @@ public:
                     BugReporter& BR) const;
 
 private:
-  void addStateTransition(CheckerContext& C, bool stateChanged) const;
-
-  /*
+  void addStateTransition(ProgramStateRef& State, CheckerContext& C,
+                          bool stateChanged) const;
 
   void handleFlush(const CallEvent& Call, CheckerContext& C) const;
 
   void handlePFence(const CallEvent& Call, CheckerContext& C) const;
 
   void handleVFence(const CallEvent& Call, CheckerContext& C) const;
+
+  /*
 
   void handleWriteData(CheckerContext& C, const DeclaratorDecl* D,
                        DataInfo* DI) const;

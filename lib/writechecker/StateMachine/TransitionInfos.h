@@ -46,62 +46,56 @@ struct ReportInfos : public WriteTransInfos {
 
   void reportDataAlreadyWritten() const {
     initReport();
-    if(!EN) return;
+    if (!EN)
+      return;
     auto& bugPtr = BR.DataAlreadyWritten;
     BR.report(C, D, "already written", Loc, EN, bugPtr);
   }
-
   void reportDataNotWritten() const {
     initReport();
-    if(!EN) return;
+    if (!EN)
+      return;
     auto& bugPtr = BR.DataNotWritten;
-    BR.report(C, D, "already written", Loc, EN, bugPtr);
-  }
-  void reportDataAlreadyFenced() const {
-    initReport();
-    if(!EN) return;
-    auto& bugPtr = BR.DataAlreadyFenced;
-    BR.report(C, D, "already written", Loc, EN, bugPtr);
-  }
-  void reportDataNotFenced() const {
-    initReport();
-    if(!EN) return;
-    auto& bugPtr = BR.DataNotFenced;
-    BR.report(C, D, "already written", Loc, EN, bugPtr);
+    BR.report(C, D, "not written", Loc, EN, bugPtr);
   }
   void reportCheckAlreadyWritten() const {
     initReport();
-    if(!EN) return;
+    if (!EN)
+      return;
     auto& bugPtr = BR.CheckAlreadyWritten;
     BR.report(C, D, "already written", Loc, EN, bugPtr);
   }
   void reportCheckNotWritten() const {
     initReport();
-    if(!EN) return;
+    if (!EN)
+      return;
     auto& bugPtr = BR.CheckNotWritten;
-    BR.report(C, D, "already written", Loc, EN, bugPtr);
+    BR.report(C, D, "not written", Loc, EN, bugPtr);
   }
   void reportDataAlreadyFlushed() const {
     initReport();
-    if(!EN) return;
+    if (!EN)
+      return;
     auto& bugPtr = BR.DataAlreadyFlushed;
-    BR.report(C, D, "already written", Loc, EN, bugPtr);
+    BR.report(C, D, "already flushed", Loc, EN, bugPtr);
   }
   void reportDataNotFlushed() const {
     initReport();
-    if(!EN) return;
+    if (!EN)
+      return;
     auto& bugPtr = BR.DataNotFlushed;
-    BR.report(C, D, "already written", Loc, EN, bugPtr);
+    BR.report(C, D, "not flushed", Loc, EN, bugPtr);
   }
   void reportDataNotPersisted() const {
     initReport();
-    if(!EN) return;
+    if (!EN)
+      return;
     auto& bugPtr = BR.DataNotPersisted;
-    BR.report(C, D, "already written", Loc, EN, bugPtr);
+    BR.report(C, D, "not persisted", Loc, EN, bugPtr);
   }
 
 private:
-  void initReport() const{
+  void initReport() const {
     bugReported = true;
     if (!EN) {
       EN = C.generateNonFatalErrorNode();
