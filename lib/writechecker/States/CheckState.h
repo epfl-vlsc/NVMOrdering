@@ -1,6 +1,5 @@
 #pragma once
 #include "Common.h"
-#include "AnnotationInfos.h"
 
 namespace clang::ento::nvm {
 
@@ -37,5 +36,4 @@ public:
 
 } // namespace clang::ento::nvm
 
-REGISTER_MAP_WITH_PROGRAMSTATE(CheckMap, clang::ento::nvm::BaseInfo*,
-                               clang::ento::nvm::CheckState)
+REGISTER_MAP_WITH_PROGRAMSTATE(CheckMap, char*, clang::ento::nvm::CheckState)

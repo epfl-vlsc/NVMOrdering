@@ -1,6 +1,5 @@
 #pragma once
 #include "Common.h"
-#include "AnnotationInfos.h"
 
 namespace clang::ento::nvm {
 
@@ -15,7 +14,7 @@ private:
 public:
   bool isWriteData() const { return K == WD; }
   bool isFlushData() const { return K == FD; }
-  bool isPFenceData() const { return K == PD; }
+  bool isPfenceData() const { return K == PD; }
   bool isWriteCheck() const { return K == WC; }
 
   bool isFinal() const { return K == WC; }
@@ -23,7 +22,7 @@ public:
 
   static DclState getWriteData() { return DclState(WD); }
   static DclState getFlushData() { return DclState(FD); }
-  static DclState getPFenceData() { return DclState(PD); }
+  static DclState getPfenceData() { return DclState(PD); }
   static DclState getWriteCheck() { return DclState(WC); }
 
   int getState() const { return static_cast<int>(K); }
@@ -40,7 +39,4 @@ public:
 
 } // namespace clang::ento::nvm
 
-REGISTER_MAP_WITH_PROGRAMSTATE(DclMap, clang::ento::nvm::BaseInfo*,
-                               clang::ento::nvm::DclState)
-REGISTER_MAP_WITH_PROGRAMSTATE(DclmMap, clang::AnnotateAttr*,
-                               clang::ento::nvm::DclState)
+REGISTER_MAP_WITH_PROGRAMSTATE(DclMap, char*, clang::ento::nvm::DclState)

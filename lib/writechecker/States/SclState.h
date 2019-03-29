@@ -1,6 +1,5 @@
 #pragma once
 #include "Common.h"
-#include "AnnotationInfos.h"
 
 namespace clang::ento::nvm {
 
@@ -14,14 +13,14 @@ private:
 
 public:
   bool isWriteData() const { return K == WD; }
-  bool isVFenceData() const { return K == VD; }
+  bool isVfenceData() const { return K == VD; }
   bool isWriteCheck() const { return K == WC; }
 
   bool isFinal() const { return K == WC; }
   static SclState getInit() { return SclState(WD); }
 
   static SclState getWriteData() { return SclState(WD); }
-  static SclState getVFenceData() { return SclState(VD); }
+  static SclState getVfenceData() { return SclState(VD); }
   static SclState getWriteCheck() { return SclState(WC); }
 
   int getStateKind() const { return static_cast<int>(K); }
@@ -38,7 +37,4 @@ public:
 
 } // namespace clang::ento::nvm
 
-REGISTER_MAP_WITH_PROGRAMSTATE(SclMap, clang::ento::nvm::BaseInfo*,
-                               clang::ento::nvm::SclState)
-REGISTER_MAP_WITH_PROGRAMSTATE(SclmMap, clang::AnnotateAttr*,
-                               clang::ento::nvm::SclState)
+REGISTER_MAP_WITH_PROGRAMSTATE(SclMap, char*, clang::ento::nvm::SclState)
