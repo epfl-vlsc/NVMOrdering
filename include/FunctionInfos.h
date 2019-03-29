@@ -92,7 +92,7 @@ public:
   }
 };
 
-class NVMFunctionInfo {
+class FunctionInfos {
   AnnotFunction annotFnc;
   VFenceFunction vfenceFnc;
   PFenceFunction pfenceFnc;
@@ -101,7 +101,7 @@ class NVMFunctionInfo {
   NtiFunction ntiFnc;
 
 public:
-  NVMFunctionInfo(const char* annotation_):annotFnc(annotation_){}
+  FunctionInfos(const char* annotation_):annotFnc(annotation_){}
 
   void insertIfKnown(const FunctionDecl* FD) {
     annotFnc.insertIfKnown(FD);

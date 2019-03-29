@@ -92,6 +92,14 @@ const DeclaratorDecl* getDeclaratorDecl(const Decl* BD) {
   return nullptr;
 }
 
+const ValueDecl* getValueDecl(const Decl* BD) {
+  if (const ValueDecl* D = dyn_cast_or_null<ValueDecl>(BD)) {
+    return D;
+  }
+  llvm::report_fatal_error("All calls have function declaration");
+  return nullptr;
+}
+
 bool isTopFunction(CheckerContext& C) { return C.inTopFrame(); }
 
 class FieldWalker : public ConstStmtVisitor<FieldWalker> {
