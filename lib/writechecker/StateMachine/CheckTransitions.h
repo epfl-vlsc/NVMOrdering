@@ -1,10 +1,13 @@
 #pragma once
 #include "Common.h"
 #include "CheckState.h"
+#include "TransitionInfos.h"
 
 namespace clang::ento::nvm::CheckSpace {
 
-bool writeData(ProgramStateRef& State, char* D) {
+bool writeData(const WriteTransInfos& WTI) {
+  ProgramStateRef& State = WTI.State;
+  char* D = WTI.D;
   const CheckState* CS = State->get<CheckMap>(D);
 
   if(!CS){
@@ -23,7 +26,10 @@ bool writeData(ProgramStateRef& State, char* D) {
   return false;
 }
 
-bool flushData(ProgramStateRef& State, char* D) {
+bool flushData(const WriteTransInfos& WTI) {
+  ProgramStateRef State = WTI.getState();
+  char* D = WTI.D;
+    
   const CheckState* CS = State->get<CheckMap>(D);
 
   if(!CS){
@@ -43,7 +49,10 @@ bool flushData(ProgramStateRef& State, char* D) {
 }
 
 
-bool pfenceData(ProgramStateRef& State, char* D) {
+bool pfenceData(const WriteTransInfos& WTI) {
+  ProgramStateRef State = WTI.getState();
+  char* D = WTI.D;
+    
   const CheckState* CS = State->get<CheckMap>(D);
 
   if(!CS){

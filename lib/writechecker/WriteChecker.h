@@ -1,5 +1,4 @@
 #pragma once
-#include "BugReporter/WriteBugReporter.h"
 #include "Common.h"
 #include "AstWalkers.h"
 
@@ -40,6 +39,8 @@ public:
                     BugReporter& BR) const;
 
 private:
+  void addStateTransition(CheckerContext& C, bool stateChanged) const;
+
   /*
 
   void handleFlush(const CallEvent& Call, CheckerContext& C) const;
@@ -67,7 +68,7 @@ private:
 
   */
 
-  WriteBugReporter BReporter;
+  const WriteBugReporter BReporter;
   mutable ExplodedNode* ErrNode;
   mutable FunctionInfos fncInfos;
   mutable VarInfos varInfos;

@@ -8,7 +8,7 @@ namespace clang::ento::nvm {
 void WriteChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
                                 AnalysisManager& Mgr, BugReporter& BR) const {
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
-  //fill data structures
+  // fill data structures
   TUDWalker tudWalker(varInfos, fncInfos);
   tudWalker.TraverseDecl(TUD);
   tudWalker.createUsedVars();
@@ -101,7 +101,9 @@ ProgramStateRef WriteChecker::checkPointerEscape(
 void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                              CheckerContext& C) const {
   // S->dump();
+  ProgramStateRef State = C.getState();
   ErrNode = nullptr;
+  bool stateChanged = false;
 
   const MemRegion* Region = Loc.getAsRegion();
   if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
@@ -111,10 +113,18 @@ void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
     if (varInfos.isUsedVar(VD)) {
       auto& infoList = varInfos.getInfoList(VD);
       for (auto& BI : infoList) {
-        BI->write(Loc, S, C, VD, ErrNode);
+        auto WTI = WriteTransInfos::getWTI(C, State, (char*)VD, ErrNode,
+                                           BReporter, Loc, S);
+        stateChanged |= BI->write(WTI);
+
+        const CheckState* CS = State->get<CheckMap>((char*)VD);
+        if (CS)
+          llvm::outs() << CS->getStateName() << "\n";
       }
     }
   }
+
+  addStateTransition(C, stateChanged);
 }
 
 /*
@@ -269,7 +279,25 @@ void WriteChecker::handleVFence(const CallEvent& Call,
   }
 }
 
+void WriteChecker::handleVFence(const CallEvent& Call,
+                                   CheckerContext& C) const {
+  ProgramStateRef State = C.getState();
+  bool stateModified = sclVFenceTrans(State);
+
+  if (stateModified) {
+    C.addTransition(State);
+  }
+}
 */
+
+void WriteChecker::addStateTransition(CheckerContext& C,
+                                      bool stateChanged) const {
+  if (stateChanged) {
+    ProgramStateRef State = C.getState();
+    C.addTransition(State);
+  }
+}
+
 } // namespace clang::ento::nvm
 
 extern "C" const char clang_analyzerAPIVersionString[] =

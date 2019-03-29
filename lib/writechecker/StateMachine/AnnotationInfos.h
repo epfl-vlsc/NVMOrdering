@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Common.h"
-#include "StateMachine/Transitions.h"
+#include "TransitionInfos.h"
+#include "Transitions.h"
 
 namespace clang::ento::nvm {
 
@@ -12,15 +13,8 @@ protected:
   BaseInfo(const ValueDecl* data_, Kind K_) : data(data_), K(K_) {}
 
 public:
-  virtual void dump() { llvm::outs() << data->getNameAsString(); }
-  virtual void write(SVal Loc, const Stmt* S, CheckerContext& C,
-                     const ValueDecl* VD, ExplodedNode*& EN) = 0;
-  virtual void flush(CheckerContext& C, const ValueDecl* VD,
-                     ExplodedNode*& EN) = 0;
-  virtual void pfence(CheckerContext& C, const ValueDecl* VD,
-                      ExplodedNode*& EN) = 0;
-  virtual void vfence(CheckerContext& C, const ValueDecl* VD,
-                      ExplodedNode*& EN) = 0;
+  virtual void dump() const { llvm::outs() << data->getNameAsString(); }
+  virtual bool write(const WriteTransInfos& WTI) const = 0;
 };
 
 class CheckInfo : public BaseInfo {
@@ -28,24 +22,14 @@ class CheckInfo : public BaseInfo {
 public:
   CheckInfo(const ValueDecl* data_) : BaseInfo(data_, Kind::C) {}
 
-  void dump() {
+  void dump() const{
     llvm::outs() << "CheckInfo: ";
     BaseInfo::dump();
   }
 
-  void write(SVal Loc, const Stmt* S, CheckerContext& C, const ValueDecl* VD,
-             ExplodedNode*& EN) {
-    ProgramStateRef State = C.getState();
-    CheckSpace::writeData(State, (char*)VD);
-    //llvm::outs() << State->get<SclMap>((char*)VD)->getStateName() << "\n";
+  bool write(const WriteTransInfos& WTI) const{
+    return CheckSpace::writeData(WTI);
   }
-  void flush(CheckerContext& C, const ValueDecl* VD, ExplodedNode*& EN) {
-    // ProgramStateRef State = C.getState();
-  }
-  void pfence(CheckerContext& C, const ValueDecl* VD, ExplodedNode*& EN) {
-    // ProgramStateRef State = C.getState();
-  }
-  void vfence(CheckerContext& C, const ValueDecl* VD, ExplodedNode*& EN) {}
 };
 
 class PairInfo : public BaseInfo {
@@ -55,27 +39,16 @@ protected:
       : BaseInfo(data_, K_), check(check_) {}
 
 public:
-  virtual void dump() {
+  virtual void dump() const{
     BaseInfo::dump();
     if (check) {
       llvm::outs() << " " << check->getNameAsString();
     }
   }
 
-  virtual void write(SVal Loc, const Stmt* S, CheckerContext& C,
-                     const ValueDecl* VD, ExplodedNode*& EN) {
-    // ProgramStateRef State = C.getState();
+  bool write(const WriteTransInfos& WTI) const{
+    return false;
   }
-  virtual void flush(CheckerContext& C, const ValueDecl* VD,
-                     ExplodedNode*& EN) {
-    // ProgramStateRef State = C.getState();
-  }
-  virtual void pfence(CheckerContext& C, const ValueDecl* VD,
-                      ExplodedNode*& EN) {
-    // ProgramStateRef State = C.getState();
-  }
-  virtual void vfence(CheckerContext& C, const ValueDecl* VD,
-                      ExplodedNode*& EN) {}
 };
 
 class DclInfo : public PairInfo {
@@ -84,7 +57,7 @@ public:
   DclInfo(const ValueDecl* data_, const ValueDecl* check_)
       : PairInfo(data_, Kind::DCL, check_) {}
 
-  void dump() {
+  void dump() const {
     llvm::outs() << "DclInfo: ";
     PairInfo::dump();
   }
@@ -95,7 +68,7 @@ public:
   SclInfo(const ValueDecl* data_, const ValueDecl* check_)
       : PairInfo(data_, Kind::SCL, check_) {}
 
-  void dump() {
+  void dump() const{
     llvm::outs() << "SclInfo: ";
     PairInfo::dump();
   }
@@ -112,7 +85,7 @@ public:
   DclDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_)
       : MaskInfo(data_, Kind::DCLDM, check_) {}
 
-  void dump() {
+  void dump() const{
     llvm::outs() << "DclDataToMaskInfo: ";
     PairInfo::dump();
   }
@@ -123,7 +96,7 @@ public:
   SclDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_)
       : MaskInfo(data_, Kind::SCLDM, check_) {}
 
-  void dump() {
+  void dump() const{
     llvm::outs() << "SclDataToMaskInfo: ";
     PairInfo::dump();
   }
@@ -143,7 +116,7 @@ public:
                      const AnnotateAttr* ann_)
       : MaskToValidInfo(data_, Kind::DCLMV, check_, ann_) {}
 
-  void dump() {
+  void dump() const{
     llvm::outs() << "DclMaskToValidInfo: ";
     PairInfo::dump();
   }
@@ -155,7 +128,7 @@ public:
                      const AnnotateAttr* ann_)
       : MaskToValidInfo(data_, Kind::SCLMV, check_, ann_) {}
 
-  void dump() {
+  void dump() const{
     llvm::outs() << "SclMaskToValidInfo: ";
     PairInfo::dump();
   }
