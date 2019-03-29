@@ -10,6 +10,7 @@ protected:
   const std::string WriteError = "NVM Write Error";
 
   std::unique_ptr<BugType> DataAlreadyWritten;
+  std::unique_ptr<BugType> DataNotWritten;
 
   std::string getErrorMessage(CheckerContext& C, const ValueDecl* VD,
                               const char* msg) const {
@@ -22,8 +23,8 @@ protected:
   }
 
   void reportDirect(SVal Loc, const std::string& ErrMsg,
-                      const ExplodedNode* const ExplNode,
-                      BugReporter& BReporter) const{
+                    const ExplodedNode* const ExplNode,
+                    BugReporter& BReporter) const {
     auto Report =
         llvm::make_unique<BugReport>(*DataAlreadyWritten, ErrMsg, ExplNode);
     Report->markInteresting(Loc);
@@ -33,7 +34,8 @@ protected:
 public:
   BaseBugReporter(const CheckerBase& CB) {
     DataAlreadyWritten.reset(
-        new BugType(&CB, "Already wrote data", WriteError));
+        new BugType(&CB, "Data is already written", WriteError));
+    DataNotWritten.reset(new BugType(&CB, "Data is not written", WriteError));
   }
 
   void reportDataAlreadyWritten(SVal Loc, CheckerContext& C,
@@ -43,46 +45,35 @@ public:
     std::string ErrMsg = getErrorMessage(C, VD, "already written");
     reportDirect(Loc, ErrMsg, ExplNode, BReporter);
   }
+
+  void reportDataNotWritten(SVal Loc, CheckerContext& C, const ValueDecl* VD,
+                            const ExplodedNode* const ExplNode,
+                            BugReporter& BReporter) const {
+    std::string ErrMsg = getErrorMessage(C, VD, "not written");
+    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
+  }
 };
 
-class WriteBugReporter : public BaseBugReporter {
-  std::unique_ptr<BugType> DataAlreadyFlushed;
+class FenceCheckBugReporter : public BaseBugReporter {
   std::unique_ptr<BugType> DataAlreadyFenced;
-  std::unique_ptr<BugType> DataNotFlushed;
   std::unique_ptr<BugType> DataNotFenced;
   std::unique_ptr<BugType> CheckAlreadyWritten;
+  std::unique_ptr<BugType> CheckNotWritten;
 
 public:
-  WriteBugReporter(const CheckerBase& CB) : BaseBugReporter(CB) {
-    DataAlreadyFlushed.reset(
-        new BugType(&CB, "Already flushed data", WriteError));
+  FenceCheckBugReporter(const CheckerBase& CB) : BaseBugReporter(CB) {
     DataAlreadyFenced.reset(
-        new BugType(&CB, "Already fenced data", WriteError));
-    DataNotFlushed.reset(new BugType(&CB, "Data is not flushed", WriteError));
+        new BugType(&CB, "Data is already fenced", WriteError));
     DataNotFenced.reset(new BugType(&CB, "Data is not fenced", WriteError));
     CheckAlreadyWritten.reset(
-        new BugType(&CB, "Already wrote valid", WriteError));
-  }
-
-  void reportDataAlreadyFlushed(SVal Loc, CheckerContext& C,
-                                const ValueDecl* VD,
-                                const ExplodedNode* const ExplNode,
-                                BugReporter& BReporter) const {
-    std::string ErrMsg = getErrorMessage(C, VD, "already flushed");
-    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
+        new BugType(&CB, "Check is already written", WriteError));
+    CheckNotWritten.reset(new BugType(&CB, "Check is not written", WriteError));
   }
 
   void reportDataAlreadyFenced(SVal Loc, CheckerContext& C, const ValueDecl* VD,
                                const ExplodedNode* const ExplNode,
                                BugReporter& BReporter) const {
     std::string ErrMsg = getErrorMessage(C, VD, "already fenced");
-    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
-  }
-
-  void reportDataNotFlushed(SVal Loc, CheckerContext& C, const ValueDecl* VD,
-                            const ExplodedNode* const ExplNode,
-                            BugReporter& BReporter) const {
-    std::string ErrMsg = getErrorMessage(C, VD, "not flushed");
     reportDirect(Loc, ErrMsg, ExplNode, BReporter);
   }
 
@@ -98,6 +89,50 @@ public:
                                  const ExplodedNode* const ExplNode,
                                  BugReporter& BReporter) const {
     std::string ErrMsg = getErrorMessage(C, VD, "already written");
+    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
+  }
+
+  void reportCheckNotWritten(SVal Loc, CheckerContext& C, const ValueDecl* VD,
+                             const ExplodedNode* const ExplNode,
+                             BugReporter& BReporter) const {
+    std::string ErrMsg = getErrorMessage(C, VD, "not written");
+    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
+  }
+};
+
+class FlushBugReporter : public FenceCheckBugReporter {
+  std::unique_ptr<BugType> DataAlreadyFlushed;
+  std::unique_ptr<BugType> DataNotFlushed;
+  std::unique_ptr<BugType> DataNotPersisted;
+
+public:
+  FlushBugReporter(const CheckerBase& CB) : FenceCheckBugReporter(CB) {
+    DataAlreadyFlushed.reset(
+        new BugType(&CB, "Data is already flushed", WriteError));
+    DataNotFlushed.reset(new BugType(&CB, "Data is not flushed", WriteError));
+    DataNotPersisted.reset(
+        new BugType(&CB, "Data is not persisted", WriteError));
+  }
+
+  void reportDataAlreadyFlushed(SVal Loc, CheckerContext& C,
+                                const ValueDecl* VD,
+                                const ExplodedNode* const ExplNode,
+                                BugReporter& BReporter) const {
+    std::string ErrMsg = getErrorMessage(C, VD, "already flushed");
+    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
+  }
+
+  void reportDataNotFlushed(SVal Loc, CheckerContext& C, const ValueDecl* VD,
+                            const ExplodedNode* const ExplNode,
+                            BugReporter& BReporter) const {
+    std::string ErrMsg = getErrorMessage(C, VD, "not flushed");
+    reportDirect(Loc, ErrMsg, ExplNode, BReporter);
+  }
+
+  void reportDataNotPersisted(SVal Loc, CheckerContext& C, const ValueDecl* VD,
+                              const ExplodedNode* const ExplNode,
+                              BugReporter& BReporter) const {
+    std::string ErrMsg = getErrorMessage(C, VD, "not persisted");
     reportDirect(Loc, ErrMsg, ExplNode, BReporter);
   }
 };
