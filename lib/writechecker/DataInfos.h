@@ -6,8 +6,8 @@
 namespace clang::ento::nvm {
 
 class VarInfos {
-  using BIVec = std::vector<BaseInfo*>;
-  using ValueMap = std::map<const ValueDecl*, BIVec>;
+  using InfoList = std::vector<BaseInfo*>;
+  using ValueMap = std::map<const ValueDecl*, InfoList>;
   ValueMap usedVars;
 
 public:
@@ -16,6 +16,15 @@ public:
     VarWalker varWalker(usedVars);
     varWalker.TraverseDecl(TUD);
     varWalker.createUsedVars();
+  }
+
+  InfoList& getInfoList(const ValueDecl* VD){
+    assert(usedVars.count(VD));
+    return usedVars[VD];
+  }
+
+  bool isUsedVar(const ValueDecl* VD){
+    return usedVars.count(VD);
   }
 
   void dump() {
