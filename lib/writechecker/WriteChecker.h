@@ -51,28 +51,32 @@ private:
   template <typename SMap>
   void checkMapStates(ProgramStateRef& State, CheckerContext& C) const;
 
-      /*
+  template <typename SMap>
+  void checkPfenceStates(ProgramStateRef& State, CheckerContext& C,
+                         bool& stateChanged) const;
 
-      void handleWriteData(CheckerContext& C, const DeclaratorDecl* D,
-                           DataInfo* DI) const;
+  /*
 
-      void handleWriteCheck(SVal Loc, CheckerContext& C, const DeclaratorDecl*
-      D, CheckInfo* CI) const;
+  void handleWriteData(CheckerContext& C, const DeclaratorDecl* D,
+                       DataInfo* DI) const;
 
-      void handleWriteMask(SVal Loc, const Stmt* S, CheckerContext& C,
-                           const DeclaratorDecl* D, CheckDataInfo* DCI) const;
+  void handleWriteCheck(SVal Loc, CheckerContext& C, const DeclaratorDecl*
+  D, CheckInfo* CI) const;
 
-      void handleFlushData(CheckerContext& C, const DeclaratorDecl* D,
-                           DataInfo* DI) const;
+  void handleWriteMask(SVal Loc, const Stmt* S, CheckerContext& C,
+                       const DeclaratorDecl* D, CheckDataInfo* DCI) const;
 
-      void handleFlushCheck(CheckerContext& C, const DeclaratorDecl* D,
-                            CheckInfo* CI) const;
+  void handleFlushData(CheckerContext& C, const DeclaratorDecl* D,
+                       DataInfo* DI) const;
+
+  void handleFlushCheck(CheckerContext& C, const DeclaratorDecl* D,
+                        CheckInfo* CI) const;
 
 
 
-      */
+  */
 
-      const WriteBugReporter BReporter;
+  const WriteBugReporter BReporter;
   mutable ExplodedNode* ErrNode;
   mutable FunctionInfos fncInfos;
   mutable VarInfos varInfos;

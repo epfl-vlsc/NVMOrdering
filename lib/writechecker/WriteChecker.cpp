@@ -34,8 +34,8 @@ void WriteChecker::checkMapStates(ProgramStateRef& State,
                                   CheckerContext& C) const {
   for (auto& [D, SS] : State->get<SMap>()) {
     if (!SS.isFinal()) {
-      auto RI = ReportInfos::getRI(C, State, D, ErrNode,
-                                   BReporter, nullptr, nullptr);
+      auto RI =
+          ReportInfos::getRI(C, State, D, ErrNode, BReporter, nullptr, nullptr);
       RI.reportModelBug(SS.getExplanation());
     }
   }
@@ -130,14 +130,10 @@ void WriteChecker::handleFlush(const CallEvent& Call, CheckerContext& C) const {
   addStateTransition(State, C, stateChanged);
 }
 
-void WriteChecker::handlePFence(const CallEvent& Call,
-                                CheckerContext& C) const {
-
-  ProgramStateRef State = C.getState();
-  ErrNode = nullptr;
-  bool stateChanged = false;
-
-  for (auto& [D, _] : State->get<CheckMap>()) {
+template <typename SMap>
+void WriteChecker::checkPfenceStates(ProgramStateRef& State, CheckerContext& C,
+                       bool& stateChanged) const {
+  for (auto& [D, _] : State->get<SMap>()) {
     // todo optimize for repeats
     auto& infoList = varInfos.getInfoList(D);
     for (auto& BI : infoList) {
@@ -147,15 +143,18 @@ void WriteChecker::handlePFence(const CallEvent& Call,
       stateChanged |= RI.stateChanged;
     }
   }
+}
 
-  /*
-  //go over all dcl data
-  for (auto& [dataDD, dclState] : State->get<DclMap>()) {
+void WriteChecker::handlePFence(const CallEvent& Call,
+                                CheckerContext& C) const {
 
-  }
+  ProgramStateRef State = C.getState();
+  ErrNode = nullptr;
+  bool stateChanged = false;
 
-  //go over all scl data
-  */
+  checkPfenceStates<CheckMap>(State, C, stateChanged);
+  checkPfenceStates<DclMap>(State, C, stateChanged);
+  checkPfenceStates<SclMap>(State, C, stateChanged);
 
   addStateTransition(State, C, stateChanged);
 }
