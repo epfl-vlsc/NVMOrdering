@@ -25,8 +25,9 @@ struct TransInfos : public TransOutInfos {
   mutable char* D;
 
   const char* getD() const { return (const char*)D; }
-
   void setD(const char* D_) const { D = (char*)D_; }
+  void setD(const ValueDecl* D_) const { D = (char*)D_; }
+  void setD(const AnnotateAttr* D_) const { D = (char*)D_; }
 
 protected:
   TransInfos(CheckerContext& C_, ProgramStateRef& State_, const char* VarAddr_,

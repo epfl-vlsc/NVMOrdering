@@ -32,7 +32,7 @@ public:
   }
 
   bool useData(ReportInfos& RI) const {
-    RI.setD(RI.VarAddr);
+    RI.setD(data);
     return true;
   }
   void write(ReportInfos& RI) const {
@@ -43,9 +43,9 @@ public:
     useData(RI);
     CheckSpace::flushData(RI);
   }
-  void pfence(ReportInfos& RI) const { 
+  void pfence(ReportInfos& RI) const {
     useData(RI);
-    CheckSpace::pfenceData(RI); 
+    CheckSpace::pfenceData(RI);
   }
 };
 
@@ -64,8 +64,15 @@ public:
   }
 
   virtual bool useData(ReportInfos& RI) const {
-    RI.setD(RI.VarAddr);
-    return true;
+    RI.setD(data);
+    if (((const char*)data) == RI.VarAddr) {
+      return true;
+    } else if (((const char*)check) == RI.VarAddr) {
+      return false;
+    } else {
+      llvm::report_fatal_error("not data nor check");
+      return false;
+    }
   }
 
   // todo make it all pure abstract
@@ -86,20 +93,22 @@ public:
   }
 
   virtual void write(ReportInfos& RI) const {
-    /*
-    if (isCheck(RI.D)) {
-      DclSpace::writeCheck(RI);
-    } else {
+    if (useData(RI)) {
       DclSpace::writeData(RI);
-    }*/
+    } else {
+      DclSpace::writeCheck(RI);
+    }
   }
   virtual void flush(ReportInfos& RI) const {
-    // only flush data, check is handled by checkstate
-    /*if (!isCheck(RI.D)) {
+    if (useData(RI)) {
       DclSpace::flushData(RI);
-    }*/
+    }
   }
-  virtual void pfence(ReportInfos& RI) const { DclSpace::pfenceData(RI); }
+  virtual void pfence(ReportInfos& RI) const {
+    if (useData(RI)) {
+      DclSpace::pfenceData(RI);
+    }
+  }
 };
 
 class SclInfo : public PairInfo {
