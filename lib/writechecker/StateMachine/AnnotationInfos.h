@@ -19,6 +19,7 @@ public:
   virtual void write(ReportInfos& RI) const = 0;
   virtual void flush(ReportInfos& RI) const = 0;
   virtual void pfence(ReportInfos& RI) const = 0;
+  virtual void vfence(ReportInfos& RI) const = 0;
 };
 
 class CheckInfo : public BaseInfo {
@@ -47,6 +48,7 @@ public:
     useData(RI);
     CheckSpace::pfenceData(RI);
   }
+  void vfence(ReportInfos& RI) const {}
 };
 
 class PairInfo : public BaseInfo {
@@ -79,6 +81,7 @@ public:
   virtual void write(ReportInfos& RI) const {}
   virtual void flush(ReportInfos& RI) const {}
   virtual void pfence(ReportInfos& RI) const {}
+  virtual void vfence(ReportInfos& RI) const {}
 };
 
 class DclInfo : public PairInfo {
@@ -105,9 +108,8 @@ public:
     }
   }
   virtual void pfence(ReportInfos& RI) const {
-    if (useData(RI)) {
-      DclSpace::pfenceData(RI);
-    }
+    useData(RI);
+    DclSpace::pfenceData(RI);
   }
 };
 
@@ -119,6 +121,22 @@ public:
   void dump() const {
     llvm::outs() << "SclInfo: ";
     PairInfo::dump();
+  }
+
+  virtual void write(ReportInfos& RI) const {
+    if (useData(RI)) {
+      SclSpace::writeData(RI);
+    } else {
+      SclSpace::writeCheck(RI);
+    }
+  }
+  virtual void vfence(ReportInfos& RI) const {
+    useData(RI);
+    SclSpace::vfenceData(RI);
+  }
+  virtual void pfence(ReportInfos& RI) const {
+    useData(RI);
+    SclSpace::vfenceData(RI);
   }
 };
 

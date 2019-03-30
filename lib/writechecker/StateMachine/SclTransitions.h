@@ -11,6 +11,7 @@ void writeData(ReportInfos& RI) {
 
   if (!SS) {
     State = State->set<SclMap>(D, SclState::getWriteData());
+    RI.stateChanged = true;
   } else if (SS->isWriteData()) {
     // bug:already written data
     RI.reportDataAlreadyWritten();
@@ -30,6 +31,7 @@ void vfenceData(ReportInfos& RI) {
   const char* D = RI.getD();
 
   const SclState* SS = State->get<SclMap>(D);
+
 
   if (!SS) {
     //do nothing

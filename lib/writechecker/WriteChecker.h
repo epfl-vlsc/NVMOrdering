@@ -55,6 +55,10 @@ private:
   void checkPfenceStates(ProgramStateRef& State, CheckerContext& C,
                          bool& stateChanged) const;
 
+  template <typename SMap>
+  void checkVfenceStates(ProgramStateRef& State, CheckerContext& C,
+                         bool& stateChanged) const;
+
   /*
 
   void handleWriteData(CheckerContext& C, const DeclaratorDecl* D,
