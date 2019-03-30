@@ -74,6 +74,7 @@ public:
   BugPtr DataAlreadyFlushed;
   BugPtr DataNotFlushed;
   BugPtr DataNotPersisted;
+  BugPtr DataNotFenced;
 
 protected:
   FDBugs(const CheckerBase& CB) {
@@ -82,6 +83,7 @@ protected:
     DataNotFlushed.reset(new BugType(&CB, "Data is not flushed", WriteError));
     DataNotPersisted.reset(
         new BugType(&CB, "Data is not persisted", WriteError));
+    DataNotFenced.reset(new BugType(&CB, "Data is not fenced", WriteError));
   }
 };
 

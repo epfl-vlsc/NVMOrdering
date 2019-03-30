@@ -4,88 +4,107 @@
 
 namespace clang::ento::nvm::DclSpace {
 
-bool writeData(ProgramStateRef& State, char* D) {
+void writeData(ReportInfos& RI) {
+  ProgramStateRef& State = RI.State;
+  const char* D = RI.D;
+
   const DclState* DS = State->get<DclMap>(D);
 
   if (!DS) {
+    //write data
     State = State->set<DclMap>(D, DclState::getWriteData());
+    RI.stateChanged = true;
   } else if (DS->isWriteData()) {
     // bug:already written data
+    RI.reportDataAlreadyWritten();
   } else if (DS->isFlushData()) {
     // bug:already written data
+    RI.reportDataAlreadyWritten();
   } else if (DS->isPfenceData()) {
     // bug:already written data
+    RI.reportDataAlreadyWritten();
   } else if (DS->isWriteCheck()) {
+    //write data
     State = State->set<DclMap>(D, DclState::getWriteData());
-    return true;
+    RI.stateChanged = true;
   } else {
     llvm::report_fatal_error("not possible");
   }
-
-  return false;
 }
 
-bool flushData(ProgramStateRef& State, char* D) {
+void flushData(ReportInfos& RI) {
+  ProgramStateRef& State = RI.State;
+  const char* D = RI.D;
+
   const DclState* DS = State->get<DclMap>(D);
 
   if (!DS) {
     // bug:not written data
+    RI.reportDataNotWritten();
   } else if (DS->isWriteData()) {
     State = State->set<DclMap>(D, DclState::getFlushData());
-    return true;
+    RI.stateChanged = true;
   } else if (DS->isFlushData()) {
     // bug:already flushed data
+    RI.reportDataAlreadyFlushed();
   } else if (DS->isPfenceData()) {
     // bug: already flushed data
+    RI.reportDataAlreadyFlushed();
   } else if (DS->isWriteCheck()) {
     // bug: already flushed data
+    RI.reportDataAlreadyFlushed();
   } else {
     llvm::report_fatal_error("not possible");
   }
-
-  return false;
 }
 
-bool pfenceData(ProgramStateRef& State, char* D) {
+void pfenceData(ReportInfos& RI) {
+  ProgramStateRef& State = RI.State;
+  const char* D = RI.D;
+
   const DclState* DS = State->get<DclMap>(D);
 
   if (!DS) {
-    return false;
+    //do nothing
   } else if (DS->isWriteData()) {
     // bug:not flushed data
+    RI.reportDataNotFlushed();
   } else if (DS->isFlushData()) {
     State = State->set<DclMap>(D, DclState::getPfenceData());
-    return true;
+    RI.stateChanged = true;
   } else if (DS->isPfenceData()) {
-    return false;
+    //do nothing
   } else if (DS->isWriteCheck()) {
-    return false;
+    //do nothing
   } else {
     llvm::report_fatal_error("not possible");
   }
-
-  return false;
 }
 
-bool writeCheck(ProgramStateRef& State, char* D) {
+void writeCheck(ReportInfos& RI) {
+  ProgramStateRef& State = RI.State;
+  const char* D = RI.D;
+
   const DclState* DS = State->get<DclMap>(D);
 
   if (!DS) {
     // bug:not written data
+    RI.reportDataNotWritten();
   } else if (DS->isWriteData()) {
     // bug:not persisted data
+    RI.reportDataNotPersisted();
   } else if (DS->isFlushData()) {
     // bug:not persisted data
+    RI.reportDataNotPersisted();
   } else if (DS->isPfenceData()) {
     State = State->set<DclMap>(D, DclState::getWriteCheck());
-    return true;
+    RI.stateChanged = true;
   } else if (DS->isWriteCheck()) {
     // bug:already written check
+    RI.reportCheckAlreadyWritten();
   } else {
     llvm::report_fatal_error("not possible");
   }
-
-  return false;
 }
 
 

@@ -93,6 +93,13 @@ struct ReportInfos : public WriteTransInfos {
     auto& bugPtr = BR.DataNotPersisted;
     BR.report(C, D, "not persisted", Loc, EN, bugPtr);
   }
+  void reportDataNotFenced() const {
+    initReport();
+    if (!EN)
+      return;
+    auto& bugPtr = BR.DataNotFenced;
+    BR.report(C, D, "not fenced", Loc, EN, bugPtr);
+  }
 
   void reportModelBug(const std::string& msg) const {
     initReport();

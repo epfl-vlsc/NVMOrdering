@@ -2,65 +2,70 @@
 #include "Common.h"
 #include "SclState.h"
 
-namespace clang::ento::nvm::SclSpace
- {
-bool writeData(ProgramStateRef& State, char* D) {
+namespace clang::ento::nvm::SclSpace {
+void writeData(ReportInfos& RI) {
+  ProgramStateRef& State = RI.State;
+  const char* D = RI.D;
+
   const SclState* SS = State->get<SclMap>(D);
 
-  if(!SS){
+  if (!SS) {
     State = State->set<SclMap>(D, SclState::getWriteData());
-  }else if(SS->isWriteData()){
-    //bug:already written data
-  }else if(SS->isVfenceData()){
-    //bug:already written data
-  }else if(SS->isWriteCheck()){
+  } else if (SS->isWriteData()) {
+    // bug:already written data
+    RI.reportDataAlreadyWritten();
+  } else if (SS->isVfenceData()) {
+    // bug:already written data
+    RI.reportDataAlreadyWritten();
+  } else if (SS->isWriteCheck()) {
     State = State->set<SclMap>(D, SclState::getWriteData());
-    return true;
-  }else {
+    RI.stateChanged = true;
+  } else {
     llvm::report_fatal_error("not possible");
   }
-
-  return false;
 }
 
-bool vfenceData(ProgramStateRef& State, char* D) {
+void vfenceData(ReportInfos& RI) {
+  ProgramStateRef& State = RI.State;
+  const char* D = RI.D;
+
   const SclState* SS = State->get<SclMap>(D);
 
-  if(!SS){
-    return false;
-  }else if(SS->isWriteData()){
+  if (!SS) {
+    //do nothing
+  } else if (SS->isWriteData()) {
     State = State->set<SclMap>(D, SclState::getVfenceData());
-    return true;
-  }else if(SS->isVfenceData()){
-    return false;
-  }else if(SS->isWriteCheck()){
-    return false;
-  }else {
+    RI.stateChanged = true;
+  } else if (SS->isVfenceData()) {
+    //do nothing
+  } else if (SS->isWriteCheck()) {
+    //do nothing
+  } else {
     llvm::report_fatal_error("not possible");
   }
-
-  return false;
 }
 
+void writeCheck(ReportInfos& RI) {
+  ProgramStateRef& State = RI.State;
+  const char* D = RI.D;
 
-bool writeCheck(ProgramStateRef& State, char* D) {
   const SclState* SS = State->get<SclMap>(D);
 
-  if(!SS){
-    //bug:not written data
-  }else if(SS->isWriteData()){
-    //bug:not fenced data
-  }else if(SS->isVfenceData()){
+  if (!SS) {
+    // bug:not written data
+    RI.reportDataNotWritten();
+  } else if (SS->isWriteData()) {
+    // bug:not fenced data
+    RI.reportDataNotFenced();
+  } else if (SS->isVfenceData()) {
     State = State->set<SclMap>(D, SclState::getWriteCheck());
-    return true;
-  }else if(SS->isWriteCheck()){
-    //bug:not written check
-  }else {
+    RI.stateChanged = true;
+  } else if (SS->isWriteCheck()) {
+    // bug:already written check
+    RI.reportCheckAlreadyWritten();
+  } else {
     llvm::report_fatal_error("not possible");
   }
-
-  return false;
 }
 
-
-} // namespace clang::ento::nvm::scl
+} // namespace clang::ento::nvm::SclSpace
