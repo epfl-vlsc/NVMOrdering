@@ -64,14 +64,14 @@ public:
     if (!EN)
       return;
     auto& bugPtr = BR.DataAlreadyWritten;
-    BR.report(C, VarAddr, "already written", Loc, EN, bugPtr);
+    BR.report(C, D, "already written", Loc, EN, bugPtr);
   }
   void reportDataNotWritten() const {
     initReport();
     if (!EN)
       return;
     auto& bugPtr = BR.DataNotWritten;
-    BR.report(C, VarAddr, "not written", Loc, EN, bugPtr);
+    BR.report(C, D, "not written", Loc, EN, bugPtr);
   }
   void reportCheckAlreadyWritten() const {
     initReport();
@@ -92,28 +92,28 @@ public:
     if (!EN)
       return;
     auto& bugPtr = BR.DataAlreadyFlushed;
-    BR.report(C, VarAddr, "already flushed", Loc, EN, bugPtr);
+    BR.report(C, D, "already flushed", Loc, EN, bugPtr);
   }
   void reportDataNotFlushed() const {
     initReport();
     if (!EN)
       return;
     auto& bugPtr = BR.DataNotFlushed;
-    BR.report(C, VarAddr, "not flushed", Loc, EN, bugPtr);
+    BR.report(C, D, "not flushed", Loc, EN, bugPtr);
   }
   void reportDataNotPersisted() const {
     initReport();
     if (!EN)
       return;
     auto& bugPtr = BR.DataNotPersisted;
-    BR.report(C, VarAddr, "not persisted", Loc, EN, bugPtr);
+    BR.report(C, D, "not persisted", Loc, EN, bugPtr);
   }
   void reportDataNotFenced() const {
     initReport();
     if (!EN)
       return;
     auto& bugPtr = BR.DataNotFenced;
-    BR.report(C, VarAddr, "not fenced", Loc, EN, bugPtr);
+    BR.report(C, D, "not fenced", Loc, EN, bugPtr);
   }
 
   void reportModelBug(const std::string& msg) const {

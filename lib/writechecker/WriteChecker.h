@@ -44,19 +44,14 @@ private:
 
   void handleFlush(const CallEvent& Call, CheckerContext& C) const;
 
-  void handlePFence(const CallEvent& Call, CheckerContext& C) const;
-
-  void handleVFence(const CallEvent& Call, CheckerContext& C) const;
+  template <bool pfence>
+  void handleFence(const CallEvent& Call, CheckerContext& C) const;
 
   template <typename SMap>
   void checkMapStates(ProgramStateRef& State, CheckerContext& C) const;
 
-  template <typename SMap>
-  void checkPfenceStates(ProgramStateRef& State, CheckerContext& C,
-                         bool& stateChanged) const;
-
-  template <typename SMap>
-  void checkVfenceStates(ProgramStateRef& State, CheckerContext& C,
+  template <typename SMap, bool pfence>
+  void checkFenceStates(ProgramStateRef& State, CheckerContext& C,
                          bool& stateChanged) const;
 
   /*

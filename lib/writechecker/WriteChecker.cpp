@@ -79,6 +79,7 @@ void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
 
   if (const ValueDecl* VD = getValueDecl(Loc); VD) {
     if (varInfos.isUsedVar(VD)) {
+      DBG("write " << VD->getNameAsString())
       auto& infoList = varInfos.getInfoList(VD);
       for (auto& BI : infoList) {
         auto RI = ReportInfos::getRI(C, State, (const char*)VD, ErrNode,
@@ -98,9 +99,9 @@ void WriteChecker::checkPreCall(const CallEvent& Call,
   if (fncInfos.isFlushFunction(Call)) {
     handleFlush(Call, C);
   } else if (fncInfos.isPFenceFunction(Call)) {
-    handlePFence(Call, C);
+    handleFence<true>(Call, C);
   } else if (fncInfos.isVFenceFunction(Call)) {
-    handleVFence(Call, C);
+    handleFence<false>(Call, C);
   }
 }
 
@@ -117,6 +118,7 @@ void WriteChecker::handleFlush(const CallEvent& Call, CheckerContext& C) const {
   SVal Loc = Call.getArgSVal(0);
   if (const ValueDecl* VD = getValueDecl(Loc); VD) {
     if (varInfos.isUsedVar(VD)) {
+      DBG("flush " << VD->getNameAsString())
       auto& infoList = varInfos.getInfoList(VD);
       for (auto& BI : infoList) {
         auto RI = ReportInfos::getRI(C, State, (const char*)VD, ErrNode,
@@ -130,59 +132,39 @@ void WriteChecker::handleFlush(const CallEvent& Call, CheckerContext& C) const {
   addStateTransition(State, C, stateChanged);
 }
 
-template <typename SMap>
-void WriteChecker::checkPfenceStates(ProgramStateRef& State, CheckerContext& C,
+template <typename SMap, bool pfence>
+void WriteChecker::checkFenceStates(ProgramStateRef& State, CheckerContext& C,
                                      bool& stateChanged) const {
   for (auto& [D, _] : State->get<SMap>()) {
+    DBG("pfence " << (void*)D)
     // todo optimize for repeats
     auto& infoList = varInfos.getInfoList(D);
     for (auto& BI : infoList) {
       auto RI =
           ReportInfos::getRI(C, State, D, ErrNode, BReporter, nullptr, nullptr);
-      BI->pfence(RI);
+      
+      if constexpr (pfence==true)
+        BI->pfence(RI);
+      else
+        BI->vfence(RI);
+
+
       stateChanged |= RI.stateChanged;
     }
   }
 }
 
-template <typename SMap>
-void WriteChecker::checkVfenceStates(ProgramStateRef& State, CheckerContext& C,
-                                     bool& stateChanged) const {
-  for (auto& [D, _] : State->get<SMap>()) {
-    // todo optimize for repeats
-    auto& infoList = varInfos.getInfoList(D);
-    for (auto& BI : infoList) {
-      auto RI =
-          ReportInfos::getRI(C, State, D, ErrNode, BReporter, nullptr, nullptr);
-      BI->vfence(RI);
-      stateChanged |= RI.stateChanged;
-    }
-  }
-}
-
-void WriteChecker::handlePFence(const CallEvent& Call,
+template <bool pfence>
+void WriteChecker::handleFence(const CallEvent& Call,
                                 CheckerContext& C) const {
 
   ProgramStateRef State = C.getState();
   ErrNode = nullptr;
   bool stateChanged = false;
 
-  checkPfenceStates<CheckMap>(State, C, stateChanged);
-  checkPfenceStates<DclMap>(State, C, stateChanged);
-  checkPfenceStates<SclMap>(State, C, stateChanged);
-
-  addStateTransition(State, C, stateChanged);
-}
-
-void WriteChecker::handleVFence(const CallEvent& Call,
-                                CheckerContext& C) const {
-  ProgramStateRef State = C.getState();
-  ErrNode = nullptr;
-  bool stateChanged = false;
-
-  checkVfenceStates<CheckMap>(State, C, stateChanged);
-  checkVfenceStates<DclMap>(State, C, stateChanged);
-  checkVfenceStates<SclMap>(State, C, stateChanged);
+  checkFenceStates<CheckMap, pfence>(State, C, stateChanged);
+  checkFenceStates<DclMap, pfence>(State, C, stateChanged);
+  checkFenceStates<SclMap, pfence>(State, C, stateChanged);
 
   addStateTransition(State, C, stateChanged);
 }
