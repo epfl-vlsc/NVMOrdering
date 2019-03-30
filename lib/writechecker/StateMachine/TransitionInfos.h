@@ -94,12 +94,13 @@ struct ReportInfos : public WriteTransInfos {
     BR.report(C, D, "not persisted", Loc, EN, bugPtr);
   }
 
-  void reportModelBug() const {
+  void reportModelBug(const std::string& msg) const {
     initReport();
     if (!EN)
       return;
     auto& bugPtr = BR.WrongModel;
-    BR.report(C, D, "wrong model", Loc, EN, bugPtr);
+    std::string errMsg = "model bug: " + msg + " state";
+    BR.report(C, D, errMsg.c_str(), Loc, EN, bugPtr);
   }
 
 private:

@@ -36,7 +36,7 @@ void WriteChecker::checkMapStates(ProgramStateRef& State,
     if (!SS.isFinal()) {
       auto RI = ReportInfos::getRI(C, State, D, ErrNode,
                                    BReporter, nullptr, nullptr);
-      RI.reportModelBug();
+      RI.reportModelBug(SS.getExplanation());
     }
   }
 }

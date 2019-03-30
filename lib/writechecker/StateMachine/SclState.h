@@ -8,6 +8,8 @@ private:
   enum Kind { WD, VD, WC } K;
   static constexpr const char* Str[] = {"WriteData", "VfenceData",
                                         "WriteCheck"};
+  static constexpr const char* Exp[] = {"data is written", "data is vfenced",
+                                        "check is written"};
 
   SclState(Kind kind) : K(kind) {}
 
@@ -28,6 +30,7 @@ public:
   bool operator==(const SclState& X) const { return K == X.K; }
 
   const char* getStateName() const { return Str[K]; }
+  const char* getExplanation() const { return Exp[K]; }
 
   void Profile(llvm::FoldingSetNodeID& ID) const {
     ID.AddInteger(K);
