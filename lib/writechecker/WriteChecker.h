@@ -6,25 +6,22 @@ constexpr const char* CHECKER_PLUGIN_NAME = "nvm.writechecker";
 
 namespace clang::ento::nvm {
 
-/*,check::EndFunction
+/*
               , check::DeadSymbols,
               check::PointerEscape*/
 /*,*/
 
 class WriteChecker
     : public Checker<check::ASTDecl<TranslationUnitDecl>, check::BeginFunction,
-                     check::PreCall, check::Bind> {
+                     check::PreCall, check::Bind, check::EndFunction> {
 
 public:
   WriteChecker()
       : BReporter(*this), ErrNode(nullptr), fncInfos("PersistentCode") {}
 
   void checkBeginFunction(CheckerContext& Ctx) const;
-  /*
-    void checkEndFunction(CheckerContext& C) const;
 
-
-*/
+  void checkEndFunction(CheckerContext& C) const;
 
   void checkPreCall(const CallEvent& Call, CheckerContext& C) const;
 
@@ -51,28 +48,31 @@ private:
 
   void handleVFence(const CallEvent& Call, CheckerContext& C) const;
 
-  /*
+  template <typename SMap>
+  void checkMapStates(ProgramStateRef& State, CheckerContext& C) const;
 
-  void handleWriteData(CheckerContext& C, const DeclaratorDecl* D,
-                       DataInfo* DI) const;
+      /*
 
-  void handleWriteCheck(SVal Loc, CheckerContext& C, const DeclaratorDecl* D,
-                        CheckInfo* CI) const;
+      void handleWriteData(CheckerContext& C, const DeclaratorDecl* D,
+                           DataInfo* DI) const;
 
-  void handleWriteMask(SVal Loc, const Stmt* S, CheckerContext& C,
-                       const DeclaratorDecl* D, CheckDataInfo* DCI) const;
+      void handleWriteCheck(SVal Loc, CheckerContext& C, const DeclaratorDecl*
+      D, CheckInfo* CI) const;
 
-  void handleFlushData(CheckerContext& C, const DeclaratorDecl* D,
-                       DataInfo* DI) const;
+      void handleWriteMask(SVal Loc, const Stmt* S, CheckerContext& C,
+                           const DeclaratorDecl* D, CheckDataInfo* DCI) const;
 
-  void handleFlushCheck(CheckerContext& C, const DeclaratorDecl* D,
-                        CheckInfo* CI) const;
+      void handleFlushData(CheckerContext& C, const DeclaratorDecl* D,
+                           DataInfo* DI) const;
+
+      void handleFlushCheck(CheckerContext& C, const DeclaratorDecl* D,
+                            CheckInfo* CI) const;
 
 
 
-  */
+      */
 
-  const WriteBugReporter BReporter;
+      const WriteBugReporter BReporter;
   mutable ExplodedNode* ErrNode;
   mutable FunctionInfos fncInfos;
   mutable VarInfos varInfos;

@@ -29,60 +29,32 @@ void WriteChecker::checkBeginFunction(CheckerContext& C) const {
   }
 }
 
-/*
-void WriteChecker::checkEndFunction(CheckerContext& C) const {
-  bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
-  bool isTopFnc = isTopFunction(C);
-  if (isAnnotated && isTopFnc) {
-    // ensured it is the top function and annotated
-    ProgramStateRef State = C.getState();
-    bool errNodeGenerated = false;
-    ExplodedNode* ErrNode = nullptr;
-
-    llvm::outs() << "state values\n";
-    // iterate over dcl
-    for (auto& [dataDD, dclState] : State->get<DclMap>()) {
-      llvm::outs() << getPairStr(dataDD, dclState.getDataInfo()) << " "
-                   << dclState.getStateName() << "\n";
-      if (!dclState.isPFenceCheck()) {
-        if (!errNodeGenerated) {
-          ErrNode = C.generateNonFatalErrorNode();
-          errNodeGenerated = true;
-        }
-
-        // might return nullptr based on optimizations
-        if (!ErrNode) {
-          return;
-        }
-
-        BugInfo BI{dataDD, dclState.getDataInfo(), dclState.getStateName(),
-                   dclState.getStateKind(), true};
-        BReporter.reportModelBug(C, BI, ErrNode, C.getBugReporter());
-      }
-    }
-
-    // iterate over scl
-    for (auto& [dataDD, sclState] : State->get<SclMap>()) {
-      llvm::outs() << getPairStr(dataDD, sclState.getDataInfo()) << " "
-                   << sclState.getStateName() << "\n";
-      if (!sclState.isWriteCheck()) {
-        if (!errNodeGenerated) {
-          ErrNode = C.generateNonFatalErrorNode();
-          errNodeGenerated = true;
-        }
-
-        // might return nullptr based on optimizations
-        if (!ErrNode) {
-          return;
-        }
-        BugInfo BI{dataDD, sclState.getDataInfo(), sclState.getStateName(),
-                   sclState.getStateKind(), false};
-        BReporter.reportModelBug(C, BI, ErrNode, C.getBugReporter());
-      }
+template <typename SMap>
+void WriteChecker::checkMapStates(ProgramStateRef& State,
+                                  CheckerContext& C) const {
+  for (auto& [D, SS] : State->get<SMap>()) {
+    if (!SS.isFinal()) {
+      auto RI = ReportInfos::getRI(C, State, D, ErrNode,
+                                   BReporter, nullptr, nullptr);
+      RI.reportModelBug();
     }
   }
 }
 
+void WriteChecker::checkEndFunction(CheckerContext& C) const {
+  bool isAnnotated = fncInfos.isAnnotatedFunction(C);
+  bool isTopFnc = isTopFunction(C);
+  if (isAnnotated && isTopFnc) {
+    // ensured it is the top function and annotated
+    ProgramStateRef State = C.getState();
+    ErrNode = nullptr;
+
+    checkMapStates<CheckMap>(State, C);
+    checkMapStates<DclMap>(State, C);
+    checkMapStates<SclMap>(State, C);
+  }
+}
+/*
 void WriteChecker::checkDeadSymbols(SymbolReaper& SymReaper,
                                        CheckerContext& C) const {
   // todo implement
@@ -169,8 +141,8 @@ void WriteChecker::handlePFence(const CallEvent& Call,
     // todo optimize for repeats
     auto& infoList = varInfos.getInfoList(D);
     for (auto& BI : infoList) {
-      auto RI = ReportInfos::getRI(C, State, D, ErrNode,
-                                   BReporter, nullptr, nullptr);
+      auto RI =
+          ReportInfos::getRI(C, State, D, ErrNode, BReporter, nullptr, nullptr);
       BI->pfence(RI);
       stateChanged |= RI.stateChanged;
     }

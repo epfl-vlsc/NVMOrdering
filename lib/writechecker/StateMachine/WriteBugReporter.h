@@ -28,7 +28,7 @@ protected:
                     const ExplodedNode* const EN, const BugPtr& bugPtr,
                     BugReporter& BReporter) const {
     auto Report = llvm::make_unique<BugReport>(*bugPtr, ErrMsg, EN);
-    if(Loc){
+    if (Loc) {
       Report->markInteresting(*Loc);
     }
     BReporter.emitReport(std::move(Report));
@@ -85,14 +85,25 @@ protected:
   }
 };
 
+class ModelBug {
+public:
+  BugPtr WrongModel;
+
+protected:
+  ModelBug(const CheckerBase& CB) {
+    WrongModel.reset(new BugType(&CB, "Wrong model", WriteError));
+  }
+};
+
 class WriteBugReporter : public BaseReporter,
                          public WDBugs,
                          public WCBugs,
-                         public FDBugs {
+                         public FDBugs,
+                         public ModelBug {
 
 public:
   WriteBugReporter(const CheckerBase& CB)
-      : WDBugs(CB), WCBugs(CB), FDBugs(CB) {}
+      : WDBugs(CB), WCBugs(CB), FDBugs(CB), ModelBug(CB) {}
 };
 
 } // namespace clang::ento::nvm
