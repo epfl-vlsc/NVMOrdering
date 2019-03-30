@@ -25,9 +25,9 @@
 
 
 Tests:
-check: 6
-dcl: 10
-scl: 6
-dcltoscl: 18
-scltodcl: 18
-twocheck: 14
+check: 5
+dcl: 8
+scl: 5
+dcltoscl: 7
+scltodcl: 7
+twocheck: 8

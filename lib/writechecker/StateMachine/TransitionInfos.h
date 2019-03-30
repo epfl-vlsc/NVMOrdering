@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.h"
+#include "DbgState.h"
 #include "WriteBugReporter.h"
 
 namespace clang::ento::nvm {
@@ -16,7 +17,6 @@ struct TransInfos : public TransOutInfos {
   CheckerContext& C;
   ProgramStateRef& State;
   const char* VarAddr;
-  ExplodedNode*& EN;
   const WriteBugReporter& BR;
   SVal* Loc;
   const Stmt* S;
@@ -31,98 +31,68 @@ struct TransInfos : public TransOutInfos {
 
 protected:
   TransInfos(CheckerContext& C_, ProgramStateRef& State_, const char* VarAddr_,
-             ExplodedNode*& EN_, const WriteBugReporter& BR_, SVal* Loc_,
-             const Stmt* S_)
-      : C(C_), State(State_), VarAddr(VarAddr_), EN(EN_), BR(BR_), Loc(Loc_),
-        S(S_), D(nullptr) {}
+             const WriteBugReporter& BR_, SVal* Loc_, const Stmt* S_)
+      : C(C_), State(State_), VarAddr(VarAddr_), BR(BR_), Loc(Loc_), S(S_),
+        D(nullptr) {}
 };
 
 struct ReportInfos : public TransInfos {
 private:
-  void initReport() const {
-    bugReported = true;
-    if (!EN) {
-      EN = C.generateNonFatalErrorNode();
+  void report(const BugPtr& bugPtr, const char* msg) const {
+    DBG("report")
+    if (ExplodedNode* EN = C.generateErrorNode()) {
+      DBG("generate error node")
+      BR.report(C, D, msg, Loc, EN, bugPtr);
     }
   }
 
   ReportInfos(CheckerContext& C_, ProgramStateRef& State_, const char* VarAddr_,
-              ExplodedNode*& EN_, const WriteBugReporter& BR_, SVal* Loc_,
-              const Stmt* S_)
-      : TransInfos(C_, State_, VarAddr_, EN_, BR_, Loc_, S_) {}
+              const WriteBugReporter& BR_, SVal* Loc_, const Stmt* S_)
+      : TransInfos(C_, State_, VarAddr_, BR_, Loc_, S_) {}
 
 public:
   static ReportInfos getRI(CheckerContext& C_, ProgramStateRef& State_,
-                           const char* VarAddr_, ExplodedNode*& EN_,
-                           const WriteBugReporter& BR_, SVal* Loc_,
-                           const Stmt* S_) {
-    return ReportInfos(C_, State_, VarAddr_, EN_, BR_, Loc_, S_);
+                           const char* VarAddr_, const WriteBugReporter& BR_,
+                           SVal* Loc_, const Stmt* S_) {
+    return ReportInfos(C_, State_, VarAddr_, BR_, Loc_, S_);
   }
 
   void reportDataAlreadyWritten() const {
-    initReport();
-    if (!EN)
-      return;
     auto& bugPtr = BR.DataAlreadyWritten;
-    BR.report(C, D, "already written", Loc, EN, bugPtr);
+    report(bugPtr, "already written");
   }
   void reportDataNotWritten() const {
-    initReport();
-    if (!EN)
-      return;
     auto& bugPtr = BR.DataNotWritten;
-    BR.report(C, D, "not written", Loc, EN, bugPtr);
+    report(bugPtr, "not written");
   }
   void reportCheckAlreadyWritten() const {
-    initReport();
-    if (!EN)
-      return;
     auto& bugPtr = BR.CheckAlreadyWritten;
-    BR.report(C, VarAddr, "already written", Loc, EN, bugPtr);
+    report(bugPtr, "already written");
   }
   void reportCheckNotWritten() const {
-    initReport();
-    if (!EN)
-      return;
     auto& bugPtr = BR.CheckNotWritten;
-    BR.report(C, VarAddr, "not written", Loc, EN, bugPtr);
+    report(bugPtr, "not written");
   }
   void reportDataAlreadyFlushed() const {
-    initReport();
-    if (!EN)
-      return;
     auto& bugPtr = BR.DataAlreadyFlushed;
-    BR.report(C, D, "already flushed", Loc, EN, bugPtr);
+    report(bugPtr, "already flushed");
   }
   void reportDataNotFlushed() const {
-    initReport();
-    if (!EN)
-      return;
     auto& bugPtr = BR.DataNotFlushed;
-    BR.report(C, D, "not flushed", Loc, EN, bugPtr);
+    report(bugPtr, "not flushed");
   }
   void reportDataNotPersisted() const {
-    initReport();
-    if (!EN)
-      return;
     auto& bugPtr = BR.DataNotPersisted;
-    BR.report(C, D, "not persisted", Loc, EN, bugPtr);
+    report(bugPtr, "not persisted");
   }
   void reportDataNotFenced() const {
-    initReport();
-    if (!EN)
-      return;
     auto& bugPtr = BR.DataNotFenced;
-    BR.report(C, D, "not fenced", Loc, EN, bugPtr);
+    report(bugPtr, "not fenced");
   }
-
   void reportModelBug(const std::string& msg) const {
-    initReport();
-    if (!EN)
-      return;
     auto& bugPtr = BR.WrongModel;
     std::string errMsg = "model bug: " + msg + " state";
-    BR.report(C, VarAddr, errMsg.c_str(), Loc, EN, bugPtr);
+    report(bugPtr, errMsg.c_str());
   }
 };
 

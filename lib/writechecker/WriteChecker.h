@@ -17,7 +17,7 @@ class WriteChecker
 
 public:
   WriteChecker()
-      : BReporter(*this), ErrNode(nullptr), fncInfos("PersistentCode") {}
+      : BReporter(*this), fncInfos("PersistentCode") {}
 
   void checkBeginFunction(CheckerContext& Ctx) const;
 
@@ -54,6 +54,9 @@ private:
   void checkFenceStates(ProgramStateRef& State, CheckerContext& C,
                          bool& stateChanged) const;
 
+  template <typename SMap>
+  void printStates(ProgramStateRef& State, CheckerContext& C) const;
+
   /*
 
   void handleWriteData(CheckerContext& C, const DeclaratorDecl* D,
@@ -76,7 +79,6 @@ private:
   */
 
   const WriteBugReporter BReporter;
-  mutable ExplodedNode* ErrNode;
   mutable FunctionInfos fncInfos;
   mutable VarInfos varInfos;
 };

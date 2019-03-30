@@ -92,6 +92,16 @@ struct SharedValidScl {
 
   void persistent_code initWriteValid() {
     valid = 1;
+    data2 = 1;
+    data1 = 1;
+    vfence();
+    valid = 1;
+  }
+
+  void persistent_code initWriteValidData1() {
+    data2 = 1;
+    vfence();
+    valid = 1;
     data1 = 1;
     data2 = 1;
     vfence();

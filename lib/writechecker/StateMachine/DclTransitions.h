@@ -14,20 +14,20 @@ void writeData(ReportInfos& RI) {
   DBG("writeData " << (void*)D << " " << DS)
 
   if (!DS) {
-    DBG("!DS")
+    DBG("!DS bug")
     //write data
     State = State->set<DclMap>(D, DclState::getWriteData());
     RI.stateChanged = true;
   } else if (DS->isWriteData()) {
-    DBG("isWriteData")
+    DBG("isWriteDatabug ")
     // bug:already written data
     RI.reportDataAlreadyWritten();
   } else if (DS->isFlushData()) {
-    DBG("isFlushData")
+    DBG("isFlushData bug")
     // bug:already written data
     RI.reportDataAlreadyWritten();
   } else if (DS->isPfenceData()) {
-    DBG("isPfenceData")
+    DBG("isPfenceData bug")
     // bug:already written data
     RI.reportDataAlreadyWritten();
   } else if (DS->isWriteCheck()) {
@@ -49,7 +49,7 @@ void flushData(ReportInfos& RI) {
   DBG("flushData " << (void*)D << " " << DS)
 
   if (!DS) {
-    DBG("!DS")
+    DBG("!DS bug")
     // bug:not written data
     RI.reportDataNotWritten();
   } else if (DS->isWriteData()) {
@@ -58,15 +58,15 @@ void flushData(ReportInfos& RI) {
     State = State->set<DclMap>(D, DclState::getFlushData());
     RI.stateChanged = true;
   } else if (DS->isFlushData()) {
-    DBG("isFlushData")
+    DBG("isFlushData bug")
     // bug:already flushed data
     RI.reportDataAlreadyFlushed();
   } else if (DS->isPfenceData()) {
-    DBG("isPfenceData")
+    DBG("isPfenceData bug")
     // bug: already flushed data
     RI.reportDataAlreadyFlushed();
   } else if (DS->isWriteCheck()) {
-    DBG("isWriteCheck")
+    DBG("isWriteCheck bug")
     // bug: already flushed data
     RI.reportDataAlreadyFlushed();
   } else {
@@ -86,7 +86,7 @@ void pfenceData(ReportInfos& RI) {
     DBG("!DS")
     //do nothing
   } else if (DS->isWriteData()) {
-    DBG("isWriteData")
+    DBG("isWriteData bug")
     // bug:not flushed data
     RI.reportDataNotFlushed();
   } else if (DS->isFlushData()) {
@@ -114,15 +114,15 @@ void writeCheck(ReportInfos& RI) {
   DBG("writeCheck " << (void*)D << " " << DS)
 
   if (!DS) {
-    DBG("!DS")
+    DBG("!DS bug")
     // bug:not written data
     RI.reportDataNotWritten();
   } else if (DS->isWriteData()) {
-    DBG("isWriteData")
+    DBG("isWriteData bug")
     // bug:not persisted data
     RI.reportDataNotPersisted();
   } else if (DS->isFlushData()) {
-    DBG("isFlushData")
+    DBG("isFlushData bug")
     // bug:not persisted data
     RI.reportDataNotPersisted();
   } else if (DS->isPfenceData()) {
@@ -130,7 +130,7 @@ void writeCheck(ReportInfos& RI) {
     State = State->set<DclMap>(D, DclState::getWriteCheck());
     RI.stateChanged = true;
   } else if (DS->isWriteCheck()) {
-    DBG("isWriteCheck")
+    DBG("isWriteCheck bug")
     // bug:already written check
     RI.reportCheckAlreadyWritten();
   } else {

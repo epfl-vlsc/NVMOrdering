@@ -1,8 +1,8 @@
 #pragma once
 
-#define DBGSTATE
+//#define DBGSTATE
 #ifdef DBGSTATE
 #define DBG(P) llvm::outs() << P << "\n";
 #else
-#define DBG
+#define DBG(P)
 #endif

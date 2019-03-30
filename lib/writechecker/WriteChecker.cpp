@@ -18,6 +18,7 @@ void WriteChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
 }
 
 void WriteChecker::checkBeginFunction(CheckerContext& C) const {
+  DBG("checkBeginFunction")
   bool isAnnotated = fncInfos.isAnnotatedFunction(C);
   bool isTopFnc = isTopFunction(C);
 
@@ -32,28 +33,38 @@ void WriteChecker::checkBeginFunction(CheckerContext& C) const {
 template <typename SMap>
 void WriteChecker::checkMapStates(ProgramStateRef& State,
                                   CheckerContext& C) const {
+  DBG("checkMapStates")
   for (auto& [D, SS] : State->get<SMap>()) {
     if (!SS.isFinal()) {
-      auto RI =
-          ReportInfos::getRI(C, State, D, ErrNode, BReporter, nullptr, nullptr);
+      auto RI = ReportInfos::getRI(C, State, D, BReporter, nullptr, nullptr);
       RI.reportModelBug(SS.getExplanation());
     }
   }
 }
 
 void WriteChecker::checkEndFunction(CheckerContext& C) const {
+  DBG("checkEndFunction")
   bool isAnnotated = fncInfos.isAnnotatedFunction(C);
   bool isTopFnc = isTopFunction(C);
   if (isAnnotated && isTopFnc) {
     // ensured it is the top function and annotated
     ProgramStateRef State = C.getState();
-    ErrNode = nullptr;
 
     checkMapStates<CheckMap>(State, C);
     checkMapStates<DclMap>(State, C);
     checkMapStates<SclMap>(State, C);
   }
 }
+
+template <typename SMap>
+void WriteChecker::printStates(ProgramStateRef& State,
+                               CheckerContext& C) const {
+  DBG("printStates")
+  for (auto& [D, SS] : State->get<SMap>()) {
+    DBG((void*)D << " " << SS.getStateName())
+  }
+}
+
 /*
 void WriteChecker::checkDeadSymbols(SymbolReaper& SymReaper,
                                        CheckerContext& C) const {
@@ -72,9 +83,9 @@ ProgramStateRef WriteChecker::checkPointerEscape(
 
 void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                              CheckerContext& C) const {
+  DBG("checkBind")
   // S->dump();
   ProgramStateRef State = C.getState();
-  ErrNode = nullptr;
   bool stateChanged = false;
 
   if (const ValueDecl* VD = getValueDecl(Loc); VD) {
@@ -82,8 +93,8 @@ void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
       DBG("write " << VD->getNameAsString())
       auto& infoList = varInfos.getInfoList(VD);
       for (auto& BI : infoList) {
-        auto RI = ReportInfos::getRI(C, State, (const char*)VD, ErrNode,
-                                     BReporter, &Loc, S);
+        auto RI =
+            ReportInfos::getRI(C, State, (const char*)VD, BReporter, &Loc, S);
         BI->write(RI);
         stateChanged |= RI.stateChanged;
       }
@@ -95,7 +106,6 @@ void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
 
 void WriteChecker::checkPreCall(const CallEvent& Call,
                                 CheckerContext& C) const {
-
   if (fncInfos.isFlushFunction(Call)) {
     handleFlush(Call, C);
   } else if (fncInfos.isPFenceFunction(Call)) {
@@ -106,13 +116,14 @@ void WriteChecker::checkPreCall(const CallEvent& Call,
 }
 
 void WriteChecker::handleFlush(const CallEvent& Call, CheckerContext& C) const {
+  DBG("handleFlush")
+
   if (Call.getNumArgs() > 2) {
     llvm::report_fatal_error("check flush function");
     return;
   }
 
   ProgramStateRef State = C.getState();
-  ErrNode = nullptr;
   bool stateChanged = false;
 
   SVal Loc = Call.getArgSVal(0);
@@ -121,8 +132,8 @@ void WriteChecker::handleFlush(const CallEvent& Call, CheckerContext& C) const {
       DBG("flush " << VD->getNameAsString())
       auto& infoList = varInfos.getInfoList(VD);
       for (auto& BI : infoList) {
-        auto RI = ReportInfos::getRI(C, State, (const char*)VD, ErrNode,
-                                     BReporter, &Loc, nullptr);
+        auto RI = ReportInfos::getRI(C, State, (const char*)VD, BReporter, &Loc,
+                                     nullptr);
         BI->flush(RI);
         stateChanged |= RI.stateChanged;
       }
@@ -134,20 +145,18 @@ void WriteChecker::handleFlush(const CallEvent& Call, CheckerContext& C) const {
 
 template <typename SMap, bool pfence>
 void WriteChecker::checkFenceStates(ProgramStateRef& State, CheckerContext& C,
-                                     bool& stateChanged) const {
+                                    bool& stateChanged) const {
   for (auto& [D, _] : State->get<SMap>()) {
-    DBG("pfence " << (void*)D)
+    DBG("fence " << (void*)D)
     // todo optimize for repeats
     auto& infoList = varInfos.getInfoList(D);
     for (auto& BI : infoList) {
-      auto RI =
-          ReportInfos::getRI(C, State, D, ErrNode, BReporter, nullptr, nullptr);
-      
-      if constexpr (pfence==true)
+      auto RI = ReportInfos::getRI(C, State, D, BReporter, nullptr, nullptr);
+
+      if constexpr (pfence == true)
         BI->pfence(RI);
       else
         BI->vfence(RI);
-
 
       stateChanged |= RI.stateChanged;
     }
@@ -155,11 +164,9 @@ void WriteChecker::checkFenceStates(ProgramStateRef& State, CheckerContext& C,
 }
 
 template <bool pfence>
-void WriteChecker::handleFence(const CallEvent& Call,
-                                CheckerContext& C) const {
-
+void WriteChecker::handleFence(const CallEvent& Call, CheckerContext& C) const {
+  DBG("handleFence")
   ProgramStateRef State = C.getState();
-  ErrNode = nullptr;
   bool stateChanged = false;
 
   checkFenceStates<CheckMap, pfence>(State, C, stateChanged);
@@ -210,6 +217,7 @@ void WriteChecker::handleVFence(const CallEvent& Call,
 void WriteChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,
                                       bool stateChanged) const {
   if (stateChanged) {
+    DBG("state transition")
     C.addTransition(State);
   }
 }

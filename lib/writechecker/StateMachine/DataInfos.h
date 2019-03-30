@@ -5,7 +5,7 @@
 namespace clang::ento::nvm {
 
 class VarInfos {
-  using InfoList = std::vector<BaseInfo*>;
+  using InfoList = std::set<BaseInfo*>;
   using ValueMap = std::map<const char*, InfoList>;
   ValueMap usedVars;
 
@@ -41,7 +41,7 @@ public:
       // not exist
       usedVars[D];
     }
-    usedVars[D].push_back(BI);
+    usedVars[D].insert(BI);
   }
 
   void dump() {
