@@ -21,3 +21,13 @@
     * txp - transaction checker for pmdk
     * exp - experimental features
     * mc - multi source compile tests
+
+
+
+Tests:
+check: 6
+dcl: 10
+scl: 6
+dcltoscl: 18
+scltodcl: 18
+twocheck: 14

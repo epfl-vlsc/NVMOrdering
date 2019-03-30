@@ -14,7 +14,7 @@ protected:
     const FunctionDecl* FD = getTopFunction(C);
     std::string sbuf;
     llvm::raw_string_ostream ErrorOs(sbuf);
-    ErrorOs << "At: " << FD->getName() << " " << msg;
+    ErrorOs << "At: " << FD->getQualifiedNameAsString() << " " << msg;
 
     const Decl* BD = (const Decl*)D;
     if (const ValueDecl* VD = dyn_cast_or_null<ValueDecl>(BD)) {
