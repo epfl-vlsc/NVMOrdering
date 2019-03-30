@@ -7,7 +7,7 @@ namespace clang::ento::nvm::CheckSpace {
 
 void writeData(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
-  const char* D = RI.D;
+  const char* D = RI.getD();
 
   const CheckState* CS = State->get<CheckMap>(D);
 
@@ -32,7 +32,7 @@ void writeData(ReportInfos& RI) {
 
 void flushData(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
-  const char* D = RI.D;
+  const char* D = RI.getD();
     
   const CheckState* CS = State->get<CheckMap>(D);
 
@@ -57,7 +57,7 @@ void flushData(ReportInfos& RI) {
 
 void pfenceData(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
-  const char* D = RI.D;
+  const char* D = RI.getD();
     
   const CheckState* CS = State->get<CheckMap>(D);
 

@@ -14,7 +14,8 @@ protected:
 
 public:
   virtual void dump() const { llvm::outs() << data->getNameAsString(); }
-  
+
+  virtual bool useData(ReportInfos& RI) const = 0;
   virtual void write(ReportInfos& RI) const = 0;
   virtual void flush(ReportInfos& RI) const = 0;
   virtual void pfence(ReportInfos& RI) const = 0;
@@ -30,9 +31,22 @@ public:
     BaseInfo::dump();
   }
 
-  void write(ReportInfos& RI) const { CheckSpace::writeData(RI); }
-  void flush(ReportInfos& RI) const { CheckSpace::flushData(RI); }
-  void pfence(ReportInfos& RI) const { CheckSpace::pfenceData(RI); }
+  bool useData(ReportInfos& RI) const {
+    RI.setD(RI.VarAddr);
+    return true;
+  }
+  void write(ReportInfos& RI) const {
+    useData(RI);
+    CheckSpace::writeData(RI);
+  }
+  void flush(ReportInfos& RI) const {
+    useData(RI);
+    CheckSpace::flushData(RI);
+  }
+  void pfence(ReportInfos& RI) const { 
+    useData(RI);
+    CheckSpace::pfenceData(RI); 
+  }
 };
 
 class PairInfo : public BaseInfo {
@@ -49,9 +63,15 @@ public:
     }
   }
 
-  void write(ReportInfos& RI) const {}
-  void flush(ReportInfos& RI) const {}
-  void pfence(ReportInfos& RI) const {}
+  virtual bool useData(ReportInfos& RI) const {
+    RI.setD(RI.VarAddr);
+    return true;
+  }
+
+  // todo make it all pure abstract
+  virtual void write(ReportInfos& RI) const {}
+  virtual void flush(ReportInfos& RI) const {}
+  virtual void pfence(ReportInfos& RI) const {}
 };
 
 class DclInfo : public PairInfo {
@@ -64,6 +84,22 @@ public:
     llvm::outs() << "DclInfo: ";
     PairInfo::dump();
   }
+
+  virtual void write(ReportInfos& RI) const {
+    /*
+    if (isCheck(RI.D)) {
+      DclSpace::writeCheck(RI);
+    } else {
+      DclSpace::writeData(RI);
+    }*/
+  }
+  virtual void flush(ReportInfos& RI) const {
+    // only flush data, check is handled by checkstate
+    /*if (!isCheck(RI.D)) {
+      DclSpace::flushData(RI);
+    }*/
+  }
+  virtual void pfence(ReportInfos& RI) const { DclSpace::pfenceData(RI); }
 };
 
 class SclInfo : public PairInfo {

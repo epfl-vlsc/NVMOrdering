@@ -6,7 +6,7 @@ namespace clang::ento::nvm::DclSpace {
 
 void writeData(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
-  const char* D = RI.D;
+  const char* D = RI.getD();
 
   const DclState* DS = State->get<DclMap>(D);
 
@@ -34,7 +34,7 @@ void writeData(ReportInfos& RI) {
 
 void flushData(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
-  const char* D = RI.D;
+  const char* D = RI.getD();
 
   const DclState* DS = State->get<DclMap>(D);
 
@@ -60,7 +60,7 @@ void flushData(ReportInfos& RI) {
 
 void pfenceData(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
-  const char* D = RI.D;
+  const char* D = RI.getD();
 
   const DclState* DS = State->get<DclMap>(D);
 
@@ -83,7 +83,7 @@ void pfenceData(ReportInfos& RI) {
 
 void writeCheck(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
-  const char* D = RI.D;
+  const char* D = RI.getD();
 
   const DclState* DS = State->get<DclMap>(D);
 

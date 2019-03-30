@@ -5,7 +5,7 @@
 namespace clang::ento::nvm::SclSpace {
 void writeData(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
-  const char* D = RI.D;
+  const char* D = RI.getD();
 
   const SclState* SS = State->get<SclMap>(D);
 
@@ -27,7 +27,7 @@ void writeData(ReportInfos& RI) {
 
 void vfenceData(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
-  const char* D = RI.D;
+  const char* D = RI.getD();
 
   const SclState* SS = State->get<SclMap>(D);
 
@@ -47,7 +47,7 @@ void vfenceData(ReportInfos& RI) {
 
 void writeCheck(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
-  const char* D = RI.D;
+  const char* D = RI.getD();
 
   const SclState* SS = State->get<SclMap>(D);
 

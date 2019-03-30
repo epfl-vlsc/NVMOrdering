@@ -36,7 +36,7 @@ protected:
 
 public:
   void report(CheckerContext& C, const char* D, const char* msg, SVal* Loc,
-              const ExplodedNode* const EN, const BugPtr& bugPtr) const {
+              const ExplodedNode* const EN, const BugPtr& bugPtr) const {   
     BugReporter& BReporter = C.getBugReporter();
     std::string ErrMsg = getErrorMessage(C, D, msg);
     reportDirect(Loc, ErrMsg, EN, bugPtr, BReporter);
