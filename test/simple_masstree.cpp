@@ -26,7 +26,6 @@ struct Log {
   struct LogEntry {
     pdcl(Log.current) leafnode* data;
 
-
     void log(leafnode* data_) {
       data = data_;
       clflush(&data);
@@ -40,7 +39,7 @@ struct Log {
 
   static constexpr const int N = 100;
   LogEntry buf[N];
-  pcheck() int current;
+  pdcl(leafnode::nodeEpoch) int current;
 
   bool persistent_code logNode(leafnode* data_) {
     buf[current].log(data_);
@@ -67,7 +66,7 @@ struct ValInCLL {
 
   enum EPOCH { MASK = 4 };
 
-  pcheck(MASK) uint64_t incll;
+  psclm() uint64_t incll;
 
   /*
   long idx:4;
@@ -102,16 +101,16 @@ class leafnode : public basenode {
   basenode* parent;
   basenode* prev;
   basenode* next;
-  pcheck() uint64_t nodeEpoch;
+  uint64_t nodeEpoch;
   bool logged;
   bool InsAllowed;
-  pscl(leafnode.nodeEpoch) uint64_t permutationInCLL;
+  pscl(leafnode::nodeEpoch) uint64_t permutationInCLL;
   uint64_t permutation;
   uint64_t keys[14];
   uint64_t padding[3];
-  pscl(ValInCLL.incll) ValInCLL InCLL1;
+  ValInCLL InCLL1;
   uint64_t* vals[14];
-  pscl(ValInCLL.incll) ValInCLL InCLL2;
+  ValInCLL InCLL2;
 
   void remove_idx(uint64_t* permutation, int idx) {
     (void)permutation;
