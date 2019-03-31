@@ -169,23 +169,23 @@ protected:
                   const AnnotateAttr* ann_)
       : PairInfo(data_, check_), ann(ann_) {}
 
-  enum FieldKind{CHUNK_DATA, CHUNK_CHECK, CHECK_CHECK, NONE};
+  enum FieldKind { CHUNK_DATA, CHUNK_CHECK, CHECK_CHECK, NONE };
 
   virtual FieldKind selectField(ReportInfos& RI) const {
-    if(((const char*)check) == RI.VarAddr){
-      //transitive check
+    if (((const char*)check) == RI.VarAddr) {
+      // transitive check
       return FieldKind::CHECK_CHECK;
-    }else if(RI.S){
-      //write case
-      if(usesMask(RI.S, false)){
-        //write check
+    } else if (RI.S) {
+      // write case
+      if (usesMask(RI.S, false)) {
+        // write check
         return FieldKind::CHUNK_CHECK;
-      }else{
-        //write data
+      } else {
+        // write data
         return FieldKind::CHUNK_DATA;
       }
-    }else{
-      //flush case
+    } else {
+      // flush case
       return FieldKind::CHUNK_DATA;
     }
   }
@@ -201,6 +201,65 @@ public:
     llvm::outs() << "DclMaskToValidInfo: ";
     PairInfo::dump();
   }
+
+  virtual void write(ReportInfos& RI) const {
+    switch (selectField(RI)) {
+    case FieldKind::CHUNK_DATA: {
+      RI.setD(data);
+      SclSpace::writeData(RI);
+      break;
+    }
+    case FieldKind::CHUNK_CHECK: {
+      RI.setD(data);
+      SclSpace::writeCheck(RI);
+      if (ann) {
+        RI.setD(ann);
+        DclSpace::writeData(RI);
+      }
+      break;
+    }
+    case FieldKind::CHECK_CHECK: {
+      RI.setD(ann);
+      DclSpace::writeCheck(RI);
+      break;
+    }
+    default: {
+      llvm::report_fatal_error("must be either c(d), c(c), check");
+      break;
+    }
+    }
+  }
+
+  virtual void flush(ReportInfos& RI) const {
+    switch (selectField(RI)) {
+    case FieldKind::CHUNK_DATA: {
+      if (ann) {
+        RI.setD(ann);
+        DclSpace::flushData(RI);
+      }
+      break;
+    }
+    default: {
+      //do nothing
+      break;
+    }
+    }
+  }
+
+  virtual void vfence(ReportInfos& RI) const {
+    RI.setD(data);
+    SclSpace::vfenceData(RI);
+  }
+
+  virtual void pfence(ReportInfos& RI) const {
+    RI.setD(data);
+    SclSpace::vfenceData(RI);
+    if (ann) {
+      // has transitive validator
+      RI.setD(ann);
+      DclSpace::pfenceData(RI);
+    }
+  }
 };
 
 class SclMaskToValidInfo : public MaskToValidInfo {
@@ -215,38 +274,37 @@ public:
   }
 
   virtual void write(ReportInfos& RI) const {
-    switch(selectField(RI)){
-      case FieldKind::CHUNK_DATA:{
-        RI.setD(data);
-        SclSpace::writeData(RI);
-        break;
-      }
-      case FieldKind::CHUNK_CHECK:{
-        RI.setD(data);
-        SclSpace::writeCheck(RI);
-        if(ann){
-          RI.setD(ann);
-          SclSpace::writeData(RI);
-        }
-        break;
-      }
-      case FieldKind::CHECK_CHECK:{
+    switch (selectField(RI)) {
+    case FieldKind::CHUNK_DATA: {
+      RI.setD(data);
+      SclSpace::writeData(RI);
+      break;
+    }
+    case FieldKind::CHUNK_CHECK: {
+      RI.setD(data);
+      SclSpace::writeCheck(RI);
+      if (ann) {
         RI.setD(ann);
-        SclSpace::writeCheck(RI);
-        break;
+        SclSpace::writeData(RI);
       }
-      default:{
-        llvm::report_fatal_error("must be either c(d), c(c), check");
-        break;
-      }
-        
+      break;
+    }
+    case FieldKind::CHECK_CHECK: {
+      RI.setD(ann);
+      SclSpace::writeCheck(RI);
+      break;
+    }
+    default: {
+      llvm::report_fatal_error("must be either c(d), c(c), check");
+      break;
+    }
     }
   }
   virtual void vfence(ReportInfos& RI) const {
     RI.setD(data);
     SclSpace::vfenceData(RI);
-    if(ann){
-      //has transitive validator
+    if (ann) {
+      // has transitive validator
       RI.setD(ann);
       SclSpace::vfenceData(RI);
     }
@@ -255,8 +313,8 @@ public:
   virtual void pfence(ReportInfos& RI) const {
     RI.setD(data);
     SclSpace::vfenceData(RI);
-    if(ann){
-      //has transitive validator
+    if (ann) {
+      // has transitive validator
       RI.setD(ann);
       SclSpace::vfenceData(RI);
     }
