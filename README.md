@@ -31,3 +31,7 @@ scl: 5
 dcltoscl: 7
 scltodcl: 7
 twocheck: 8
+dclm: 5
+dclmt: 8
+sclm: 5
+sclmt: 7
