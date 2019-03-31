@@ -72,18 +72,33 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
       BaseInfo* BI = nullptr;
       if (annotInfo.contains(DCLM)) {
         // checkVD is either some other VD or nullptr
-        BI = new DclMaskToValidInfo(dataVD, checkVD, dataAA);
-        varInfos.addUsedVar(dataVD, BI);
-        varInfos.addUsedVar(dataAA, BI);
+        if(!textInfo.empty()){
+          //if transitively has a validator
+          BI = new DclMaskToValidInfo(dataVD, checkVD, dataAA);
+          varInfos.addUsedVar(dataVD, BI);
+          varInfos.addUsedVar(dataAA, BI);
+        }else{
+          //does not have a validator
+          BI = new DclMaskToValidInfo(dataVD, nullptr, nullptr);
+          varInfos.addUsedVar(dataVD, BI);
+        }
       } else if (annotInfo.contains(SCLM)) {
         // checkVD is either some other VD or nullptr
-        BI = new SclMaskToValidInfo(dataVD, checkVD, dataAA);
-        varInfos.addUsedVar(dataVD, BI);
-        varInfos.addUsedVar(dataAA, BI);
+        if(!textInfo.empty()){
+          //if transitively has a validator
+          BI = new SclMaskToValidInfo(dataVD, checkVD, dataAA);
+          varInfos.addUsedVar(dataVD, BI);
+          varInfos.addUsedVar(dataAA, BI);
+        }else{
+          //does not have a validator
+          BI = new SclMaskToValidInfo(dataVD, nullptr, nullptr);
+          varInfos.addUsedVar(dataVD, BI);
+        }
       } else if (annotInfo.contains(DCL)) {
         const AnnotateAttr* checkAA = getAnnotation(checkVD);
         if (checkAA) {
           StringRef checkAnnotation = checkAA->getAnnotation();
+          //todo fix
           if (checkAnnotation.contains(MASK)) {
             // valid is mask
             BI = new DclDataToMaskInfo(dataVD, checkVD);
@@ -101,6 +116,7 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
         const AnnotateAttr* checkAA = getAnnotation(checkVD);
         if (checkAA) {
           StringRef checkAnnotation = checkAA->getAnnotation();
+          //todo fix
           if (checkAnnotation.contains(MASK)) {
             // valid is mask
             BI = new SclDataToMaskInfo(dataVD, checkVD);

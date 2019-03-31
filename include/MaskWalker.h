@@ -1,8 +1,5 @@
 #pragma once
 #include "Common.h"
-#include "FunctionInfos.h"
-#include "StateMachine/DataInfos.h"
-#include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang::ento::nvm {
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.h"
+#include "MaskWalker.h"
 #include "TransitionInfos.h"
 #include "Transitions.h"
 
@@ -9,8 +10,7 @@ namespace clang::ento::nvm {
 class BaseInfo {
 protected:
   const ValueDecl* data;
-  enum Kind { C, DCL, SCL, DCLDM, SCLDM, DCLMV, SCLMV } K;
-  BaseInfo(const ValueDecl* data_, Kind K_) : data(data_), K(K_) {}
+  BaseInfo(const ValueDecl* data_) : data(data_) {}
 
 public:
   virtual void dump() const { llvm::outs() << data->getNameAsString(); }
@@ -25,7 +25,7 @@ public:
 class CheckInfo : public BaseInfo {
 
 public:
-  CheckInfo(const ValueDecl* data_) : BaseInfo(data_, Kind::C) {}
+  CheckInfo(const ValueDecl* data_) : BaseInfo(data_) {}
 
   void dump() const {
     llvm::outs() << "CheckInfo: ";
@@ -54,8 +54,8 @@ public:
 class PairInfo : public BaseInfo {
 protected:
   const ValueDecl* check;
-  PairInfo(const ValueDecl* data_, Kind K_, const ValueDecl* check_)
-      : BaseInfo(data_, K_), check(check_) {}
+  PairInfo(const ValueDecl* data_, const ValueDecl* check_)
+      : BaseInfo(data_), check(check_) {}
 
 public:
   virtual void dump() const {
@@ -88,7 +88,7 @@ class DclInfo : public PairInfo {
 
 public:
   DclInfo(const ValueDecl* data_, const ValueDecl* check_)
-      : PairInfo(data_, Kind::DCL, check_) {}
+      : PairInfo(data_, check_) {}
 
   void dump() const {
     llvm::outs() << "DclInfo: ";
@@ -116,7 +116,7 @@ public:
 class SclInfo : public PairInfo {
 public:
   SclInfo(const ValueDecl* data_, const ValueDecl* check_)
-      : PairInfo(data_, Kind::SCL, check_) {}
+      : PairInfo(data_, check_) {}
 
   void dump() const {
     llvm::outs() << "SclInfo: ";
@@ -140,16 +140,10 @@ public:
   }
 };
 
-class MaskInfo : public PairInfo {
-protected:
-  MaskInfo(const ValueDecl* data_, Kind K_, const ValueDecl* check_)
-      : PairInfo(data_, K_, check_) {}
-};
-
-class DclDataToMaskInfo : public MaskInfo {
+class DclDataToMaskInfo : public DclInfo {
 public:
   DclDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_)
-      : MaskInfo(data_, Kind::DCLDM, check_) {}
+      : DclInfo(data_, check_) {}
 
   void dump() const {
     llvm::outs() << "DclDataToMaskInfo: ";
@@ -157,10 +151,10 @@ public:
   }
 };
 
-class SclDataToMaskInfo : public MaskInfo {
+class SclDataToMaskInfo : public SclInfo {
 public:
   SclDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_)
-      : MaskInfo(data_, Kind::SCLDM, check_) {}
+      : SclInfo(data_, check_) {}
 
   void dump() const {
     llvm::outs() << "SclDataToMaskInfo: ";
@@ -168,19 +162,40 @@ public:
   }
 };
 
-class MaskToValidInfo : public MaskInfo {
+class MaskToValidInfo : public PairInfo {
 protected:
   const AnnotateAttr* ann;
-  MaskToValidInfo(const ValueDecl* data_, Kind K_, const ValueDecl* check_,
+  MaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
                   const AnnotateAttr* ann_)
-      : MaskInfo(data_, K_, check_), ann(ann_) {}
+      : PairInfo(data_, check_), ann(ann_) {}
+
+  enum FieldKind{CHUNK_DATA, CHUNK_CHECK, CHECK_CHECK, NONE};
+
+  virtual FieldKind selectField(ReportInfos& RI) const {
+    if(((const char*)check) == RI.VarAddr){
+      //transitive check
+      return FieldKind::CHECK_CHECK;
+    }else if(RI.S){
+      //write case
+      if(usesMask(RI.S, false)){
+        //write check
+        return FieldKind::CHUNK_CHECK;
+      }else{
+        //write data
+        return FieldKind::CHUNK_DATA;
+      }
+    }else{
+      //flush case
+      return FieldKind::CHUNK_DATA;
+    }
+  }
 };
 
 class DclMaskToValidInfo : public MaskToValidInfo {
 public:
   DclMaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
                      const AnnotateAttr* ann_)
-      : MaskToValidInfo(data_, Kind::DCLMV, check_, ann_) {}
+      : MaskToValidInfo(data_, check_, ann_) {}
 
   void dump() const {
     llvm::outs() << "DclMaskToValidInfo: ";
@@ -192,11 +207,59 @@ class SclMaskToValidInfo : public MaskToValidInfo {
 public:
   SclMaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
                      const AnnotateAttr* ann_)
-      : MaskToValidInfo(data_, Kind::SCLMV, check_, ann_) {}
+      : MaskToValidInfo(data_, check_, ann_) {}
 
   void dump() const {
     llvm::outs() << "SclMaskToValidInfo: ";
     PairInfo::dump();
+  }
+
+  virtual void write(ReportInfos& RI) const {
+    switch(selectField(RI)){
+      case FieldKind::CHUNK_DATA:{
+        RI.setD(data);
+        SclSpace::writeData(RI);
+        break;
+      }
+      case FieldKind::CHUNK_CHECK:{
+        RI.setD(data);
+        SclSpace::writeCheck(RI);
+        if(ann){
+          RI.setD(ann);
+          SclSpace::writeData(RI);
+        }
+        break;
+      }
+      case FieldKind::CHECK_CHECK:{
+        RI.setD(ann);
+        SclSpace::writeCheck(RI);
+        break;
+      }
+      default:{
+        llvm::report_fatal_error("must be either c(d), c(c), check");
+        break;
+      }
+        
+    }
+  }
+  virtual void vfence(ReportInfos& RI) const {
+    RI.setD(data);
+    SclSpace::vfenceData(RI);
+    if(ann){
+      //has transitive validator
+      RI.setD(ann);
+      SclSpace::vfenceData(RI);
+    }
+  }
+
+  virtual void pfence(ReportInfos& RI) const {
+    RI.setD(data);
+    SclSpace::vfenceData(RI);
+    if(ann){
+      //has transitive validator
+      RI.setD(ann);
+      SclSpace::vfenceData(RI);
+    }
   }
 };
 
