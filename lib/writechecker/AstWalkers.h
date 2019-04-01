@@ -132,7 +132,7 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
       }
 
       // also subscribe valids
-      if (BI) {
+      if (checkVD!=nullptr && BI!=nullptr) {
         varInfos.addUsedVar(checkVD, BI);
       }
     }
