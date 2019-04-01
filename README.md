@@ -13,25 +13,33 @@
     * run - generate command line report
     * scan - generate visual bug report
     * ast - generate ast of code to examine
-* \<test file> dcl, scl, dscl, mask, simple_masstree, rmask, rec, txm, txp
+* \<test file> all files under test folder
 * \<checker type>
     * write - main code checker
     * read - recover code checker
     * txm - transaction checker for mnemosyne
     * txp - transaction checker for pmdk
-    * exp - experimental features
-    * mc - multi source compile tests
-
 
 
 Tests:
-check: 5
-dcl: 8
-scl: 5
+write
+check: 4
+dcl: 7
+scl: 4
 dcltoscl: 7
 scltodcl: 7
 twocheck: 8
-dclm: 5
-dclmt: 8
-sclm: 5
+dclm: 3
+dclmt: 7
+sclm: 3
 sclmt: 7
+simple_masstree: 0
+
+txm
+txm: 4
+
+txp
+txp: 1
+
+log
+log: 4
