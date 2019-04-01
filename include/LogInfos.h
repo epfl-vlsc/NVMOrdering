@@ -8,24 +8,25 @@ namespace clang::ento::nvm {
 class LogInfos {
   static constexpr const char* PTR = "LogPtr";
   static constexpr const char* CODE = "LogCode";
+  static constexpr const char* REC = "RecoveryCode";
   static constexpr const char* LOG = "log";
 
   AnnotFunction ptrFnc;
   AnnotFunction codeFnc;
+  AnnotFunction recFnc;
 
   SpecialValue specialValue;
 
 public:
-  LogInfos() : ptrFnc(PTR), codeFnc(CODE), specialValue(LOG) {}
+  LogInfos() : ptrFnc(PTR), codeFnc(CODE), recFnc(REC), specialValue(LOG) {}
 
   void insertIfKnown(const FunctionDecl* FD) {
     ptrFnc.insertIfKnown(FD);
     codeFnc.insertIfKnown(FD);
+    recFnc.insertIfKnown(FD);
   }
 
-  void insertIfKnown(const ValueDecl* VD) {
-    specialValue.insertIfKnown(VD);
-  }
+  void insertIfKnown(const ValueDecl* VD) { specialValue.insertIfKnown(VD); }
 
   bool isPtrFunction(const CallEvent& Call) const {
     const FunctionDecl* FD = getFuncDecl(Call);
@@ -37,6 +38,10 @@ public:
     return codeFnc.inFunctions(FD);
   }
 
+  bool isRecoveryFunction(const FunctionDecl* FD) const {
+    return recFnc.inFunctions(FD);
+  }
+
   bool isSpecialValue(const ValueDecl* VD) const {
     return specialValue.inValues(VD);
   }
@@ -44,6 +49,7 @@ public:
   void dump() {
     ptrFnc.dump();
     codeFnc.dump();
+    recFnc.dump();
     specialValue.dump();
   }
 };
