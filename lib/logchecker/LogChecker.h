@@ -10,7 +10,8 @@ constexpr const char* CHECKER_PLUGIN_NAME = "nvm.logchecker";
 namespace clang::ento::nvm {
 
 class LogChecker : public Checker<check::ASTDecl<FunctionDecl>, check::Bind,
-                                  check::ASTDecl<ValueDecl>, check::PostCall> {
+                                  check::ASTDecl<ValueDecl>, check::PostCall, 
+                                  check::BeginFunction> {
 public:
   LogChecker() : BReporter(*this) {}
 
@@ -23,6 +24,8 @@ public:
 
   void checkASTDecl(const ValueDecl* VD, AnalysisManager& Mgr,
                     BugReporter& BR) const;
+
+  void checkBeginFunction(CheckerContext &Ctx) const;
 
 private:
   void handlePtrFnc(const CallEvent& Call, CheckerContext& C) const;

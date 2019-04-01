@@ -15,6 +15,16 @@ void LogChecker::checkASTDecl(const ValueDecl* VD, AnalysisManager& Mgr,
   logInfos.insertIfKnown(VD);
 }
 
+void LogChecker::checkBeginFunction(CheckerContext& C) const {
+  // recovery function does not need to log
+  const FunctionDecl* FD = getTopFunction(C);
+  if (logInfos.isRecoveryFunction(FD)) {
+    ExplodedNode* ErrNode = C.generateErrorNode();
+    if (!ErrNode)
+      return;
+  }
+}
+
 void LogChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   if (logInfos.isCodeFunction(Call)) {
     // handle code
@@ -27,6 +37,7 @@ void LogChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
 
 void LogChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
+
   ProgramStateRef State = C.getState();
   if (const ValueDecl* VD = getValueDecl(Loc); VD) {
     if (logInfos.isSpecialValue(VD)) {
@@ -44,6 +55,7 @@ void LogChecker::handlePtrFnc(const CallEvent& Call, CheckerContext& C) const {
   ProgramStateRef State = C.getState();
 
   SVal Loc = Call.getArgSVal(0);
+
   if (const ValueDecl* VD = getValueDecl(Loc); VD) {
     if (logInfos.isSpecialValue(VD)) {
       logTransition(VD, State, C, BReporter);

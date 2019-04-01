@@ -102,11 +102,11 @@ class leafnode : public basenode {
   bool logged;
   bool InsAllowed;
   pscl(leafnode::nodeEpoch) uint64_t permutationInCLL;
-  uint64_t permutation;
-  uint64_t keys[14];
+  plog uint64_t permutation;
+  plog uint64_t keys[14];
   uint64_t padding[3];
   pscl(ValInCLL::incll) ValInCLL InCLL1;
-  uint64_t* vals[14];
+  plog uint64_t* vals[14];
   pscl(ValInCLL::incll) ValInCLL InCLL2;
 
   void remove_idx(uint64_t* permutation, int idx) {
@@ -121,7 +121,7 @@ class leafnode : public basenode {
   int find_idx(int key) { return (rand() + key) % 14; }
 
 public:
-  void setInCLL(bool InCLLallowed, uint64_t permInCLL,
+  void log_code setInCLL(bool InCLLallowed, uint64_t permInCLL,
                                 ValInCLL valInCLL1, ValInCLL valInCLL2) {
     if (globalEpoch != nodeEpoch) {
       InsAllowed = true;
@@ -180,13 +180,8 @@ public:
   }
 
   // before first access to a leaf node
-  void recovery_code lazyNodeRecovery() {
-      if (nodeEpoch < currExecEpoch) {
-        nodeRecovery();
-      }
-  }
 
-  void nodeRecovery() {
+  void recovery_code nodeRecovery() {
     // InCLLp
     if (failedEpoch.count(nodeEpoch))
       permutation = permutationInCLL;

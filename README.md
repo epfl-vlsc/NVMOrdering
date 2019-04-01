@@ -19,6 +19,7 @@
     * read - recover code checker
     * txm - transaction checker for mnemosyne
     * txp - transaction checker for pmdk
+    * log - check log ordering
 
 
 Tests:
