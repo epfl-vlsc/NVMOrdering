@@ -29,11 +29,24 @@ struct TransInfos : public TransOutInfos {
   void setD(const ValueDecl* D_) const { D = (char*)D_; }
   void setD(const AnnotateAttr* D_) const { D = (char*)D_; }
 
+  mutable bool mask;
+  void setMask() const{
+    mask = true;
+  }
+  bool useMask() const{
+    return mask;
+  }
+
+  StringRef getVDName(){
+    const ValueDecl* VD = getValueDecl(VarAddr);
+    return VD->getName();
+  }
+
 protected:
   TransInfos(CheckerContext& C_, ProgramStateRef& State_, const char* VarAddr_,
              const WriteBugReporter& BR_, SVal* Loc_, const Stmt* S_)
       : C(C_), State(State_), VarAddr(VarAddr_), BR(BR_), Loc(Loc_), S(S_),
-        D(nullptr) {}
+        D(nullptr), mask(false) {}
 };
 
 struct ReportInfos : public TransInfos {

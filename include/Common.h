@@ -111,6 +111,11 @@ const ValueDecl* getValueDecl(const SVal& Loc) {
   return nullptr;
 }
 
+const ValueDecl* getValueDecl(const char* D){
+  const Decl* BD = (const Decl*)D;
+  return getValueDecl(BD);
+}
+
 bool isTopFunction(CheckerContext& C) { return C.inTopFrame(); }
 
 class FieldWalker : public ConstStmtVisitor<FieldWalker> {

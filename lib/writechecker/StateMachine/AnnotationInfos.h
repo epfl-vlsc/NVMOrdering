@@ -149,6 +149,14 @@ public:
     llvm::outs() << "DclDataToMaskInfo: ";
     PairInfo::dump();
   }
+
+  virtual void write(ReportInfos& RI) const {
+    if (useData(RI)) {
+      SclSpace::writeData(RI);
+    } else {
+      SclSpace::writeCheck(RI);
+    }
+  }
 };
 
 class SclDataToMaskInfo : public SclInfo {
@@ -159,6 +167,20 @@ public:
   void dump() const {
     llvm::outs() << "SclDataToMaskInfo: ";
     PairInfo::dump();
+  }
+
+  virtual void write(ReportInfos& RI) const {
+    if (useData(RI)) {
+      SclSpace::writeData(RI);
+    } else {
+      if(RI.S && usesMask(RI.S, false)){
+        //write to c(c)
+        RI.setMask();
+        SclSpace::writeCheck(RI);
+      }else{
+        //write to c(d)
+      }
+    }
   }
 };
 
@@ -179,9 +201,11 @@ protected:
       // write case
       if (usesMask(RI.S, false)) {
         // write check
+        RI.setMask();
         return FieldKind::CHUNK_CHECK;
       } else {
         // write data
+        RI.setMask();
         return FieldKind::CHUNK_DATA;
       }
     } else {

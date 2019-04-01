@@ -24,9 +24,9 @@ struct Log {
   leafnode* testNode;
 
   struct LogEntry {
-    pdcl(Log.current) leafnode* data;
+    pdcl(Log::current) leafnode* data;
 
-    void log(leafnode* data_) {
+    void end_code log(leafnode* data_) {
       data = data_;
       clflush(&data);
       pfence();
@@ -39,7 +39,7 @@ struct Log {
 
   static constexpr const int N = 100;
   LogEntry buf[N];
-  pdcl(leafnode::nodeEpoch) int current;
+  int current;
 
   bool persistent_code logNode(leafnode* data_) {
     buf[current].log(data_);
@@ -66,7 +66,8 @@ struct ValInCLL {
 
   enum EPOCH { MASK = 4 };
 
-  psclm() uint64_t incll;
+  //pscl() uint64_t incll;
+  uint64_t incll;
 
   /*
   long idx:4;
@@ -77,14 +78,10 @@ struct ValInCLL {
   ValInCLL(void* ptr, int idx) {
     incll = (incll & MASK) | idx;
     incll = (incll & MASK) | (uint64_t)(uintptr_t)ptr;
-    vfence();
-    incll = (incll & ~MASK) | 0;
   }
 
   ValInCLL() {
     incll = (incll & MASK) | 0;
-    vfence();
-    incll = (incll & ~MASK) | 0;
   }
 
   int idx() { return (incll & ~MASK); }
@@ -108,9 +105,9 @@ class leafnode : public basenode {
   uint64_t permutation;
   uint64_t keys[14];
   uint64_t padding[3];
-  ValInCLL InCLL1;
+  pscl(ValInCLL::incll) ValInCLL InCLL1;
   uint64_t* vals[14];
-  ValInCLL InCLL2;
+  pscl(ValInCLL::incll) ValInCLL InCLL2;
 
   void remove_idx(uint64_t* permutation, int idx) {
     (void)permutation;
@@ -147,6 +144,7 @@ public:
   }
 
   void persistent_code remove(uint64_t key) {
+  //void persistent_code remove(uint64_t key) {
     int idx = find_idx(key);
     setInCLL(true, permutation, ValInCLL(), ValInCLL());
     InsAllowed = false;
@@ -161,6 +159,7 @@ public:
   }
 
   void persistent_code update(int idx, uint64_t* val) {
+  //void persistent_code update(int idx, uint64_t* val) {
     if (idx <= 6) {
       ValInCLL& incll = InCLL1;
       bool InCLLallowed =

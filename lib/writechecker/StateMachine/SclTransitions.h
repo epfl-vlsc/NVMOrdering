@@ -13,8 +13,12 @@ void writeData(ReportInfos& RI) {
     State = State->set<SclMap>(D, SclState::getWriteData());
     RI.stateChanged = true;
   } else if (SS->isWriteData()) {
-    // bug:already written data
-    RI.reportDataAlreadyWritten();
+    if (!RI.useMask()) {
+      // bug:already written data
+      RI.reportDataAlreadyWritten();
+    } else {
+      // todo do nothing uses mask
+    }
   } else if (SS->isVfenceData()) {
     // bug:already written data
     RI.reportDataAlreadyWritten();
@@ -25,23 +29,21 @@ void writeData(ReportInfos& RI) {
     llvm::report_fatal_error("not possible");
   }
 }
-
 void vfenceData(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
   const char* D = RI.getD();
 
   const SclState* SS = State->get<SclMap>(D);
 
-
   if (!SS) {
-    //do nothing
+    // do nothing
   } else if (SS->isWriteData()) {
     State = State->set<SclMap>(D, SclState::getVfenceData());
     RI.stateChanged = true;
   } else if (SS->isVfenceData()) {
-    //do nothing
+    // do nothing
   } else if (SS->isWriteCheck()) {
-    //do nothing
+    // do nothing
   } else {
     llvm::report_fatal_error("not possible");
   }
@@ -63,8 +65,12 @@ void writeCheck(ReportInfos& RI) {
     State = State->set<SclMap>(D, SclState::getWriteCheck());
     RI.stateChanged = true;
   } else if (SS->isWriteCheck()) {
-    // bug:already written check
-    RI.reportCheckAlreadyWritten();
+    if (!RI.useMask()) {
+      // bug:already written check
+      RI.reportCheckAlreadyWritten();
+    } else {
+      // todo do nothing uses mask
+    }
   } else {
     llvm::report_fatal_error("not possible");
   }
