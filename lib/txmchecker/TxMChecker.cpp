@@ -28,7 +28,7 @@ void TxMChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   if (isNvm) {
     unsigned txCount = State->get<TxCounter>();
     if (txCount == 0) {
-      ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
+      ExplodedNode* ErrNode = C.generateErrorNode();
       if (!ErrNode) {
         return;
       }
@@ -85,7 +85,7 @@ void TxMChecker::handlePalloc(const CallEvent& Call,
 
   unsigned txCount = State->get<TxCounter>();
   if (txCount == 0) {
-    ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
+    ExplodedNode* ErrNode = C.generateErrorNode();
     if (!ErrNode) {
       return;
     }
@@ -114,7 +114,7 @@ void TxMChecker::handlePfree(const CallEvent& Call,
     // check transaction
     unsigned txCount = State->get<TxCounter>();
     if (txCount == 0) {
-      ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
+      ExplodedNode* ErrNode = C.generateErrorNode();
       if (!ErrNode) {
         return;
       }
