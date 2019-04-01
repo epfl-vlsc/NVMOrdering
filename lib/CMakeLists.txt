@@ -3,5 +3,3 @@ add_subdirectory(writechecker)
 #add_subdirectory(txmchecker)
 #add_subdirectory(txpchecker)
 #add_subdirectory(mcchecker)
-#add_subdirectory(expchecker)
-
