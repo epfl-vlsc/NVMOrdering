@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
-#include "StateMachine/DataInfos.h"
 #include "FunctionInfos.h"
+#include "StateMachine/DataInfos.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang::ento::nvm {
@@ -20,9 +20,11 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
   static constexpr const char* DCLM = "dclm";
   static constexpr const char* SCLM = "sclm";
   static constexpr const char* MASK = "mask";
+  static constexpr const char* MASK_ANN = "MASK";
 
   static constexpr const std::array<const char*, 3> ANNOTS = {DCL, SCL, CHECK};
 
+  StringSet maskedVars;
   StringMap varMap;
   ValueSet annotatedVars;
   VarInfos& varInfos;
@@ -61,6 +63,7 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
   }
 
   void addBasedOnAnnot(const ValueDecl* dataVD, const AnnotateAttr* dataAA) {
+
     StringRef dataAnnotation = dataAA->getAnnotation();
     auto [annotInfo, textInfo] = dataAnnotation.split(SEP);
     if (annotInfo.contains(CHECK)) {
@@ -68,67 +71,61 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
       varInfos.addUsedVar(dataVD, new CheckInfo(dataVD));
     } else {
       // not check, pair variables
+      std::string dataName = dataVD->getQualifiedNameAsString();
       const ValueDecl* checkVD = getCheckVD(textInfo);
+      std::string checkName = "";
+      if(checkVD){
+        checkName = checkVD->getQualifiedNameAsString();
+      }
       BaseInfo* BI = nullptr;
-      if (annotInfo.contains(DCLM)) {
-        // checkVD is either some other VD or nullptr
-        if(!textInfo.empty()){
-          //if transitively has a validator
-          BI = new DclMaskToValidInfo(dataVD, checkVD, dataAA);
-          varInfos.addUsedVar(dataVD, BI);
-          varInfos.addUsedVar(dataAA, BI);
-        }else{
-          //does not have a validator
-          BI = new DclMaskToValidInfo(dataVD, nullptr, nullptr);
-          varInfos.addUsedVar(dataVD, BI);
-        }
-      } else if (annotInfo.contains(SCLM)) {
-        // checkVD is either some other VD or nullptr
-        if(!textInfo.empty()){
-          //if transitively has a validator
-          BI = new SclMaskToValidInfo(dataVD, checkVD, dataAA);
-          varInfos.addUsedVar(dataVD, BI);
-          varInfos.addUsedVar(dataAA, BI);
-        }else{
-          //does not have a validator
-          BI = new SclMaskToValidInfo(dataVD, nullptr, nullptr);
-          varInfos.addUsedVar(dataVD, BI);
-        }
-      } else if (annotInfo.contains(DCL)) {
-        const AnnotateAttr* checkAA = getAnnotation(checkVD);
-        if (checkAA) {
-          StringRef checkAnnotation = checkAA->getAnnotation();
-          //todo fix
-          if (checkAnnotation.contains(MASK)) {
-            // valid is mask
+
+      if (annotInfo.contains(DCL)) {
+        if (!dataName.empty() && maskedVars.count(dataName)) {
+          // masked vars
+          if (!textInfo.empty()) {
+            // if transitively has a validator
+            BI = new DclMaskToValidInfo(dataVD, checkVD, dataAA);
+            varInfos.addUsedVar(dataVD, BI);
+            varInfos.addUsedVar(dataAA, BI);
+          } else {
+            // does not have a validator
+            BI = new DclMaskToValidInfo(dataVD, nullptr, nullptr);
+            varInfos.addUsedVar(dataVD, BI);
+          }
+        } else {
+          if (!checkName.empty() && maskedVars.count(checkName)) {
+            //masked valid
             BI = new DclDataToMaskInfo(dataVD, checkVD);
             varInfos.addUsedVar(dataVD, BI);
           } else {
-            // valid is normal
+            //normal dcl
             BI = new DclInfo(dataVD, checkVD);
             varInfos.addUsedVar(dataVD, BI);
           }
-        } else {
-          BI = new DclInfo(dataVD, checkVD);
-          varInfos.addUsedVar(dataVD, BI);
         }
       } else if (annotInfo.contains(SCL)) {
-        const AnnotateAttr* checkAA = getAnnotation(checkVD);
-        if (checkAA) {
-          StringRef checkAnnotation = checkAA->getAnnotation();
-          //todo fix
-          if (checkAnnotation.contains(MASK)) {
-            // valid is mask
-            BI = new SclDataToMaskInfo(dataVD, checkVD);
+        if (!dataName.empty() && maskedVars.count(dataName)) {
+          // masked vars
+          if (!textInfo.empty()) {
+            // if transitively has a validator
+            BI = new SclMaskToValidInfo(dataVD, checkVD, dataAA);
             varInfos.addUsedVar(dataVD, BI);
+            varInfos.addUsedVar(dataAA, BI);
           } else {
-            // valid is normal
-            BI = new SclInfo(dataVD, checkVD);
+            // does not have a validator
+            BI = new SclMaskToValidInfo(dataVD, nullptr, nullptr);
             varInfos.addUsedVar(dataVD, BI);
           }
         } else {
-          BI = new SclInfo(dataVD, checkVD);
-          varInfos.addUsedVar(dataVD, BI);
+          if (!checkName.empty() && maskedVars.count(checkName)) {
+            //masked valid
+            BI = new SclDataToMaskInfo(dataVD, checkVD);
+            varInfos.addUsedVar(dataVD, BI);
+          } else {
+            //normal dcl
+            BI = new SclInfo(dataVD, checkVD);
+            varInfos.addUsedVar(dataVD, BI);
+          }
         }
       } else {
         llvm::report_fatal_error("annotation not found - not possible");
@@ -139,6 +136,12 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
         varInfos.addUsedVar(checkVD, BI);
       }
     }
+  }
+
+  bool hasMask(const Stmt* S) {
+    MaskWalker maskWalker(false);
+    maskWalker.Visit(S);
+    return maskWalker.hasMask();
   }
 
 public:
@@ -163,6 +166,20 @@ public:
 
   bool VisitFunctionDecl(const FunctionDecl* FD) {
     fncInfos.insertIfKnown(FD);
+
+    // continue traversal
+    return true;
+  }
+
+  bool VisitBinaryOperator(const BinaryOperator* BO) {
+    if (BO->isAssignmentOp() && hasMask(BO)) {
+      Expr* E = BO->getLHS();
+      if (const MemberExpr* ME = dyn_cast_or_null<MemberExpr>(E)) {
+        ValueDecl* VD = ME->getMemberDecl();
+        std::string fqName = VD->getQualifiedNameAsString();
+        maskedVars.insert(fqName);
+      }
+    }
 
     // continue traversal
     return true;

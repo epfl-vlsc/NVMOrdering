@@ -1,8 +1,6 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
-#define pdclm(CHECKER) __attribute((annotate("dclmask-" TOSTRING(CHECKER))))
-#define psclm(CHECKER) __attribute((annotate("sclmask-" TOSTRING(CHECKER))))
 #define pdcl(CHECKER) __attribute((annotate("dcl-" TOSTRING(CHECKER))))
 #define pscl(CHECKER) __attribute((annotate("scl-" TOSTRING(CHECKER))))
 #define pcheck __attribute((annotate("check-")))

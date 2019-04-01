@@ -13,7 +13,7 @@ struct SimpleDclm {
   enum {
     MASK = 7,
   };
-  pdclm() int data;
+  pdcl() int data;
 
   void writeData() { data = (data & MASK) | 1; }
 

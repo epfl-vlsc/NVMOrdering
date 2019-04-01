@@ -84,7 +84,7 @@ ProgramStateRef WriteChecker::checkPointerEscape(
 void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                              CheckerContext& C) const {
   DBG("checkBind")
-  // S->dump();
+  //S->dump();
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 

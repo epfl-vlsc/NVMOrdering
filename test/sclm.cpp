@@ -13,7 +13,7 @@ struct SimpleSclm {
   enum {
     MASK = 7,
   };
-  psclm() int data;
+  pscl() int data;
 
   void writeData() { data = (data & MASK) | 1; }
 

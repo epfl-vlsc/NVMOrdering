@@ -13,7 +13,7 @@ struct TransitiveDclm {
   enum {
     MASK = 7,
   };
-  pdclm(TransitiveDclm::valid) int chunk;
+  pdcl(TransitiveDclm::valid) int chunk;
   int valid;
 
   void writeCD() { chunk = (chunk & MASK) | 1; }
