@@ -9,6 +9,10 @@
 #define persistent_code __attribute((annotate("PersistentCode")))
 #define end_code __attribute((annotate("EndCode")))
 
+#define plog __attribute((annotate("log")))
+#define log_ptr __attribute((annotate("LogPtr")))
+#define log_code __attribute((annotate("LogCode")))
+
 
 void tx_begin(){}
 void tx_end(){}
