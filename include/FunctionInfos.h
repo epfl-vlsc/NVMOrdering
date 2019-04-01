@@ -91,7 +91,10 @@ public:
 };
 
 class FunctionInfos {
-  AnnotFunction annotFnc;
+  static constexpr const char* END = "EndCode";
+
+  AnnotFunction persistentFnc;
+  AnnotFunction endFnc;
   VFenceFunction vfenceFnc;
   PFenceFunction pfenceFnc;
   FlushFunction flushFnc;
@@ -99,10 +102,11 @@ class FunctionInfos {
   NtiFunction ntiFnc;
 
 public:
-  FunctionInfos(const char* annotation_) : annotFnc(annotation_) {}
+  FunctionInfos(const char* annotation_) : persistentFnc(annotation_), endFnc(END) {}
 
   void insertIfKnown(const FunctionDecl* FD) {
-    annotFnc.insertIfKnown(FD);
+    persistentFnc.insertIfKnown(FD);
+    endFnc.insertIfKnown(FD);
     vfenceFnc.insertIfKnown(FD);
     pfenceFnc.insertIfKnown(FD);
     flushFnc.insertIfKnown(FD);
@@ -110,9 +114,14 @@ public:
     ntiFnc.insertIfKnown(FD);
   }
 
-  bool isAnnotatedFunction(CheckerContext& C) const {
+  bool isPersistentFunction(CheckerContext& C) const {
     const FunctionDecl* FD = getFuncDecl(C);
-    return annotFnc.inFunctions(FD);
+    return persistentFnc.inFunctions(FD);
+  }
+
+  bool isEndFunction(const CallEvent& Call) const {
+    const FunctionDecl* FD = getFuncDecl(Call);
+    return endFnc.inFunctions(FD);
   }
 
   bool isFlushFunction(const CallEvent& Call) const {
@@ -131,7 +140,8 @@ public:
   }
 
   void dump() {
-    annotFnc.dump();
+    persistentFnc.dump();
+    endFnc.dump();
     vfenceFnc.dump();
     pfenceFnc.dump();
     flushFnc.dump();

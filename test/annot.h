@@ -7,6 +7,8 @@
 
 #define recovery_code __attribute((annotate("RecoveryCode")))
 #define persistent_code __attribute((annotate("PersistentCode")))
+#define end_code __attribute((annotate("EndCode")))
+
 
 void tx_begin(){}
 void tx_end(){}

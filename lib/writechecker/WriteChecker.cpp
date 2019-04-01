@@ -19,15 +19,19 @@ void WriteChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
 
 void WriteChecker::checkBeginFunction(CheckerContext& C) const {
   DBG("checkBeginFunction")
-  bool isAnnotated = fncInfos.isAnnotatedFunction(C);
+  bool isAnnotated = fncInfos.isPersistentFunction(C);
   bool isTopFnc = isTopFunction(C);
 
   // if not an annotated function, do not analyze
   if (!isAnnotated && isTopFnc) {
-    ExplodedNode* ErrNode = C.generateErrorNode();
-    if (!ErrNode)
-      return;
+    handleEnd(C);
   }
+}
+
+void WriteChecker::handleEnd(CheckerContext& C) const {
+  ExplodedNode* ErrNode = C.generateErrorNode();
+  if (!ErrNode)
+    return;
 }
 
 template <typename SMap>
@@ -44,7 +48,7 @@ void WriteChecker::checkMapStates(ProgramStateRef& State,
 
 void WriteChecker::checkEndFunction(CheckerContext& C) const {
   DBG("checkEndFunction")
-  bool isAnnotated = fncInfos.isAnnotatedFunction(C);
+  bool isAnnotated = fncInfos.isPersistentFunction(C);
   bool isTopFnc = isTopFunction(C);
   if (isAnnotated && isTopFnc) {
     // ensured it is the top function and annotated
@@ -84,7 +88,7 @@ ProgramStateRef WriteChecker::checkPointerEscape(
 void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                              CheckerContext& C) const {
   DBG("checkBind")
-  //S->dump();
+  // S->dump();
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
@@ -112,6 +116,8 @@ void WriteChecker::checkPreCall(const CallEvent& Call,
     handleFence<true>(Call, C);
   } else if (fncInfos.isVFenceFunction(Call)) {
     handleFence<false>(Call, C);
+  } else if (fncInfos.isEndFunction(Call)) {
+    handleEnd(C);
   }
 }
 
@@ -176,43 +182,13 @@ void WriteChecker::handleFence(const CallEvent& Call, CheckerContext& C) const {
   addStateTransition(State, C, stateChanged);
 }
 
-/*
-
-void WriteChecker::handleFlushData(CheckerContext& C,
-                                      const DeclaratorDecl* D,
-                                      DataInfo* DI) const {
-  ProgramStateRef State = C.getState();
-  bool stateModified = false;
-  if (DI->isDcl()) {
-    stateModified |= dclFlushDataTrans(State, D, DI);
-  }
-  if (stateModified) {
-    C.addTransition(State);
+void WriteChecker::checkBranchCondition(const Stmt* S,
+                                        CheckerContext& C) const {
+  //S->dump();
+  if(usesName(S, "useNvm")){
+    handleEnd(C);
   }
 }
-
-void WriteChecker::handleFlushCheck(CheckerContext& C,
-                                       const DeclaratorDecl* D,
-                                       CheckInfo* CI) const {
-  ProgramStateRef State = C.getState();
-  StringRef checkName = D->getName();
-  bool stateModified = dclFlushCheckTrans(State, checkName);
-
-  if (stateModified) {
-    C.addTransition(State);
-  }
-}
-
-void WriteChecker::handleVFence(const CallEvent& Call,
-                                   CheckerContext& C) const {
-  ProgramStateRef State = C.getState();
-  bool stateModified = sclVFenceTrans(State);
-
-  if (stateModified) {
-    C.addTransition(State);
-  }
-}
-*/
 
 void WriteChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,
                                       bool stateChanged) const {

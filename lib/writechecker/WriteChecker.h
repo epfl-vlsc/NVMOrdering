@@ -13,11 +13,11 @@ namespace clang::ento::nvm {
 
 class WriteChecker
     : public Checker<check::ASTDecl<TranslationUnitDecl>, check::BeginFunction,
-                     check::PreCall, check::Bind, check::EndFunction> {
+                     check::PreCall, check::BranchCondition, check::Bind,
+                     check::EndFunction> {
 
 public:
-  WriteChecker()
-      : BReporter(*this), fncInfos("PersistentCode") {}
+  WriteChecker() : BReporter(*this), fncInfos("PersistentCode") {}
 
   void checkBeginFunction(CheckerContext& Ctx) const;
 
@@ -38,6 +38,8 @@ public:
   void checkASTDecl(const TranslationUnitDecl* CTUD, AnalysisManager& Mgr,
                     BugReporter& BR) const;
 
+  void checkBranchCondition(const Stmt* S, CheckerContext& C) const;
+
 private:
   void addStateTransition(ProgramStateRef& State, CheckerContext& C,
                           bool stateChanged) const;
@@ -52,10 +54,12 @@ private:
 
   template <typename SMap, bool pfence>
   void checkFenceStates(ProgramStateRef& State, CheckerContext& C,
-                         bool& stateChanged) const;
+                        bool& stateChanged) const;
 
   template <typename SMap>
   void printStates(ProgramStateRef& State, CheckerContext& C) const;
+
+  void handleEnd(CheckerContext& C) const;
 
   /*
 

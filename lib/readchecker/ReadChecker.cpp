@@ -9,7 +9,7 @@ namespace clang::ento::nvm {
  * Skip analysis of unimportant functions
  */
 void ReadChecker::checkBeginFunction(CheckerContext& C) const {
-  bool isAnnotated = nvmFncInfo.isAnnotatedFunction(C);
+  bool isAnnotated = nvmFncInfo.isPersistentFunction(C);
   bool isTopFnc = isTopFunction(C);
 
   // if not an annotated function, do not analyze

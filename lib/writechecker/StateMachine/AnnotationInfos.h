@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Common.h"
-#include "MaskWalker.h"
+#include "Walkers.h"
 #include "TransitionInfos.h"
 #include "Transitions.h"
 
