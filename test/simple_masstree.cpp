@@ -180,8 +180,13 @@ public:
   }
 
   // before first access to a leaf node
+  void recovery_code lazyNodeRecovery() {
+      if (nodeEpoch < currExecEpoch) {
+        nodeRecovery();
+      }
+  }
 
-  void recovery_code nodeRecovery() {
+  void nodeRecovery() {
     // InCLLp
     if (failedEpoch.count(nodeEpoch))
       permutation = permutationInCLL;

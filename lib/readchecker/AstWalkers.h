@@ -81,21 +81,25 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
         // masked vars
         if (!textInfo.empty()) {
           // if transitively has a validator
+          llvm::outs() << "RecMaskToValidInfo" << dataVD->getNameAsString() << "\n";
           BI = new RecMaskToValidInfo(dataVD, checkVD, dataAA);
           varInfos.addUsedVar(dataVD, BI);
           varInfos.addUsedVar(dataAA, BI);
         } else {
           // does not have a validator
+          llvm::outs() << "RecMaskToValidInfon" << dataVD->getNameAsString() << "\n";
           BI = new RecMaskToValidInfo(dataVD, nullptr, nullptr);
           varInfos.addUsedVar(dataVD, BI);
         }
       } else {
         if (!checkName.empty() && maskedVars.count(checkName)) {
           // masked valid
+          llvm::outs() << "RecDataToMaskInfo" << dataVD->getNameAsString() << "\n";
           BI = new RecDataToMaskInfo(dataVD, checkVD);
           varInfos.addUsedVar(dataVD, BI);
         } else {
-          // normal dcl
+          // normal
+          llvm::outs() << "RecInfo" << dataVD->getNameAsString() << "\n";
           BI = new RecInfo(dataVD, checkVD);
           varInfos.addUsedVar(dataVD, BI);
         }
@@ -109,7 +113,7 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
   }
 
   bool hasMask(const Stmt* S) {
-    MaskWalker maskWalker(false);
+    MaskWalker maskWalker(true);
     maskWalker.Visit(S);
     return maskWalker.hasMask();
   }

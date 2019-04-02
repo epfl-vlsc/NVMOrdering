@@ -8,25 +8,20 @@ struct Recm {
 
   pscl() int chunk;
 
-  int readData() {
-    return (chunk & ~MASK);
+  int readData() { return (chunk & ~MASK); }
+
+  int readValid() { return (chunk & MASK); }
+
+  void writeData() { chunk = (chunk & MASK) | 1; }
+
+  void writeValid() { chunk = (chunk & ~MASK) | 1; }
+
+  int recovery_code correctCombined() {
+    if (readValid()) {
+      return readData();
+    }
+    return 0;
   }
 
-  int readValid() {
-    return (chunk & MASK);
-  }
+  int recovery_code notChecked() { return readData(); }
 };
-
-int recovery_code readDirect() {
-  Recm* entry = new Recm;
-  return entry->readData();
-  
-}
-
-int recovery_code correct() {
-  Recm* entry = new Recm;
-  if(entry->readValid()){
-      return entry->readData();
-  }
-  return 0;
-}

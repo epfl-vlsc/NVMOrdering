@@ -18,7 +18,7 @@ protected:
 
     const Decl* BD = (const Decl*)D;
     if (const ValueDecl* VD = dyn_cast_or_null<ValueDecl>(BD)) {
-      ErrorOs << " " << VD->getNameAsString();
+      ErrorOs << " check of " << VD->getNameAsString();
     }
 
     return ErrorOs.str();

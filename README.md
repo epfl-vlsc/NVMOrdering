@@ -4,8 +4,11 @@
        
 ## How to run ##
     ./run.sh <report type> <test file> <checker type> 
+    ./run.sh scan dcl write
 
+## Simple Masstree ##
     ./run.sh scan simple_masstree write
+    ./run.sh scan simple_masstree read
 
 * look at `output/index.html` for results
 
@@ -34,6 +37,12 @@ dclm: 3
 dclmt: 7
 sclm: 3
 sclmt: 7
+simple_masstree: 0
+
+read
+rec: 1
+recm: 1
+recmt: 2
 simple_masstree: 0
 
 txm

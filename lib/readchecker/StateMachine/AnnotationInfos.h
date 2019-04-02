@@ -94,13 +94,13 @@ protected:
       // transitive check
       return FieldKind::CHECK_CHECK;
     } else if (RI.S) {
-      // write case
-      if (usesMask(RI.S, false)) {
-        // write check
+      // read case
+      if (usesMask(RI.S, true)) {
+        // read check
         RI.setMask();
         return FieldKind::CHUNK_CHECK;
       } else {
-        // write data
+        // read data
         RI.setMask();
         return FieldKind::CHUNK_DATA;
       }
@@ -125,20 +125,24 @@ public:
   virtual void read(ReportInfos& RI) const {
     switch (selectField(RI)) {
     case FieldKind::CHUNK_DATA: {
+      DBG("chunk data " << (void*)data << "readData")
       RI.setD(data);
       RecSpace::readData(RI);
       break;
     }
     case FieldKind::CHUNK_CHECK: {
+      DBG("chunk check " << (void*)data << "readCheck")
       RI.setD(data);
       RecSpace::readCheck(RI);
       if (ann) {
+        DBG("chunk check " << (void*)ann << "readData")
         RI.setD(ann);
         RecSpace::readData(RI);
       }
       break;
     }
     case FieldKind::CHECK_CHECK: {
+      DBG("check " << (void*)ann << "readCheck")
       RI.setD(ann);
       RecSpace::readCheck(RI);
       break;

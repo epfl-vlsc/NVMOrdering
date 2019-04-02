@@ -36,33 +36,42 @@ void ReadChecker::checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
     return;
   }
 
-  /*
-  const MemRegion* Region = Loc.getAsRegion();
-  if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
-    const Decl* BD = FieldReg->getDecl();
-    const DeclaratorDecl* DD = getDeclaratorDecl(BD);
+  DBG("checkLocation")
+  ProgramStateRef State = C.getState();
+  bool stateChanged = false;
 
-    if (nvmTypeInfo.inLabels(DD)) {
-      LabeledInfo* LI = nvmTypeInfo.getDeclaratorInfo(DD);
-      if (LI->isCheck()) {
-        auto* CI = static_cast<CheckInfo*>(LI);
-        if (CI->hasMask()) {
-          // bit field special case
-          // can be data or check, if it is data, treat is as data
-          // if it is check, treat it as check
+  //get the statement where mask can exist
+  const Stmt* PS = getParentStmt(S, C);
+  //PS->dump();
 
-          auto* CDI = static_cast<CheckDataInfo*>(CI);
-          handleReadMask(Loc, S, C, DD, CDI);
-        } else {
-          handleReadCheck(C, DD, CI);
-        }
-      } else {
-        auto* DI = static_cast<DataInfo*>(LI);
-        handleReadData(Loc, C, DD, DI);
+  if (const ValueDecl* VD = getValueDecl(Loc); VD) {
+    if (varInfos.isUsedVar(VD)) {
+      DBG("read " << VD->getNameAsString())
+      auto& infoList = varInfos.getInfoList(VD);
+      for (auto& BI : infoList) {
+        auto RI =
+            ReportInfos::getRI(C, State, (const char*)VD, BReporter, &Loc, PS);
+        BI->read(RI);
+        stateChanged |= RI.stateChanged;
       }
     }
   }
-  */
+
+  addStateTransition(State, C, stateChanged);
+}
+
+void ReadChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,
+                                      bool stateChanged) const {
+  if (stateChanged) {
+    DBG("state transition")
+    C.addTransition(State);
+  }
+}
+
+void ReadChecker::handleEnd(CheckerContext& C) const {
+  ExplodedNode* ErrNode = C.generateErrorNode();
+  if (!ErrNode)
+    return;
 }
 
 } // namespace clang::ento::nvm
