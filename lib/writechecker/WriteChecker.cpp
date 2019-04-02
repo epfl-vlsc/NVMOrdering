@@ -69,22 +69,6 @@ void WriteChecker::printStates(ProgramStateRef& State,
   }
 }
 
-/*
-void WriteChecker::checkDeadSymbols(SymbolReaper& SymReaper,
-                                       CheckerContext& C) const {
-  // todo implement
-  // llvm::outs() << "consider implementing checkDeadSymbols\n";
-}
-
-ProgramStateRef WriteChecker::checkPointerEscape(
-    ProgramStateRef State, const InvalidatedSymbols& Escaped,
-    const CallEvent* Call, PointerEscapeKind Kind) const {
-  // todo implement
-  // llvm::outs() << "consider implementing checkPointerEscape\n";
-  return State;
-}
-*/
-
 void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                              CheckerContext& C) const {
   DBG("checkBind")
