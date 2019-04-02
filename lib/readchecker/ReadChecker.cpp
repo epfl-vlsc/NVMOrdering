@@ -5,11 +5,20 @@
 
 namespace clang::ento::nvm {
 
-/**
- * Skip analysis of unimportant functions
- */
+void ReadChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
+                               AnalysisManager& Mgr, BugReporter& BR) const {
+  TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
+  // fill data structures
+  TUDWalker tudWalker(varInfos, fncInfos);
+  tudWalker.TraverseDecl(TUD);
+  tudWalker.createUsedVars();
+
+  fncInfos.dump();
+  varInfos.dump();
+}
+
 void ReadChecker::checkBeginFunction(CheckerContext& C) const {
-  bool isAnnotated = nvmFncInfo.isPersistentFunction(C);
+  bool isAnnotated = fncInfos.isRecoveryFunction(C);
   bool isTopFnc = isTopFunction(C);
 
   // if not an annotated function, do not analyze
@@ -20,27 +29,14 @@ void ReadChecker::checkBeginFunction(CheckerContext& C) const {
   }
 }
 
-void ReadChecker::checkDeadSymbols(SymbolReaper& SymReaper,
-                                       CheckerContext& C) const {
-  // todo implement
-  // llvm::outs() << "consider implementing checkDeadSymbols\n";
-}
-
-ProgramStateRef ReadChecker::checkPointerEscape(
-    ProgramStateRef State, const InvalidatedSymbols& Escaped,
-    const CallEvent* Call, PointerEscapeKind Kind) const {
-  // todo implement
-  // llvm::outs() << "consider implementing checkPointerEscape\n";
-  return State;
-}
-
 void ReadChecker::checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
-                                    CheckerContext& C) const {
+                                CheckerContext& C) const {
   // only interested in reads
   if (!IsLoad) {
     return;
   }
 
+  /*
   const MemRegion* Region = Loc.getAsRegion();
   if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
     const Decl* BD = FieldReg->getDecl();
@@ -66,62 +62,7 @@ void ReadChecker::checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
       }
     }
   }
-}
-
-void ReadChecker::handleReadData(SVal Loc, CheckerContext& C,
-                                     const DeclaratorDecl* DD,
-                                     DataInfo* DI) const {
-
-  bool checked = recReadDataTrans(C, DD, DI);
-
-  if (!checked) {
-    ExplodedNode* ErrNode = C.generateNonFatalErrorNode();
-    if (!ErrNode) {
-      return;
-    }
-    BReporter.reportReadBug(Loc, C, DD, ErrNode, C.getBugReporter());
-  }
-}
-
-void ReadChecker::handleReadCheck(CheckerContext& C,
-                                      const DeclaratorDecl* DD,
-                                      CheckInfo* CI) const {
-  ProgramStateRef State = C.getState();
-  bool stateModified = recReadCheckTrans(State, DD, CI);
-
-  if (stateModified) {
-    C.addTransition(State);
-  }
-}
-
-void ReadChecker::handleReadMask(SVal Loc, const Stmt* S, CheckerContext& C,
-                                     const DeclaratorDecl* DD,
-                                     CheckDataInfo* CDI) const {
-
-  // go up one level to get the full expression
-  const Stmt* PS = getParentStmt(S, C);
-  
-  if (usesMask(PS, CDI->getMask(), true)) {
-    // access validity part
-    auto* CI = static_cast<CheckInfo*>(CDI);
-    handleReadCheck(C, DD, CI);
-  } else {
-    // access data part - guaranteeed to be scl
-    // todo fix leak
-    DataInfo* DI = CDI->getDI();
-    handleReadData(Loc, C, DD, DI);
-  }
-}
-
-void ReadChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
-                                   BugReporter& BR) const {
-  nvmFncInfo.insertIfKnown(FD);
-}
-
-void ReadChecker::checkASTDecl(const DeclaratorDecl* D,
-                                   AnalysisManager& Mgr,
-                                   BugReporter& BR) const {
-  nvmTypeInfo.analyzeMemLabel(D);
+  */
 }
 
 } // namespace clang::ento::nvm

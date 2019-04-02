@@ -91,9 +91,12 @@ public:
 };
 
 class FunctionInfos {
+  static constexpr const char* PERSISTENT = "PersistentCode";
+  static constexpr const char* RECOVERY = "RecoveryCode";
   static constexpr const char* END = "EndCode";
 
   AnnotFunction persistentFnc;
+  AnnotFunction recoveryFnc;
   AnnotFunction endFnc;
   VFenceFunction vfenceFnc;
   PFenceFunction pfenceFnc;
@@ -102,10 +105,11 @@ class FunctionInfos {
   NtiFunction ntiFnc;
 
 public:
-  FunctionInfos(const char* annotation_) : persistentFnc(annotation_), endFnc(END) {}
+  FunctionInfos() : persistentFnc(PERSISTENT), recoveryFnc(RECOVERY), endFnc(END) {}
 
   void insertIfKnown(const FunctionDecl* FD) {
     persistentFnc.insertIfKnown(FD);
+    recoveryFnc.insertIfKnown(FD);
     endFnc.insertIfKnown(FD);
     vfenceFnc.insertIfKnown(FD);
     pfenceFnc.insertIfKnown(FD);
@@ -117,6 +121,11 @@ public:
   bool isPersistentFunction(CheckerContext& C) const {
     const FunctionDecl* FD = getFuncDecl(C);
     return persistentFnc.inFunctions(FD);
+  }
+
+  bool isRecoveryFunction(CheckerContext& C) const {
+    const FunctionDecl* FD = getFuncDecl(C);
+    return recoveryFnc.inFunctions(FD);
   }
 
   bool isEndFunction(const CallEvent& Call) const {
@@ -141,6 +150,7 @@ public:
 
   void dump() {
     persistentFnc.dump();
+    recoveryFnc.dump();
     endFnc.dump();
     vfenceFnc.dump();
     pfenceFnc.dump();
