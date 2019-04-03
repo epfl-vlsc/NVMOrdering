@@ -27,13 +27,16 @@ public:
   }
 
   void VisitDeclRefExpr(const DeclRefExpr* DRE) {
-    StringRef currentMask =
-        DRE->getNameInfo().getName().getAsIdentifierInfo()->getName();
+    auto* idInfo = DRE->getNameInfo().getName().getAsIdentifierInfo();
+    
+    if(idInfo){
+      StringRef currentMask = idInfo->getName();
     // llvm::outs() << currentMask << " " << mask << "\n";
-    if (currentMask.equals(MASK)) {
-      maskUse = true;
+      if (currentMask.equals(MASK)) {
+        maskUse = true;
+      }
     }
-
+    
     VisitChildren(DRE);
   }
 
@@ -83,10 +86,15 @@ public:
   }
 
   void VisitDeclRefExpr(const DeclRefExpr* DRE) {
-    StringRef currentName =
-        DRE->getNameInfo().getName().getAsIdentifierInfo()->getName();
-    if (currentName.equals(name)) {
-      usesName = true;
+
+    auto* idInfo = DRE->getNameInfo().getName().getAsIdentifierInfo();
+    
+    if(idInfo){
+      StringRef currentName = idInfo->getName();
+    // llvm::outs() << currentMask << " " << mask << "\n";
+      if (currentName.equals(name)) {
+        usesName = true;
+      }
     }
 
     VisitChildren(DRE);
