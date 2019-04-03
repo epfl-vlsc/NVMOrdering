@@ -1,118 +1,104 @@
-mode=$1 #run, scan, ast
-test_name=$2 #any *.cpp file under test directory
-tool_name=$3 #low level(write, read), high level(txm, txp, log)
-if [ -z "$test_name" ]
-  then
-	test_name=dcl
+MODE=$1 #run, scan, ast, multi
+TEST_NAME=$2 #any *.cpp file under test directory
+TOOL_NAME=$3 #low level(write, read), high level(txm, txp, log)
+
+#initialize info---------------------------------------------
+if [ -z "$TEST_NAME" ] ; then
+	TEST_NAME=dcl
 fi
 
-if [ -z "$tool_name" ]
-  then
-	tool_name=multicompile
+if [ -z "$TOOL_NAME" ] ; then
+	TOOL_NAME=mc
 fi
 
-test_file=../test/$test_name.cpp
+BASE_DIR=$(dirname $(realpath "$0"))
+OUT_DIR="${BASE_DIR}/output"
+BUILD_DIR_NAME="build"
+BUILD_DIR="${BASE_DIR}/${BUILD_DIR_NAME}"
+PLUGIN_DIR="${BUILD_DIR}/lib"
+TEST_DIR="${BASE_DIR}/test"
+TEST_FILE=${TEST_DIR}/$TEST_NAME.cpp
 
+if [ "$MODE" == "run" ] ;then
+    SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2 -Xclang -analyzer-display-progress"
+    PLUGIN="-fplugin=${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
+    -Xclang -analyze -Xclang -analyzer-checker=nvm.${TOOL_NAME}checker"
+elif [ "$MODE" == "scan" ] || [ "$MODE" == "multi" ] ;then
+    SBFLAGS="--force-analyze-debug-code -v -stats -maxloop 2 -o ${OUT_DIR}"
+    PLUGIN="-load-plugin ${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
+    -enable-checker nvm.${TOOL_NAME}checker"
+    DISPLUGIN="-disable-checker alpha,apiModeling,valist,\
+cplusplus,deadcode,debug,llvm,nullability,optin,security,osx,core,unix"
+elif [ "$MODE" == "ast" ] ;then
+    SBFLAGS="-Xclang -ast-dump -fsyntax-only"
+fi
 
-compile_multi(){
-    #todo -analyzer-opt-analyze-headers
-    cd build
-    OUT_DIR=../output
-    #rm -r $OUT_DIR/*
-    scan-build -load-plugin lib/libmulticompilechecker.so -o $OUT_DIR \
-        -disable-checker alpha -disable-checker apiModeling \
-        -disable-checker valist -disable-checker cplusplus \
-        -disable-checker deadcode -disable-checker debug \
-        -disable-checker llvm -disable-checker nullability  \
-        -disable-checker optin -disable-checker security  \
-        -disable-checker osx -disable-checker unix -disable-checker core \
-        clang++ \
-        -fsyntax-only  \
-        -Xclang -analyzer-max-loop -Xclang 2 \
-        $test_file -Xclang -analyzer-display-progress
-    cd ..
+#initialize info---------------------------------------------
+
+#functions---------------------------------------------------
+run_multi(){
+    # do not use -analyze-headers
+    cd ${TEST_DIR}/project
+    make clean
+    scan-build ${SBFLAGS} ${PLUGIN} ${DISPLUGIN} make
 }
 
 create_build(){
-	mkdir -p build
-	cd build
+	mkdir -p ${BUILD_DIR_NAME}
+	cd ${BUILD_DIR}
     cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=True \
         -DLLVM_DIR=~/llvm_compiler4/llvm_build/lib/cmake/llvm/ \
         -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
-    cd ..
+    cd ${BASE_DIR}
 }
 
 run_make(){
-	cd build
+	cd ${BUILD_DIR}
 	make -j$(nproc)
-	cd ..
+	cd ${BASE_DIR}
 }
 
 run_tool(){
-    cd build
-    clang++ \
-        -fsyntax-only -fplugin=lib/lib${tool_name}checker.so -Xclang -analyzer-max-loop -Xclang 2 \
-        -Xclang -analyze -Xclang -analyzer-checker=nvm.${tool_name}checker \
-        $test_file -Xclang -analyzer-display-progress
-    cd ..
-}
-
-run_tool2(){
-    cd build
-    clang++ \
-        -fsyntax-only -fplugin=lib/lib${tool_name}checker.so -Xclang -analyzer-max-loop -Xclang 2 \
-        -Xclang -analyze -Xclang -analyzer-checker=nvm.${tool_name}checker \
-        $test_file -Xclang -analyzer-display-progress
-    cd ..
+    cd ${BUILD_DIR}
+    clang++ ${SBFLAGS} ${PLUGIN} ${TEST_FILE}
+    cd ${BASE_DIR}
 }
 
 run_scanbuild(){
     #todo -analyzer-opt-analyze-headers
-    cd build
-    OUT_DIR=../output
-    #rm -r $OUT_DIR/*
-    scan-build -o $OUT_DIR \
-        -disable-checker alpha -disable-checker apiModeling \
-        -disable-checker valist -disable-checker cplusplus \
-        -disable-checker deadcode -disable-checker debug \
-        -disable-checker llvm -disable-checker nullability  \
-        -disable-checker optin -disable-checker security  \
-        -disable-checker osx -disable-checker unix -disable-checker core \
-        clang++ \
-        -fsyntax-only -fplugin=lib/lib${tool_name}checker.so \
-        -Xclang -analyzer-max-loop -Xclang 2 \
-        -Xclang -analyze -Xclang -analyzer-checker=nvm.${tool_name}checker \
-        $test_file -Xclang -analyzer-display-progress
-    cd ..
+    cd ${BUILD_DIR}
+    scan-build ${SBFLAGS} ${DISPLUGIN} ${PLUGIN} \
+        clang++ -fsyntax-only ${TEST_FILE}
+    cd ${BASE_DIR}
 }
 
 dump_ast(){
-    cd build
-    clang++ -Xclang -ast-dump -fsyntax-only $test_file > ../test/ast.txt
-    cd ..
+    cd ${BUILD_DIR}
+    clang++ ${SBFLAGS} ${TEST_FILE} > ../test/ast.txt
+    cd ${BASE_DIR}
 }
+#functions---------------------------------------------------
 
-#fsyntax do not create object file
-#fplugin load plugin
-#display progress
 
-if [ "$mode" == "run" ] ;then
+#commands----------------------------------------------------
+if [ "$MODE" == "run" ] ;then
 	run_make
 	run_tool
-elif [ "$mode" == "scan" ] ;then
+elif [ "$MODE" == "scan" ] ;then
 	run_make
 	run_scanbuild
-elif [ "$mode" == "make" ] ;then
+elif [ "$MODE" == "make" ] ;then
 	run_make
-elif [ "$mode" == "build" ] ;then
+elif [ "$MODE" == "build" ] ;then
     rm -r build
 	create_build
     run_make
-elif [ "$mode" == "ast" ] ;then 
+elif [ "$MODE" == "ast" ] ;then 
     dump_ast
-elif [ "$mode" == "multi" ] ;then 
+elif [ "$MODE" == "multi" ] ;then 
     run_make
-    compile_multi
+    run_multi
 else
 	echo "run, build, ast"
 fi
+#commands----------------------------------------------------
