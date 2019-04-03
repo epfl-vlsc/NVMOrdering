@@ -7,10 +7,16 @@ namespace clang::ento::nvm {
 
 void MultiCompileChecker::checkPreCall(const CallEvent& Call,
                                        CheckerContext& C) const {  
-  if(auto* II = Call.getCalleeIdentifier()){
-    StringRef name = II->getName();
-    //llvm::outs() << name << "\n";
-  }
+  ExplodedNode *ErrNode = C.generateErrorNode();
+  // If we've already reached this node on another path, return.
+  if (!ErrNode)
+    return;
+
+  // Generate the report.
+  auto R = llvm::make_unique<BugReport>(*bug,
+      "function call", ErrNode);
+  R->addRange(Call.getSourceRange());
+  C.emitReport(std::move(R));
 }
 
 } // namespace clang::ento::nvm
