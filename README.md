@@ -53,3 +53,6 @@ txp: 1
 
 log
 log: 4
+
+git diff > patch/owriteback/pmfs1.patch
+ git reset --hard
