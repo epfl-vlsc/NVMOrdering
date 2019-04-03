@@ -11,3 +11,5 @@ output
 experimental/
 
 *.mk
+
+patch/
