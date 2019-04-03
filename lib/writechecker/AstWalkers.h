@@ -87,16 +87,19 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
             BI = new DclMaskToValidInfo(dataVD, checkVD, dataAA);
             varInfos.addUsedVar(dataVD, BI);
             varInfos.addUsedVar(dataAA, BI);
+            llvm::report_fatal_error("disable masking");
           } else {
             // does not have a validator
             BI = new DclMaskToValidInfo(dataVD, nullptr, nullptr);
             varInfos.addUsedVar(dataVD, BI);
+            llvm::report_fatal_error("disable masking");
           }
         } else {
           if (!checkName.empty() && maskedVars.count(checkName)) {
             //masked valid
             BI = new DclDataToMaskInfo(dataVD, checkVD);
             varInfos.addUsedVar(dataVD, BI);
+            llvm::report_fatal_error("disable masking");
           } else {
             //normal dcl
             BI = new DclInfo(dataVD, checkVD);
@@ -111,16 +114,19 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
             BI = new SclMaskToValidInfo(dataVD, checkVD, dataAA);
             varInfos.addUsedVar(dataVD, BI);
             varInfos.addUsedVar(dataAA, BI);
+            llvm::report_fatal_error("disable masking");
           } else {
             // does not have a validator
             BI = new SclMaskToValidInfo(dataVD, nullptr, nullptr);
             varInfos.addUsedVar(dataVD, BI);
+            llvm::report_fatal_error("disable masking");
           }
         } else {
           if (!checkName.empty() && maskedVars.count(checkName)) {
             //masked valid
             BI = new SclDataToMaskInfo(dataVD, checkVD);
             varInfos.addUsedVar(dataVD, BI);
+            llvm::report_fatal_error("disable masking");
           } else {
             //normal dcl
             BI = new SclInfo(dataVD, checkVD);
