@@ -9,3 +9,5 @@ test/ast.txt
 output
 
 experimental/
+
+*.mk
