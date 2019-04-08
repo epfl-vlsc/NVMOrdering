@@ -1,6 +1,7 @@
 //===-- TxPChecker.cpp -----------------------------------------*
 
 #include "TxPChecker.h"
+#include "FieldWalkers.h"
 
 namespace clang::ento::nvm {
 
@@ -138,34 +139,33 @@ void TxPChecker::handleTxRangeDirect(const CallEvent& Call,
 }
 
 void TxPChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
-
+  /*
   llvm::errs() << "Range"
                << "\n";
-  SourceRange SR = Call.getSourceRange();
-  SourceLocation SL = SR.getBegin();
-  SL.dump(C.getSourceManager());
-  llvm::errs() << "\n";
-
+  */
   SVal Obj = Call.getArgSVal(0);
   const Expr* Field = Call.getArgExpr(1);
-
-  Field->dump();
-  llvm::errs() << "\n";
+  RangeWalker rWalker;
+  rWalker.TraverseStmt((Expr*)Field);
 
   //get obj
   if (!Obj.isUnknownOrUndef()) {
     nonloc::LazyCompoundVal LCV = Obj.castAs<nonloc::LazyCompoundVal>();
     const TypedValueRegion* CurrentRegion = LCV.getRegion();
     if (CurrentRegion) {
-      CurrentRegion->dump();
-      llvm::errs() << "\n";
-
       const MemRegion* ParentRegion = CurrentRegion->getBaseRegion();
-      const VarDecl* VD = getVarDecl(ParentRegion);
+      const VarDecl* ObjD = getVarDecl(ParentRegion);
 
       /*
-      if (VD){
-        llvm::errs() << "VD: " << VD->getNameAsString() << "\n";
+      if (ObjD){
+        llvm::errs() << "ObjD: " << ObjD->getNameAsString() << "\n";
+      }
+      */
+
+      /*
+      if(rWalker.hasME()){
+        const ValueDecl* FieldD = rWalker.getVD();
+        llvm::errs() << "Field: " << FieldD->getNameAsString() << "\n";
       }
       */
     }
