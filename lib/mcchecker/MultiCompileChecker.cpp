@@ -6,7 +6,10 @@
 namespace clang::ento::nvm {
 
 void MultiCompileChecker::checkPreCall(const CallEvent& Call,
-                                       CheckerContext& C) const {  
+                                       CheckerContext& C) const {
+  Call.dump();
+  llvm::outs() << "\n";
+  /*
   ExplodedNode *ErrNode = C.generateErrorNode();
   // If we've already reached this node on another path, return.
   if (!ErrNode)
@@ -17,6 +20,20 @@ void MultiCompileChecker::checkPreCall(const CallEvent& Call,
       "function call", ErrNode);
   R->addRange(Call.getSourceRange());
   C.emitReport(std::move(R));
+  */
+}
+
+void MultiCompileChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
+                                    CheckerContext& C) const {
+  DBG("checkBind")
+  //Loc.dump();
+  //llvm::outs() << "\n";
+
+  /*
+  if (const ValueDecl* VD = getValueDecl(Loc); VD) {
+    DBG("write " << VD->getNameAsString())
+  }
+  */
 }
 
 } // namespace clang::ento::nvm
