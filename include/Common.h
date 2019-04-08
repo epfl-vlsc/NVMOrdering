@@ -8,8 +8,8 @@
 #include <array>
 #include <map>
 #include <set>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #define dbg_assert(map, key, msg)                                              \
   if (!map.count(key)) {                                                       \
@@ -64,7 +64,6 @@ const FunctionDecl* getFuncDecl(const Decl* BD) {
   if (const FunctionDecl* D = dyn_cast_or_null<FunctionDecl>(BD)) {
     return D;
   }
-  llvm::report_fatal_error("use only for functions");
   return nullptr;
 }
 
@@ -100,8 +99,7 @@ const ValueDecl* getValueDecl(const Decl* BD) {
   return nullptr;
 }
 
-const ValueDecl* getValueDecl(const SVal& Loc) {
-  const MemRegion* Region = Loc.getAsRegion();
+const ValueDecl* getValueDecl(const MemRegion* Region) {
   if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
     const Decl* BD = FieldReg->getDecl();
     const ValueDecl* VD = getValueDecl(BD);
@@ -111,9 +109,57 @@ const ValueDecl* getValueDecl(const SVal& Loc) {
   return nullptr;
 }
 
-const ValueDecl* getValueDecl(const char* D){
+const RecordDecl* getRecordDecl(QualType& QT) {
+  const Type* type = QT.getTypePtr();
+  if (const RecordDecl* RD =
+          dyn_cast_or_null<RecordDecl>(type->getAsTagDecl())) {
+    return RD;
+  }
+  return nullptr;
+}
+
+const NamedDecl* getNamedDecl(const MemRegion* Region) {
+  if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
+    const Decl* BD = FieldReg->getDecl();
+    const ValueDecl* VD = getValueDecl(BD);
+    return VD;
+  } else if (const TypedValueRegion* TypedValueReg =
+                 Region->getAs<TypedValueRegion>()) {
+    QualType QT = TypedValueReg->getValueType();
+    const RecordDecl* RD = getRecordDecl(QT);
+    return RD;
+  }
+
+  return nullptr;
+}
+
+const ValueDecl* getValueDecl(const SVal& Loc) {
+  const MemRegion* Region = Loc.getAsRegion();
+  return getValueDecl(Region);
+}
+
+const ValueDecl* getValueDecl(const char* D) {
   const Decl* BD = (const Decl*)D;
   return getValueDecl(BD);
+}
+
+const VarDecl* getVarDecl(const MemRegion* ParentRegion) {
+  if (const VarRegion* VarReg = ParentRegion->getAs<VarRegion>()) {
+    const VarDecl* VD = VarReg->getDecl();
+    return VD;
+  }
+  return nullptr;
+}
+
+const MemRegion* getTopBaseRegion(SVal Loc) {
+  // todo return top, currently returns parent
+  const MemRegion* CurrentRegion = Loc.getAsRegion();
+  if (!CurrentRegion) {
+    return CurrentRegion;
+  }
+
+  const MemRegion* ParentRegion = CurrentRegion->getBaseRegion();
+  return ParentRegion;
 }
 
 bool isTopFunction(CheckerContext& C) { return C.inTopFrame(); }
