@@ -58,6 +58,11 @@ git diff > patch/owriteback/pmfs1.patch
  git reset --hard
 
 
+## benchmark compilation ##
+nvml
+./build.sh - full build takes 34 seconds on desktop
+make clean
+
 
 ## how to program using libpmemobj
 mmap

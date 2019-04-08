@@ -36,6 +36,19 @@
 ```
 
 ``` cpp
+
+SVal Node = Call.getArgSVal(0);
+  SVal Offset = Call.getArgSVal(1);
+  llvm::errs() << "Range" << "\n";
+  Node.dump();
+  llvm::errs() << "\n";
+  Offset.dump();
+  llvm::errs() << "\n";
+  SourceRange SR = Call.getSourceRange();
+  SourceLocation SL = SR.getBegin();
+  SL.dump(C.getSourceManager());
+  llvm::errs() << "\n";
+
 void checkEndFunction (CheckerContext & C ){
     ProgramStateRef State = C . getState ();
 

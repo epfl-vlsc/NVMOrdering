@@ -13,3 +13,5 @@ experimental/
 *.mk
 
 patch/
+
+result\.txt
