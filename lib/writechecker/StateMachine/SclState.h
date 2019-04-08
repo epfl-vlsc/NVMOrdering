@@ -35,6 +35,7 @@ public:
   void Profile(llvm::FoldingSetNodeID& ID) const {
     ID.AddInteger(K);
     ID.AddPointer(Str);
+    ID.AddPointer(Exp);
   }
 };
 
