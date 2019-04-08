@@ -1,51 +1,29 @@
 #pragma once
+#include "BaseReporter.h"
 #include "Common.h"
 #include "clang/StaticAnalyzer/Core/BugReporter/BugType.h"
 
 namespace clang::ento::nvm {
 
-class TxPBugReporter {
+class TxPBugReporter : public BaseReporter {
   const std::string TxPError = "NVM Transaction PMDK Error";
 
+public:
   // path-sensitive bug types
-  std::unique_ptr<BugType> TxWriteBugType;
-  std::unique_ptr<BugType> TxLogBugType;
+  BugPtr WriteOutTxBugType;
+  BugPtr DoubleWriteBugType;
+  BugPtr DoubleLogBugType;
+  BugPtr NotLogBeforeWriteBugType;
 
 public:
   TxPBugReporter(const CheckerBase& CB) {
-    TxWriteBugType.reset(
+    WriteOutTxBugType.reset(
         new BugType(&CB, "Writing outside transaction", TxPError));
-    TxLogBugType.reset(new BugType(&CB, "Writing without logging", TxPError));
-  }
-
-  void reportTxWriteBug(const MemRegion* Region, CheckerContext& C,
-                        const ExplodedNode* const ExplNode,
-                        BugReporter& BReporter) const {
-    const FunctionDecl* FD = getTopFunction(C);
-
-    std::string sbuf;
-    llvm::raw_string_ostream ErrorOs(sbuf);
-    ErrorOs << "Access outside transaction at function: " + FD->getName();
-
-    auto Report =
-        llvm::make_unique<BugReport>(*TxWriteBugType, ErrorOs.str(), ExplNode);
-    Report->markInteresting(Region);
-    BReporter.emitReport(std::move(Report));
-  }
-
-  void reportTxLogBug(const MemRegion* Region, CheckerContext& C,
-                      const ExplodedNode* const ExplNode,
-                      BugReporter& BReporter) const {
-    const FunctionDecl* FD = getTopFunction(C);
-
-    std::string sbuf;
-    llvm::raw_string_ostream ErrorOs(sbuf);
-    ErrorOs << "Writing without logging: " + FD->getName();
-
-    auto Report =
-        llvm::make_unique<BugReport>(*TxLogBugType, ErrorOs.str(), ExplNode);
-    Report->markInteresting(Region);
-    BReporter.emitReport(std::move(Report));
+    DoubleWriteBugType.reset(
+        new BugType(&CB, "Writing the same thing twice", TxPError));
+    DoubleLogBugType.reset(new BugType(&CB, "Double logging", TxPError));
+    NotLogBeforeWriteBugType.reset(
+        new BugType(&CB, "Not logged before write", TxPError));
   }
 };
 
