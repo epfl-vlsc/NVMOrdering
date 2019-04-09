@@ -41,24 +41,35 @@ void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
+  AssignmentWalker aw;
+  aw.TraverseStmt((Stmt*)S);
+  if (aw.isObjWrite()) {
+    // alloc of object
+    auto RI = ReportInfos::getRI(C, State, aw.getObjInfo(), nullptr, BReporter,
+                                 &Loc, S);
+    if (!inTx(State)) {
+      // not done in transaction
+      RI.reportWriteOutTxBug();
+    } else {
+      // done in transaction
+      Transitions::pdirectAccess(RI);
+      stateChanged |= RI.stateChanged;
+    }
 
-  llvm::errs() << "Bind" << "\n";
-  SourceRange SR = S->getSourceRange();
-  SourceLocation SL = SR.getBegin();
-  SL.dump(C.getSourceManager());
-  llvm::errs() << "\n";
-  AssignmentWalker aWalker;
-  aWalker.TraverseStmt((Stmt*)S);
+  } else if (aw.isFieldWrite()) {
+    // write to obj field
 
-
-  // add field
-
-  /*
-  auto RI =
-      ReportInfos::getRI(C, State, CurrentVD, BaseVD, BReporter, &Loc, S);
-  writeDirect(RI);
-  stateChanged |= RI.stateChanged;
-  */
+    auto RI = ReportInfos::getRI(C, State, aw.getObjInfo(), aw.getFieldInfo(),
+                                 BReporter, &Loc, S);
+    if (!inTx(State)) {
+      // not done in transaction
+      RI.reportWriteOutTxBug();
+    } else {
+      // done in transaction
+      Transitions::writeData(RI);
+      stateChanged |= RI.stateChanged;
+    }
+  }
 
   addStateTransition(State, C, stateChanged);
 }
@@ -75,15 +86,15 @@ void TxPChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   }
 
   if (nvmTxInfo.isTxBeg(FD)) {
-    // handleTxBegin(C);
+    handleTxBegin(Call, C);
   } else if (nvmTxInfo.isTxEnd(FD)) {
-    // handleTxEnd(C);
+    handleTxEnd(Call, C);
   } else if (nvmTxInfo.isPalloc(FD)) {
-    //handlePalloc(Call, C);
+    // handlePalloc(Call, C);
   } else if (nvmTxInfo.isPfree(FD)) {
     // handlePfree(Call, C);
-  } else if (nvmTxInfo.isPacc(FD)) {
-    handlePacc(Call, C);
+  } else if (nvmTxInfo.isPdirect(FD)) {
+    handlePdirect(Call, C);
   } else if (nvmTxInfo.isTxRange(FD)) {
     handleTxRange(Call, C);
   } else if (nvmTxInfo.isTxRangeDirect(FD)) {
@@ -93,12 +104,8 @@ void TxPChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   }
 }
 
-void TxPChecker::handlePacc(const CallEvent& Call, CheckerContext& C) const {
+void TxPChecker::handlePdirect(const CallEvent& Call, CheckerContext& C) const {
   SVal Loc = Call.getArgSVal(0);
-  /*
-  llvm::errs() << "Pmemdirect"
-               << "\n";
-  */
 
   if (!Loc.isUnknownOrUndef()) {
     nonloc::LazyCompoundVal LCV = Loc.castAs<nonloc::LazyCompoundVal>();
@@ -107,10 +114,24 @@ void TxPChecker::handlePacc(const CallEvent& Call, CheckerContext& C) const {
       const MemRegion* ParentRegion = CurrentRegion->getBaseRegion();
       const VarDecl* VD = getVarDecl(ParentRegion);
 
-      /*
-      if (VD)
-        llvm::outs() << VD->getNameAsString() << "\n";
-      */
+      if (VD) {
+        // obj access
+        ProgramStateRef State = C.getState();
+        bool stateChanged = false;
+
+        auto RI =
+            ReportInfos::getRI(C, State, VD, nullptr, BReporter, &Loc, nullptr);
+        if (!inTx(State)) {
+          // not done in transaction
+          RI.reportWriteOutTxBug();
+        } else {
+          // done in transaction
+          Transitions::pdirectAccess(RI);
+          stateChanged |= RI.stateChanged;
+        }
+
+        addStateTransition(State, C, stateChanged);
+      }
     }
   }
 }
@@ -118,63 +139,78 @@ void TxPChecker::handlePacc(const CallEvent& Call, CheckerContext& C) const {
 void TxPChecker::handleTxRangeDirect(const CallEvent& Call,
                                      CheckerContext& C) const {
   SVal Loc = Call.getArgSVal(0);
-  /*
-  llvm::errs() << "RangeDirect"
-               << "\n";
-  */
 
   if (const SymExpr* SE = Loc.getAsSymbolicExpression()) {
     const MemRegion* Region = SE->getOriginRegion();
     const VarDecl* VD = getVarDecl(Region);
 
-    /*
-     if (VD)
-       llvm::outs() << VD->getNameAsString() << "\n";
-     */
+    if (VD) {
+      ProgramStateRef State = C.getState();
+      bool stateChanged = false;
+      auto RI = ReportInfos::getRI(C, State, VD, nullptr, BReporter, nullptr,
+                                   nullptr);
+
+      if (!inTx(State)) {
+        // not done in transaction
+        RI.reportWriteOutTxBug();
+      } else {
+        // done in transaction
+        Transitions::logData(RI);
+        stateChanged |= RI.stateChanged;
+      }
+
+      addStateTransition(State, C, stateChanged);
+    }
   }
 }
 
 void TxPChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
-  /*
-  llvm::errs() << "Range"
-               << "\n";
-  */
   SVal Obj = Call.getArgSVal(0);
   const Expr* Field = Call.getArgExpr(1);
-  RangeWalker rWalker;
-  rWalker.TraverseStmt((Expr*)Field);
+  RangeWalker rw;
+  rw.TraverseStmt((Expr*)Field);
 
-  //get obj
+  // get obj
   if (!Obj.isUnknownOrUndef()) {
     nonloc::LazyCompoundVal LCV = Obj.castAs<nonloc::LazyCompoundVal>();
     const TypedValueRegion* CurrentRegion = LCV.getRegion();
     if (CurrentRegion) {
       const MemRegion* ParentRegion = CurrentRegion->getBaseRegion();
       const VarDecl* ObjD = getVarDecl(ParentRegion);
+      const ValueDecl* FieldD = rw.getVD();
 
-      /*
-      if (ObjD){
-        llvm::errs() << "ObjD: " << ObjD->getNameAsString() << "\n";
-      }
-      */
+      if (ObjD) {
+        // obj or field accessed
+        ProgramStateRef State = C.getState();
+        bool stateChanged = false;
+        auto RI = ReportInfos::getRI(C, State, ObjD, FieldD, BReporter, nullptr,
+                                     nullptr);
 
-      /*
-      if(rWalker.hasME()){
-        const ValueDecl* FieldD = rWalker.getVD();
-        llvm::errs() << "Field: " << FieldD->getNameAsString() << "\n";
+        if (!inTx(State)) {
+          // not done in transaction
+          RI.reportWriteOutTxBug();
+        } else {
+          // done in transaction
+          Transitions::logData(RI);
+          stateChanged |= RI.stateChanged;
+        }
+
+        addStateTransition(State, C, stateChanged);
       }
-      */
     }
   }
 }
 
+bool TxPChecker::inTx(ProgramStateRef& State) const {
+  unsigned txCount = State->get<TxCounter>();
+  return txCount > 0;
+}
+
+/*
 void TxPChecker::handlePalloc(const CallEvent& Call, CheckerContext& C) const {
-  // taint
   ProgramStateRef State = C.getState();
   SVal Loc = Call.getReturnValue();
-  
 
-  /*
   llvm::errs() << "Palloc" << "\n";
   Call.dump();
   llvm::errs() << "\n";
@@ -184,8 +220,7 @@ void TxPChecker::handlePalloc(const CallEvent& Call, CheckerContext& C) const {
   SourceLocation SL = SR.getBegin();
   SL.dump(C.getSourceManager());
   llvm::errs() << "\n";
-  */
-  /*
+
 
 
   // taint regions
@@ -203,11 +238,13 @@ void TxPChecker::handlePalloc(const CallEvent& Call, CheckerContext& C) const {
 
   State = State->set<PMap>(Region, WriteState::getInit());
   C.addTransition(State);
-  */
 }
 
+
+
+
 void TxPChecker::handlePfree(const CallEvent& Call, CheckerContext& C) const {
-  /*
+
   if (Call.getNumArgs() > 1) {
     llvm::report_fatal_error("check pfree function");
     return;
@@ -235,26 +272,31 @@ void TxPChecker::handlePfree(const CallEvent& Call, CheckerContext& C) const {
     State = State->remove<PMap>(BR);
     C.addTransition(State);
   }
-  */
+}
+*/
+
+void TxPChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
+  ProgramStateRef State = C.getState();
+  bool stateChanged = false;
+
+  auto RI = ReportInfos::getRI(C, State, nullptr, nullptr, BReporter, nullptr,
+                               nullptr);
+  Transitions::startTx(RI);
+  stateChanged |= RI.stateChanged;
+
+  addStateTransition(State, C, stateChanged);
 }
 
-void TxPChecker::handleTxBegin(CheckerContext& C) const {
+void TxPChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
   ProgramStateRef State = C.getState();
-  unsigned txCount = State->get<TxCounter>();
-  txCount += 1;
-  State = State->set<TxCounter>(txCount);
-  C.addTransition(State);
-}
+  bool stateChanged = false;
 
-void TxPChecker::handleTxEnd(CheckerContext& C) const {
-  ProgramStateRef State = C.getState();
-  unsigned txCount = State->get<TxCounter>();
-  if (txCount) {
-    // todo report bug that begin does not match end
-  }
-  txCount -= 1;
-  State = State->set<TxCounter>(txCount);
-  C.addTransition(State);
+  auto RI = ReportInfos::getRI(C, State, nullptr, nullptr, BReporter, nullptr,
+                               nullptr);
+  Transitions::endTx(RI);
+  stateChanged |= RI.stateChanged;
+
+  addStateTransition(State, C, stateChanged);
 }
 
 void TxPChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,

@@ -11,13 +11,13 @@ class NVMTransactionInfo {
 
   std::set<const FunctionDecl*> pallocFncSet;
   std::set<const FunctionDecl*> pfreeFncSet;
-  std::set<const FunctionDecl*> paccFncSet;
+  std::set<const FunctionDecl*> pdirectFncSet;
 
 public:
   void insertFunction(const FunctionDecl* FD) {
     const IdentifierInfo* II = FD->getIdentifier();
-    
-    //todo 
+
+    // todo
     /*
     II->isStr("pmemobj_tx_alloc") ||
           II->isStr("pmemobj_tx_zalloc") || II->isStr("pmemobj_tx_realloc") ||
@@ -29,7 +29,7 @@ public:
       } else if (II->isStr("pfree") || II->isStr("pmemobj_tx_free")) {
         pfreeFncSet.insert(FD);
       } else if (II->isStr("pmemobj_direct")) {
-        paccFncSet.insert(FD);
+        pdirectFncSet.insert(FD);
       } else if (II->isStr("pmemobj_tx_add_range_direct")) {
         txRangeDirectSet.insert(FD);
       } else if (II->isStr("pmemobj_tx_add_range")) {
@@ -51,7 +51,7 @@ public:
 
   bool isPFunction(CheckerContext& C) {
     const FunctionDecl* FD = getFuncDecl(C);
-    return isPalloc(FD) || isPfree(FD) || isPacc(FD);
+    return isPalloc(FD) || isPfree(FD) || isPdirect(FD);
   }
 
   bool isTxRangeDirect(const FunctionDecl* FD) {
@@ -68,13 +68,13 @@ public:
 
   bool isPfree(const FunctionDecl* FD) { return pfreeFncSet.count(FD); }
 
-  bool isPacc(const FunctionDecl* FD) { return paccFncSet.count(FD); }
+  bool isPdirect(const FunctionDecl* FD) { return pdirectFncSet.count(FD); }
 
   void dumpFunctions() {
 
     std::set<const FunctionDecl*>* functionSets[] = {
-        &txBegSet, &txRangeSet,   &txRangeDirectSet,
-        &txEndSet, &pallocFncSet, &pfreeFncSet};
+        &txBegSet,      &txRangeSet,   &txRangeDirectSet, &txEndSet,
+        &pdirectFncSet, &pallocFncSet, &pfreeFncSet};
     for (auto* fncSet : functionSets) {
       for (const FunctionDecl* FD : *fncSet) {
         llvm::outs() << FD->getQualifiedNameAsString() << "\n";

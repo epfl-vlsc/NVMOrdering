@@ -31,19 +31,23 @@ private:
   void addStateTransition(ProgramStateRef& State, CheckerContext& C,
                           bool stateChanged) const;
 
-  void handleTxBegin(CheckerContext& C) const;
+  void handleTxBegin(const CallEvent& Call, CheckerContext& C) const;
 
-  void handlePacc(const CallEvent& Call, CheckerContext& C) const;
+  void handlePdirect(const CallEvent& Call, CheckerContext& C) const;
 
   void handleTxRangeDirect(const CallEvent& Call, CheckerContext& C) const;
 
   void handleTxRange(const CallEvent& Call, CheckerContext& C) const;
 
-  void handleTxEnd(CheckerContext& C) const;
+  void handleTxEnd(const CallEvent& Call, CheckerContext& C) const;
 
+  bool inTx(ProgramStateRef& State) const;
+
+/*
   void handlePalloc(const CallEvent& Call, CheckerContext& C) const;
 
   void handlePfree(const CallEvent& Call, CheckerContext& C) const;
+*/
 
   template <typename SMap>
   void printStates(ProgramStateRef& State, CheckerContext& C) const;
