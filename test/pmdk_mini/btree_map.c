@@ -38,6 +38,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include "btree_map.h"
+#include "annot.h"
 
 TOID_DECLARE(struct tree_map_node, BTREE_MAP_TYPE_OFFSET + 1);
 
@@ -284,7 +285,7 @@ btree_map_is_empty(PMEMobjpool *pop, TOID(struct btree_map) map)
 /*
  * btree_map_insert -- inserts a new key-value pair into the map
  */
-int
+int tx_code
 btree_map_insert(PMEMobjpool *pop, TOID(struct btree_map) map,
 	uint64_t key, PMEMoid value)
 {

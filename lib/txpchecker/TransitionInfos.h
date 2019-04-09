@@ -55,27 +55,27 @@ public:
 
   void reportWriteOutTxBug() const {
     auto& bugPtr = BR.WriteOutTxBugType;
-    report(bugPtr, "write outside tx");
+    report(bugPtr, "write outside tx:");
   }
 
   void reportDoubleWriteBug() const {
     auto& bugPtr = BR.DoubleWriteBugType;
-    report(bugPtr, "write twice");
+    report(bugPtr, "write twice:");
   }
 
   void reportDoubleLogBugBug() const {
     auto& bugPtr = BR.DoubleLogBugType;
-    report(bugPtr, "log twice");
+    report(bugPtr, "log twice:");
   }
 
   void reportNotLogBeforeWriteBug() const {
     auto& bugPtr = BR.NotLogBeforeWriteBugType;
-    report(bugPtr, "not logged before write");
+    report(bugPtr, "not logged before write:");
   }
 
   void reportNotTxPairBug() const {
     auto& bugPtr = BR.NotTxPairBugType;
-    report(bugPtr, "close tx end unnecessarily");
+    report(bugPtr, "close tx end unnecessarily:");
   }
 };
 

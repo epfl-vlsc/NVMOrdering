@@ -5,6 +5,7 @@
 #include "TransactionInfos.h"
 #include "Transitions.h"
 #include "TxPBugReporter.h"
+#include "DbgState.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.txpchecker";
 
@@ -42,6 +43,8 @@ private:
   void handleTxEnd(const CallEvent& Call, CheckerContext& C) const;
 
   bool inTx(ProgramStateRef& State) const;
+
+  void handleEnd(CheckerContext& C) const;
 
 /*
   void handlePalloc(const CallEvent& Call, CheckerContext& C) const;

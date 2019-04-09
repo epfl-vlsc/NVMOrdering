@@ -8,13 +8,19 @@ namespace clang::ento::nvm {
 void TxPChecker::checkBeginFunction(CheckerContext& C) const {
   bool isPFnc = nvmTxInfo.isPFunction(C);
   bool isTopFnc = isTopFunction(C);
+  bool isAnalyzeFnc = nvmTxInfo.isAnnotatedFnc(C);
 
   // if pmalloc/pfree/paccess function, do not analyze
-  if (isPFnc && isTopFnc) {
-    ExplodedNode* ErrNode = C.generateErrorNode();
-    if (!ErrNode)
-      return;
+  if ((isPFnc || !isAnalyzeFnc) && isTopFnc) {
+    handleEnd(C);
   }
+}
+
+void TxPChecker::handleEnd(CheckerContext& C) const {
+  DBG("handleEnd")
+  ExplodedNode* ErrNode = C.generateErrorNode();
+  if (!ErrNode)
+    return;
 }
 
 void TxPChecker::checkEndFunction(CheckerContext& C) const {
@@ -38,12 +44,15 @@ void TxPChecker::printStates(ProgramStateRef& State, CheckerContext& C) const {
 
 void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
+  DBG("Bind")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
   AssignmentWalker aw;
   aw.TraverseStmt((Stmt*)S);
   if (aw.isObjWrite()) {
+    DBG("obj write")
+
     // alloc of object
     auto RI = ReportInfos::getRI(C, State, aw.getObjInfo(), nullptr, BReporter,
                                  &Loc, S);
@@ -57,6 +66,8 @@ void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
     }
 
   } else if (aw.isFieldWrite()) {
+    DBG("field write")
+
     // write to obj field
 
     auto RI = ReportInfos::getRI(C, State, aw.getObjInfo(), aw.getFieldInfo(),
@@ -81,9 +92,12 @@ void TxPChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
 
 void TxPChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(Call);
+
   if (!FD) {
     return;
   }
+
+  DBG("checkPostCall:" << FD->getName())
 
   if (nvmTxInfo.isTxBeg(FD)) {
     handleTxBegin(Call, C);
@@ -105,6 +119,7 @@ void TxPChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
 }
 
 void TxPChecker::handlePdirect(const CallEvent& Call, CheckerContext& C) const {
+  DBG("handlePdirect")
   SVal Loc = Call.getArgSVal(0);
 
   if (!Loc.isUnknownOrUndef()) {
@@ -138,6 +153,7 @@ void TxPChecker::handlePdirect(const CallEvent& Call, CheckerContext& C) const {
 
 void TxPChecker::handleTxRangeDirect(const CallEvent& Call,
                                      CheckerContext& C) const {
+  DBG("handleTxRangeDirect")
   SVal Loc = Call.getArgSVal(0);
 
   if (const SymExpr* SE = Loc.getAsSymbolicExpression()) {
@@ -165,6 +181,7 @@ void TxPChecker::handleTxRangeDirect(const CallEvent& Call,
 }
 
 void TxPChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
+  DBG("handleTxRange")
   SVal Obj = Call.getArgSVal(0);
   const Expr* Field = Call.getArgExpr(1);
   RangeWalker rw;
@@ -202,6 +219,7 @@ void TxPChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
 }
 
 bool TxPChecker::inTx(ProgramStateRef& State) const {
+  DBG("inTx")
   unsigned txCount = State->get<TxCounter>();
   return txCount > 0;
 }
@@ -276,6 +294,7 @@ void TxPChecker::handlePfree(const CallEvent& Call, CheckerContext& C) const {
 */
 
 void TxPChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
+  DBG("handleTxBegin")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
@@ -288,6 +307,7 @@ void TxPChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
 }
 
 void TxPChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
+  DBG("handleTxEnd")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
