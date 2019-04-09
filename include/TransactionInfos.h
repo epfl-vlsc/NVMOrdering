@@ -1,9 +1,11 @@
 #pragma once
 #include "Common.h"
+#include "AnnotFunctionInfos.h"
 
 namespace clang::ento::nvm {
 
 class NVMTransactionInfo {
+  AnnotFunction txFnc;
   std::set<const FunctionDecl*> txBegSet;
   std::set<const FunctionDecl*> txRangeSet;
   std::set<const FunctionDecl*> txRangeDirectSet;
@@ -14,7 +16,11 @@ class NVMTransactionInfo {
   std::set<const FunctionDecl*> pdirectFncSet;
 
 public:
+  NVMTransactionInfo():txFnc("TxCode"){}
+
   void insertFunction(const FunctionDecl* FD) {
+    txFnc.insertIfKnown(FD);
+
     const IdentifierInfo* II = FD->getIdentifier();
 
     // todo
@@ -54,9 +60,16 @@ public:
     return isPalloc(FD) || isPfree(FD) || isPdirect(FD);
   }
 
+  bool isAnnotatedFnc(CheckerContext& C) {
+    const FunctionDecl* FD = getFuncDecl(C);
+    return isTxFnc(FD);
+  }
+
   bool isTxRangeDirect(const FunctionDecl* FD) {
     return txRangeDirectSet.count(FD);
   }
+
+  bool isTxFnc(const FunctionDecl* FD) { return txFnc.inFunctions(FD); }
 
   bool isTxRange(const FunctionDecl* FD) { return txRangeSet.count(FD); }
 
@@ -70,8 +83,10 @@ public:
 
   bool isPdirect(const FunctionDecl* FD) { return pdirectFncSet.count(FD); }
 
-  void dumpFunctions() {
+  void dump() {
 
+    txFnc.dump();
+    /*
     std::set<const FunctionDecl*>* functionSets[] = {
         &txBegSet,      &txRangeSet,   &txRangeDirectSet, &txEndSet,
         &pdirectFncSet, &pallocFncSet, &pfreeFncSet};
@@ -79,7 +94,7 @@ public:
       for (const FunctionDecl* FD : *fncSet) {
         llvm::outs() << FD->getQualifiedNameAsString() << "\n";
       }
-    }
+    }*/
   }
 };
 
