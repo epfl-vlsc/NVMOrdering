@@ -16,17 +16,17 @@ struct TransOutInfos {
 struct TransInfos : public TransOutInfos {
   CheckerContext& C;
   ProgramStateRef& State;
-  const NamedDecl* Current;
-  const NamedDecl* Base;
+  const NamedDecl* Obj;
+  const NamedDecl* Field;
   const TxPBugReporter& BR;
   SVal* Loc;
   const Stmt* S;
 
 protected:
   TransInfos(CheckerContext& C_, ProgramStateRef& State_,
-             const NamedDecl* Current_, const NamedDecl* Base_,
+             const NamedDecl* Obj_, const NamedDecl* Field_,
              const TxPBugReporter& BR_, SVal* Loc_, const Stmt* S_)
-      : C(C_), State(State_), Current(Current_), Base(Base_), BR(BR_),
+      : C(C_), State(State_), Obj(Obj_), Field(Field_), BR(BR_),
         Loc(Loc_), S(S_) {}
 };
 
@@ -36,21 +36,21 @@ private:
     DBG("report")
     if (ExplodedNode* EN = C.generateErrorNode()) {
       DBG("generate error node")
-      BR.report(C, (const char*)Current, msg, Loc, EN, bugPtr);
+      BR.report(C, (const char*)Obj, msg, Loc, EN, bugPtr);
     }
   }
 
   ReportInfos(CheckerContext& C_, ProgramStateRef& State_,
-              const NamedDecl* Current_, const NamedDecl* Base_,
+              const NamedDecl* Obj_, const NamedDecl* Field_,
               const TxPBugReporter& BR_, SVal* Loc_, const Stmt* S_)
-      : TransInfos(C_, State_, Current_, Base_, BR_, Loc_, S_) {}
+      : TransInfos(C_, State_, Obj_, Field_, BR_, Loc_, S_) {}
 
 public:
   static ReportInfos getRI(CheckerContext& C_, ProgramStateRef& State_,
-                           const NamedDecl* Current_, const NamedDecl* Base_,
+                           const NamedDecl* Obj_, const NamedDecl* Field_,
                            const TxPBugReporter& BR_, SVal* Loc_,
                            const Stmt* S_) {
-    return ReportInfos(C_, State_, Current_, Base_, BR_, Loc_, S_);
+    return ReportInfos(C_, State_, Obj_, Field_, BR_, Loc_, S_);
   }
 
   void reportWriteOutTxBug() const {
@@ -71,6 +71,11 @@ public:
   void reportNotLogBeforeWriteBug() const {
     auto& bugPtr = BR.NotLogBeforeWriteBugType;
     report(bugPtr, "not logged before write");
+  }
+
+  void reportNotTxPairBug() const {
+    auto& bugPtr = BR.NotTxPairBugType;
+    report(bugPtr, "close tx end unnecessarily");
   }
 };
 

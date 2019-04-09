@@ -23,16 +23,13 @@ public:
     // continue traversal
     return true;
   }
-
-  bool hasME() { return hasMemberExpr; }
 };
 
 class AssignmentWalker : public RecursiveASTVisitor<AssignmentWalker> {
   bool isObj;
   bool isField;
-
-public:
-  AssignmentWalker() : isObj(false), isField(false) {}
+  ValueDecl* fieldInfo;
+  NamedDecl* objInfo;
 
   const Stmt* getNthChild(Stmt* S, int i) {
     if (!S) {
@@ -43,7 +40,7 @@ public:
     for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
          I != E; ++I) {
       const Stmt* Child = *I;
-      if(i == c){
+      if (i == c) {
         return Child;
       }
       c++;
@@ -67,9 +64,9 @@ public:
     const Stmt* Child8 = getNthChild((Stmt*)Child7, 0);
 
     if (const DeclRefExpr* DRE = dyn_cast_or_null<DeclRefExpr>(Child8)) {
-        if (const NamedDecl* ND = DRE->getFoundDecl()) {
-          return ND;
-        }
+      if (const NamedDecl* ND = DRE->getFoundDecl()) {
+        return ND;
+      }
     }
 
     return nullptr;
@@ -94,38 +91,52 @@ public:
     return nullptr;
   }
 
+public:
+  AssignmentWalker() : isObj(false), isField(false) {}
+
+  const ValueDecl* getFieldInfo() { return (const ValueDecl*)fieldInfo; }
+
+  const NamedDecl* getObjInfo() { return (const NamedDecl*)objInfo; }
+
+  bool isObjWrite(){
+    return isObj;
+  }
+
+  bool isFieldWrite(){
+    return isField;
+  }
+
   bool VisitDeclRefExpr(const DeclRefExpr* DRE) {
     if (const NamedDecl* ND = DRE->getFoundDecl()) {
-      // tx_zalloc
-      llvm::errs() << "function: " << ND->getNameAsString() << "\n";
+      if (ND->getName().equals("pmemobj_tx_zalloc")) {
+        // obj assignment
+        isObj = true;
+      }
     }
-    llvm::errs() << "\n";
 
     // continue traversal
     return true;
   }
 
   bool VisitBinaryOperator(const BinaryOperator* BO) {
-    llvm::errs() << "BO\n";
     if (BO->isAssignmentOp()) {
       Expr* LHS = BO->getLHS();
       if (MemberExpr* ME = dyn_cast_or_null<MemberExpr>(LHS)) {
-        llvm::errs() << "ME\n";
+        // possible field write
+
         // field name
         const ValueDecl* VD = ME->getMemberDecl();
-
         if (VD && !VD->getName().equals("_type")) {
           // field name
-          llvm::errs() << "field: " << VD->getNameAsString() << "\n";
+          fieldInfo = (ValueDecl*)VD;
         }
 
+        // obj name
         const NamedDecl* ND = getNDFromME(ME);
         if (ND) {
-          // obj name
-          llvm::errs() << "obj: " << ND->getNameAsString() << "\n";
+          objInfo = (NamedDecl*)ND;
+          isField = true;
         }
-
-        int i = 0;
       } else if (UnaryOperator* UO = dyn_cast_or_null<UnaryOperator>(LHS)) {
         const DeclRefExpr* DRE = getDREFromUO(UO);
         if (!DRE) {
@@ -133,8 +144,7 @@ public:
         }
 
         if (const NamedDecl* ND = DRE->getFoundDecl()) {
-          // obj assignment
-          llvm::errs() << "obj assignment: " << ND->getNameAsString() << "\n";
+          objInfo = (NamedDecl*)ND;
         }
       }
     }
