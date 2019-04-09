@@ -14,6 +14,7 @@ public:
   BugPtr DoubleWriteBugType;
   BugPtr DoubleLogBugType;
   BugPtr NotLogBeforeWriteBugType;
+  BugPtr NotTxPairBugType;
 
 public:
   TxPBugReporter(const CheckerBase& CB) {
@@ -24,6 +25,8 @@ public:
     DoubleLogBugType.reset(new BugType(&CB, "Double logging", TxPError));
     NotLogBeforeWriteBugType.reset(
         new BugType(&CB, "Not logged before write", TxPError));
+    NotTxPairBugType.reset(
+        new BugType(&CB, "More tx end than tx beg", TxPError));
   }
 };
 
