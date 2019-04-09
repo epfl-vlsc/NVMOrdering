@@ -41,19 +41,15 @@ void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
-  /*
-  llvm::errs() << "Bind" << "\n";
-  S->dump();
-  llvm::errs() << "\n";
-  S->dumpPretty(C.getASTContext());
-  llvm::errs() << "\n";
-  Loc.dump();
-  llvm::errs() << "\n";
 
-  if(Loc.isUnknown()){
-    llvm::errs() << "unk\n";
-  }
-  */
+  llvm::errs() << "Bind" << "\n";
+  SourceRange SR = S->getSourceRange();
+  SourceLocation SL = SR.getBegin();
+  SL.dump(C.getSourceManager());
+  llvm::errs() << "\n";
+  AssignmentWalker aWalker;
+  aWalker.TraverseStmt((Stmt*)S);
+
 
   // add field
 
@@ -83,7 +79,7 @@ void TxPChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   } else if (nvmTxInfo.isTxEnd(FD)) {
     // handleTxEnd(C);
   } else if (nvmTxInfo.isPalloc(FD)) {
-    // handlePalloc(Call, C);
+    //handlePalloc(Call, C);
   } else if (nvmTxInfo.isPfree(FD)) {
     // handlePfree(Call, C);
   } else if (nvmTxInfo.isPacc(FD)) {
@@ -173,11 +169,24 @@ void TxPChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
 }
 
 void TxPChecker::handlePalloc(const CallEvent& Call, CheckerContext& C) const {
-  /*
   // taint
   ProgramStateRef State = C.getState();
-  SVal RV = Call.getReturnValue();
-  const MemRegion* Region = RV.getAsRegion();
+  SVal Loc = Call.getReturnValue();
+  
+
+  /*
+  llvm::errs() << "Palloc" << "\n";
+  Call.dump();
+  llvm::errs() << "\n";
+  Loc.dump();
+  llvm::errs() << "\n";
+  SourceRange SR = Call.getSourceRange();
+  SourceLocation SL = SR.getBegin();
+  SL.dump(C.getSourceManager());
+  llvm::errs() << "\n";
+  */
+  /*
+
 
   // taint regions
   // todo might lead to bugs due to underlying implementation, this is not how

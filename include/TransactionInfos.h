@@ -16,10 +16,15 @@ class NVMTransactionInfo {
 public:
   void insertFunction(const FunctionDecl* FD) {
     const IdentifierInfo* II = FD->getIdentifier();
-    if (II) {
-      if (II->isStr("pmalloc") || II->isStr("pmemobj_tx_alloc") ||
+    
+    //todo 
+    /*
+    II->isStr("pmemobj_tx_alloc") ||
           II->isStr("pmemobj_tx_zalloc") || II->isStr("pmemobj_tx_realloc") ||
-          II->isStr("pmemobj_tx_zrealloc")) {
+          II->isStr("pmemobj_tx_zrealloc")
+          */
+    if (II) {
+      if (II->isStr("pmalloc") || II->isStr("pmemobj_tx_zalloc")) {
         pallocFncSet.insert(FD);
       } else if (II->isStr("pfree") || II->isStr("pmemobj_tx_free")) {
         pfreeFncSet.insert(FD);
