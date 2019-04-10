@@ -1,6 +1,6 @@
 MODE=$1 #run, scan, ast, multi
-TEST_NAME=$2 #any *.cpp file under test directory
-TOOL_NAME=$3 #low level(write, read), high level(txm, txp, log)
+TOOL_NAME=$2 #low level(write, read), high level(txm, txp, log)
+TEST_NAME=$3 #any *.cpp file under test directory
 
 #initialize info---------------------------------------------
 if [ -z "$TEST_NAME" ] ; then
@@ -17,7 +17,8 @@ BUILD_DIR_NAME="build"
 BUILD_DIR="${BASE_DIR}/${BUILD_DIR_NAME}"
 PLUGIN_DIR="${BUILD_DIR}/lib"
 TEST_DIR="${BASE_DIR}/test"
-TEST_FILE=${TEST_DIR}/$TEST_NAME.cpp
+SINGLE_FILE_REPO=${TEST_DIR}/single_file
+TEST_FILE=${SINGLE_FILE_REPO}/$TEST_NAME.cpp
 
 if [ "$MODE" == "run" ] || [ "$MODE" == "mini" ] ;then
     SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2 -Xclang -analyzer-display-progress"

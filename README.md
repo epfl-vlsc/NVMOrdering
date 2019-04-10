@@ -3,12 +3,12 @@
     ./run.sh build
        
 ## How to run ##
-    ./run.sh <report type> <test file> <checker type> 
-    ./run.sh scan dcl write
+    ./run.sh <report type> <checker type> <test file>
+    ./run.sh scan write dcl
 
 ## Simple Masstree ##
-    ./run.sh scan simple_masstree write
-    ./run.sh scan simple_masstree read
+    ./run.sh scan write simple_masstree
+    ./run.sh scan read simple_masstree 
 
 * look at `output/index.html` for results
 
@@ -16,13 +16,14 @@
     * run - generate command line report
     * scan - generate visual bug report
     * ast - generate ast of code to examine
-* \<test file> all files under test folder
 * \<checker type>
     * write - main code checker
     * read - recover code checker
     * txm - transaction checker for mnemosyne
     * txp - transaction checker for pmdk
     * log - check log ordering
+* \<test file> all files under test folder
+
 
 
 Tests:
