@@ -9,6 +9,10 @@ void ExpChecker::checkASTDecl(const RecordDecl* RD, AnalysisManager& Mgr,
                               BugReporter& BR) const {
   ASTContext& ASTC = Mgr.getASTContext();
   llvm::outs() << "record: " << RD->getNameAsString() << "\n";
+
+  const unsigned CACHE_LINE_SIZE = 64;
+  unsigned current = 0;
+  unsigned CL = 0;
   for (const FieldDecl* FD : RD->fields()) {
     llvm::outs() << "field: " << FD->getNameAsString() << "\n";
     QualType QT = FD->getType();
@@ -17,6 +21,11 @@ void ExpChecker::checkASTDecl(const RecordDecl* RD, AnalysisManager& Mgr,
     if(type->isConstantSizeType()){
       uint64_t fieldSize = ASTC.getTypeSizeInChars(type).getQuantity();
       llvm::outs() << "size: " << fieldSize << "\n";
+      current += fieldSize;
+      CL = current / CACHE_LINE_SIZE;
+      llvm::outs() << "currently at CL: " << CL << "\n";
+    }else{
+      //fallback to dcl
     }
   }
 }
