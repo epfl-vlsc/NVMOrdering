@@ -10,11 +10,11 @@ void pfence() { _mm_sfence(); }
 void clflush(void const* p) { _mm_clflush(p); }
 
 struct SclToDcl {
-  pscl(SclToDcl::valid1) int data;
-  pdcl(SclToDcl::valid2) int valid1;
-  pcheck int valid2;
+  sentinelp(SclToDcl::valid1+scl) int data;
+  sentinelp(SclToDcl::valid2+dcl) int valid1;
+  sentinel int valid2;
 
-  void persistent_code correct() {
+  void analyze_writes correct() {
     data = 1;
     vfence();
     valid1 = 1;
@@ -25,7 +25,7 @@ struct SclToDcl {
     pfence();
   }
 
-  void persistent_code missingVfence() {
+  void analyze_writes missingVfence() {
     data = 1;
     valid1 = 1;
     clflush(&valid1);
@@ -35,7 +35,7 @@ struct SclToDcl {
     pfence();
   }
 
-  void persistent_code missingPfenceData() {
+  void analyze_writes missingPfenceData() {
     data = 1;
     vfence();
     valid1 = 1;
@@ -45,7 +45,7 @@ struct SclToDcl {
     pfence();
   }
 
-  void persistent_code missingPfenceValid() {
+  void analyze_writes missingPfenceValid() {
     data = 1;
     vfence();
     valid1 = 1;
@@ -55,7 +55,7 @@ struct SclToDcl {
     clflush(&valid2);
   }
 
-  void persistent_code missingFlushData() {
+  void analyze_writes missingFlushData() {
     data = 1;
     vfence();
     valid1 = 1;
@@ -65,7 +65,7 @@ struct SclToDcl {
     pfence();
   }
 
-  void persistent_code missingFlushValid() {
+  void analyze_writes missingFlushValid() {
     data = 1;
     vfence();
     valid1 = 1;
