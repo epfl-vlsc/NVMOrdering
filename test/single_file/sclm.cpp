@@ -13,51 +13,51 @@ struct SimpleSclm {
   enum {
     MASK = 7,
   };
-  pscl() int data;
+  sentinelp(SimpleSclm::chunk+scl+MASK) int chunk;
 
-  void writeData() { data = (data & MASK) | 1; }
+  void writeData() { chunk = (chunk & MASK) | 1; }
 
-  void writeValid() { data = (data & ~MASK) | 1; }
+  void writeValid() { chunk = (chunk & ~MASK) | 1; }
 
-  void persistent_code correct() {
+  void analyze_writes correct() {
     writeData();
     vfence();
     writeValid();
   }
 
-  void persistent_code correctPfence() {
+  void analyze_writes correctPfence() {
     writeData();
     pfence();
     writeValid();
   }
 
-  void persistent_code initWriteDataTwice() {
+  void analyze_writes initWriteDataTwice() {
     writeData();
     writeData();
     vfence();
     writeValid();
   }
 
-  void persistent_code notFencedData() {
+  void analyze_writes notFencedData() {
     writeData();
     writeValid();
   }
 
-  void persistent_code initValid() {
+  void analyze_writes initValid() {
     writeValid();
     writeData();
     vfence();
     writeValid();
   }
 
-  void persistent_code beforeValidWriteData() {
+  void analyze_writes beforeValidWriteData() {
     writeData();
     vfence();
     writeData();
     writeValid();
   }
 
-  void persistent_code branch(bool useNvm) {
+  void analyze_writes branch(bool useNvm) {
     writeData();
     if (useNvm) {
       vfence();
