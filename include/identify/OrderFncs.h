@@ -7,11 +7,11 @@ namespace clang::ento::nvm {
 class OrderFncs {
   static constexpr const char* PERSISTENT = "PersistentCode";
   static constexpr const char* RECOVERY = "RecoveryCode";
-  static constexpr const char* END = "EndCode";
+  static constexpr const char* SAFE = "SafeCode";
 
   AnnotFunction persistentFnc;
   AnnotFunction recoveryFnc;
-  AnnotFunction endFnc;
+  AnnotFunction safeFnc;
   VFenceFunction vfenceFnc;
   PFenceFunction pfenceFnc;
   FlushFunction flushFnc;
@@ -19,18 +19,8 @@ class OrderFncs {
   NtiFunction ntiFnc;
 
 public:
-  OrderFncs() : persistentFnc(PERSISTENT), recoveryFnc(RECOVERY), endFnc(END) {}
-
-  void insertIfKnown(const FunctionDecl* FD) {
-    persistentFnc.insertIfKnown(FD);
-    recoveryFnc.insertIfKnown(FD);
-    endFnc.insertIfKnown(FD);
-    vfenceFnc.insertIfKnown(FD);
-    pfenceFnc.insertIfKnown(FD);
-    flushFnc.insertIfKnown(FD);
-    flushOptFnc.insertIfKnown(FD);
-    ntiFnc.insertIfKnown(FD);
-  }
+  OrderFncs()
+      : persistentFnc(PERSISTENT), recoveryFnc(RECOVERY), safeFnc(SAFE) {}
 
   bool isPersistentFunction(CheckerContext& C) const {
     const FunctionDecl* FD = getFuncDecl(C);
@@ -42,9 +32,20 @@ public:
     return recoveryFnc.inFunctions(FD);
   }
 
+  void insertIfKnown(const FunctionDecl* FD) {
+    persistentFnc.insertIfKnown(FD);
+    recoveryFnc.insertIfKnown(FD);
+    safeFnc.insertIfKnown(FD);
+    vfenceFnc.insertIfKnown(FD);
+    pfenceFnc.insertIfKnown(FD);
+    flushFnc.insertIfKnown(FD);
+    flushOptFnc.insertIfKnown(FD);
+    ntiFnc.insertIfKnown(FD);
+  }
+
   bool isEndFunction(const CallEvent& Call) const {
     const FunctionDecl* FD = getFuncDecl(Call);
-    return endFnc.inFunctions(FD);
+    return safeFnc.inFunctions(FD);
   }
 
   bool isFlushFunction(const CallEvent& Call) const {
@@ -65,7 +66,7 @@ public:
   void dump() {
     persistentFnc.dump();
     recoveryFnc.dump();
-    endFnc.dump();
+    safeFnc.dump();
     vfenceFnc.dump();
     pfenceFnc.dump();
     flushFnc.dump();

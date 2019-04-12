@@ -1,13 +1,12 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
-#define pdcl(CHECKER) __attribute((annotate("dcl-" TOSTRING(CHECKER))))
-#define pscl(CHECKER) __attribute((annotate("scl-" TOSTRING(CHECKER))))
-#define pcheck __attribute((annotate("check-")))
+#define sentinelp(CHECKER) __attribute((annotate("pair-" TOSTRING(CHECKER))))
+#define sentinel __attribute((annotate("sent")))
 
-#define recovery_code __attribute((annotate("RecoveryCode")))
-#define persistent_code __attribute((annotate("PersistentCode")))
-#define end_code __attribute((annotate("EndCode")))
+#define analyze_writes __attribute((annotate("PersistentCode")))
+#define analyze_recovery __attribute((annotate("RecoveryCode")))
+#define analyze_safe __attribute((annotate("SafeCode")))
 
 #define plog __attribute((annotate("log")))
 #define log_ptr __attribute((annotate("LogPtr")))

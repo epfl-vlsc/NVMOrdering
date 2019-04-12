@@ -9,12 +9,12 @@ void WriteChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
                                 AnalysisManager& Mgr, BugReporter& BR) const {
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
   // fill data structures
-  TUDWalker tudWalker(orderVars, orderFncs);
+  WriteWalker tudWalker(orderVars, orderFncs);
   tudWalker.TraverseDecl(TUD);
   tudWalker.createUsedVars();
 
-  orderFncs.dump();
   orderVars.dump();
+  orderFncs.dump();
 }
 
 void WriteChecker::checkBeginFunction(CheckerContext& C) const {
