@@ -4,18 +4,17 @@
 namespace clang::ento::nvm {
 
 class MaskWalker : public ConstStmtVisitor<MaskWalker> {
-  static constexpr const char* MASK = "MASK";
+  StringRef maskName;
   bool maskUse;
   bool usesUnary;
   bool readMode;
 
 public:
-  MaskWalker(bool readMode_)
-      : maskUse(false), usesUnary(false), readMode(readMode_) {}
+  MaskWalker(StringRef maskName_, bool readMode_)
+      : maskName(maskName_), maskUse(false), usesUnary(false),
+        readMode(readMode_) {}
 
-  void VisitStmt(const Stmt* S) {
-    VisitChildren(S);
-  }
+  void VisitStmt(const Stmt* S) { VisitChildren(S); }
 
   void VisitChildren(const Stmt* S) {
     for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
@@ -28,15 +27,15 @@ public:
 
   void VisitDeclRefExpr(const DeclRefExpr* DRE) {
     auto* idInfo = DRE->getNameInfo().getName().getAsIdentifierInfo();
-    
-    if(idInfo){
+
+    if (idInfo) {
       StringRef currentMask = idInfo->getName();
-    // llvm::outs() << currentMask << " " << mask << "\n";
-      if (currentMask.equals(MASK)) {
+      // llvm::outs() << currentMask << " " << mask << "\n";
+      if (currentMask.equals(maskName)) {
         maskUse = true;
       }
     }
-    
+
     VisitChildren(DRE);
   }
 
@@ -58,12 +57,11 @@ public:
   bool hasMask() { return maskUse; }
 };
 
-bool usesMask(const Stmt* S, bool readMode) {
+bool usesMask(const Stmt* S, StringRef maskName, bool readMode) {
   // S->dump();
-  MaskWalker maskWalker(readMode);
+  MaskWalker maskWalker(maskName, readMode);
   maskWalker.Visit(S);
   return maskWalker.isMaskWrite();
 }
-
 
 } // namespace clang::ento::nvm

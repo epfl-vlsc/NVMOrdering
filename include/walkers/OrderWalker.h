@@ -4,72 +4,164 @@
 
 namespace clang::ento::nvm {
 
+class AnnotVarInfo {
+public:
+  enum ClKind { Check, Scl, Dcl, Unk };
+
+private:
+  ClKind clKind;
+  std::string checkName;
+  bool usesMask;
+  StringRef maskName;
+
+public:
+  AnnotVarInfo() : clKind(Unk), checkName(), usesMask(false) {}
+  AnnotVarInfo(ClKind clKind_)
+      : clKind(clKind_), checkName(), usesMask(false) {}
+  AnnotVarInfo(ClKind clKind_, std::string checkName_)
+      : clKind(clKind_), checkName(checkName_), usesMask(false) {}
+  AnnotVarInfo(ClKind clKind_, std::string checkName_, StringRef maskName_)
+      : clKind(clKind_), checkName(checkName_), usesMask(true),
+        maskName(maskName_) {}
+
+  bool isMask() const { return usesMask; }
+
+  StringRef getMask() const { return maskName; }
+
+  ClKind getClType() const { return clKind; }
+
+  const std::string& getCheckName() const { return checkName; }
+
+  void setDcl(){
+    clKind = ClKind::Dcl;
+  }
+
+  void setScl(){
+    clKind = ClKind::Scl;
+  }
+};
+
 template <typename Derived, typename BaseInfo, typename OrderVars,
           typename OrderFncs>
 class TUDWalker : public RecursiveASTVisitor<Derived> {
 protected:
-  using ValueSet = std::set<const ValueDecl*>;
-  using StringSet = std::set<std::string>;
+  using AnnotMap = std::map<const ValueDecl*, AnnotVarInfo>;
   using StringMap = std::map<std::string, const ValueDecl*>;
   using BIVec = std::vector<BaseInfo*>;
   using ValueMap = std::map<const ValueDecl*, BIVec>;
 
-  static constexpr const char* SEP = "-";
-  static constexpr const char* CHECK = "check";
+  static constexpr const char* KEY_SEP = "-";
+  static constexpr const char* PAIR_SEP = "+";
+  static constexpr const char* CHECK = "sent";
+  static constexpr const char* PAIR = "pair";
   static constexpr const char* DCL = "dcl";
   static constexpr const char* SCL = "scl";
-  static constexpr const char* DCLM = "dclm";
-  static constexpr const char* SCLM = "sclm";
-  static constexpr const char* MASK = "mask";
-  static constexpr const char* MASK_ANN = "MASK";
 
-  static constexpr const std::array<const char*, 3> ANNOTS = {DCL, SCL, CHECK};
+  static constexpr const std::array<const char*, 2> ANNOTS = {CHECK, PAIR};
 
-  StringSet maskedVars;
   StringMap varMap;
-  ValueSet annotatedVars;
+  AnnotMap annotatedVars;
   OrderVars& orderVars;
   OrderFncs& orderFncs;
 
-  virtual void addBasedOnAnnot(const ValueDecl* dataVD,
-                               const AnnotateAttr* dataAA) = 0;
+  AnnotVarInfo parseAnnotation(StringRef annotation) {
+    auto [annotType, annotInfo] = annotation.split(KEY_SEP);
+    if (annotType.contains(CHECK)) {
+      return AnnotVarInfo(AnnotVarInfo::Check);
+    } else if (annotType.contains(PAIR)) {
+      SmallVector<StringRef, 3> annotatedTokens;
+      annotInfo.split(annotatedTokens, PAIR_SEP);
+      StringRef checkName = annotatedTokens[0];
+      if (annotatedTokens.size() == 1) {
+        return AnnotVarInfo(AnnotVarInfo::Unk, checkName);
+      } else if (annotatedTokens.size() == 2) {
+        StringRef token1 = annotatedTokens[1];
+        if (token1.contains(DCL)) {
+          return AnnotVarInfo(AnnotVarInfo::Dcl, checkName);
+        } else if (token1.contains(SCL)) {
+          return AnnotVarInfo(AnnotVarInfo::Scl, checkName);
+        } else {
+          return AnnotVarInfo(AnnotVarInfo::Unk, checkName, token1);
+        }
+      } else if (annotatedTokens.size() == 3) {
+        StringRef token1 = annotatedTokens[1];
+        StringRef token2 = annotatedTokens[2];
+
+        if (token1.contains(DCL)) {
+          return AnnotVarInfo(AnnotVarInfo::Dcl, checkName, token2);
+        } else if (token1.contains(SCL)) {
+          return AnnotVarInfo(AnnotVarInfo::Scl, checkName, token2);
+        } else if (token2.contains(DCL)) {
+          return AnnotVarInfo(AnnotVarInfo::Dcl, checkName, token1);
+        } else if (token2.contains(SCL)) {
+          return AnnotVarInfo(AnnotVarInfo::Scl, checkName, token1);
+        } else {
+          llvm::report_fatal_error("wrong annotation");
+          return AnnotVarInfo();
+        }
+      } else {
+        llvm::report_fatal_error("wrong annotation");
+        return AnnotVarInfo();
+      }
+
+    } else {
+      llvm::report_fatal_error("wrong annotation");
+      return AnnotVarInfo();
+    }
+  }
+
+  AnnotVarInfo* getAVI(const ValueDecl* VD) {
+    if (VD) {
+      // empty body masked dcl, scl
+      return nullptr;
+    }
+
+    dbg_assert(annotatedVars, VD, "check not tracked correctly");
+    return &annotatedVars[VD];
+  }
+
+  virtual void addAnnotation(const ValueDecl* dataVD,
+                             const AnnotateAttr* dataAA,
+                             const AnnotVarInfo& AVI) = 0;
 
   void addIfAnnotated(const FieldDecl* FD, StringRef annotation) {
-    if (auto [annotInfo, textInfo] = annotation.split(SEP);
-        !annotInfo.empty()) {
+    if (!annotation.empty()) {
       // if any annotation exists
       if (std::any_of(ANNOTS.begin(), ANNOTS.end(),
                       [&annotation](const char* a) {
                         return annotation.contains(a);
                       })) {
         // var is annotated
-        annotatedVars.insert(FD);
+
+        // parse annotation
+        AnnotVarInfo AVI = parseAnnotation(annotation);
+        if (AVI.getClType() == AnnotVarInfo::Unk) {
+          // do auto-determination
+          AVI.setDcl();
+        }
+
+        annotatedVars[FD] = AVI;
       }
     }
   }
 
-  void createUsedVar(const ValueDecl* VD) {
+  void createUsedVar(const ValueDecl* VD, const AnnotVarInfo& AVI) {
     for (const auto* Ann : VD->specific_attrs<AnnotateAttr>()) {
       // add to annotated vars
-      addBasedOnAnnot(VD, Ann);
+      addAnnotation(VD, Ann, AVI);
     }
   }
 
-  const ValueDecl* getCheckVD(const StringRef& checkNameRef) {
-    if (checkNameRef.empty()) {
+  const ValueDecl* getCheckVD(const std::string& checkName) {
+    if (checkName.empty()) {
       // empty body masked dcl, scl
       return nullptr;
     }
 
-    auto checkName = checkNameRef.str();
-    dbg_assert(varMap, checkName, "check not tracked correctly");
+    if(!varMap.count(checkName)){
+      llvm::report_fatal_error("check not found");
+    }
     return varMap[checkName];
-  }
-
-  bool hasMask(const Stmt* S) {
-    MaskWalker maskWalker(false);
-    maskWalker.Visit(S);
-    return maskWalker.hasMask();
   }
 
 public:
@@ -99,23 +191,9 @@ public:
     return true;
   }
 
-  bool VisitBinaryOperator(const BinaryOperator* BO) {
-    if (BO->isAssignmentOp() && hasMask(BO)) {
-      Expr* E = BO->getLHS();
-      if (const MemberExpr* ME = dyn_cast_or_null<MemberExpr>(E)) {
-        ValueDecl* VD = ME->getMemberDecl();
-        std::string fqName = VD->getQualifiedNameAsString();
-        maskedVars.insert(fqName);
-      }
-    }
-
-    // continue traversal
-    return true;
-  }
-
   void createUsedVars() {
-    for (auto VD : annotatedVars) {
-      createUsedVar(VD);
+    for (auto& [VD, VDInfo] : annotatedVars) {
+      createUsedVar(VD, VDInfo);
     }
   }
 };

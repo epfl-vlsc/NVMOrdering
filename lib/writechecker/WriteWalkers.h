@@ -10,86 +10,103 @@ namespace clang::ento::nvm {
 class WriteWalker
     : public TUDWalker<WriteWalker, BaseInfo, OrderVars, OrderFncs> {
 
-  void addBasedOnAnnot(const ValueDecl* dataVD, const AnnotateAttr* dataAA) {
-    StringRef dataAnnotation = dataAA->getAnnotation();
-    auto [annotInfo, textInfo] = dataAnnotation.split(SEP);
-    if (annotInfo.contains(CHECK)) {
-      // is check, single variable
-      orderVars.addUsedVar(dataVD, new CheckInfo(dataVD));
+  void addCheck(const ValueDecl* dataVD) {
+    orderVars.addUsedVar(dataVD, new CheckInfo(dataVD));
+  }
+  BaseInfo* addClMaskToValidInfo(const ValueDecl* dataVD, const ValueDecl* checkVD,
+                            const AnnotateAttr* dataAA,
+                            const AnnotVarInfo& dataAVI) {
+    BaseInfo* BI = nullptr;
+    StringRef maskName = dataAVI.getMask();
+    if (dataAVI.getClType() == AnnotVarInfo::Dcl) {
+      BI = new DclMaskToValidInfo(dataVD, checkVD, dataAA, maskName);
+    } else if (dataAVI.getClType() == AnnotVarInfo::Scl) {
+      BI = new SclMaskToValidInfo(dataVD, checkVD, dataAA, maskName);
     } else {
-      // not check, pair variables
-      std::string dataName = dataVD->getQualifiedNameAsString();
-      const ValueDecl* checkVD = getCheckVD(textInfo);
-      std::string checkName = "";
-      if (checkVD) {
-        checkName = checkVD->getQualifiedNameAsString();
-      }
-      BaseInfo* BI = nullptr;
+      llvm::report_fatal_error("mask to valid info error");
+    }
 
-      if (annotInfo.contains(DCL)) {
-        if (!dataName.empty() && maskedVars.count(dataName)) {
-          // masked vars
-          if (!textInfo.empty()) {
-            // if transitively has a validator
-            BI = new DclMaskToValidInfo(dataVD, checkVD, dataAA);
-            orderVars.addUsedVar(dataVD, BI);
-            orderVars.addUsedVar(dataAA, BI);
-            llvm::report_fatal_error("disable masking");
-          } else {
-            // does not have a validator
-            BI = new DclMaskToValidInfo(dataVD, nullptr, nullptr);
-            orderVars.addUsedVar(dataVD, BI);
-            llvm::report_fatal_error("disable masking");
-          }
-        } else {
-          if (!checkName.empty() && maskedVars.count(checkName)) {
-            // masked valid
-            BI = new DclDataToMaskInfo(dataVD, checkVD);
-            orderVars.addUsedVar(dataVD, BI);
-            llvm::report_fatal_error("disable masking");
-          } else {
-            // normal dcl
-            BI = new DclInfo(dataVD, checkVD);
-            orderVars.addUsedVar(dataVD, BI);
-          }
-        }
-      } else if (annotInfo.contains(SCL)) {
-        if (!dataName.empty() && maskedVars.count(dataName)) {
-          // masked vars
-          if (!textInfo.empty()) {
-            // if transitively has a validator
-            BI = new SclMaskToValidInfo(dataVD, checkVD, dataAA);
-            orderVars.addUsedVar(dataVD, BI);
-            orderVars.addUsedVar(dataAA, BI);
-            llvm::report_fatal_error("disable masking");
-          } else {
-            // does not have a validator
-            BI = new SclMaskToValidInfo(dataVD, nullptr, nullptr);
-            orderVars.addUsedVar(dataVD, BI);
-            llvm::report_fatal_error("disable masking");
-          }
-        } else {
-          if (!checkName.empty() && maskedVars.count(checkName)) {
-            // masked valid
-            BI = new SclDataToMaskInfo(dataVD, checkVD);
-            orderVars.addUsedVar(dataVD, BI);
-            llvm::report_fatal_error("disable masking");
-          } else {
-            // normal dcl
-            BI = new SclInfo(dataVD, checkVD);
-            orderVars.addUsedVar(dataVD, BI);
-          }
-        }
+    orderVars.addUsedVar(dataVD, BI);
+    return BI;
+  }
+
+  BaseInfo* addClInfo(const ValueDecl* dataVD, const ValueDecl* checkVD,
+                 const AnnotVarInfo& dataAVI) {
+    BaseInfo* BI = nullptr;
+    if (dataAVI.getClType() == AnnotVarInfo::Dcl) {
+      BI = new DclInfo(dataVD, checkVD);
+    } else if (dataAVI.getClType() == AnnotVarInfo::Scl) {
+      BI = new SclInfo(dataVD, checkVD);
+    } else {
+      llvm::report_fatal_error("mask to valid info error");
+    }
+
+    orderVars.addUsedVar(dataVD, BI);
+    return BI;
+  }
+
+  BaseInfo* addClDataToMaskInfo(const ValueDecl* dataVD, const ValueDecl* checkVD,
+                           const AnnotVarInfo& dataAVI) {
+    BaseInfo* BI = nullptr;
+    if (dataAVI.getClType() == AnnotVarInfo::Dcl) {
+      BI = new DclDataToMaskInfo(dataVD, checkVD);
+    } else if (dataAVI.getClType() == AnnotVarInfo::Scl) {
+      BI = new SclDataToMaskInfo(dataVD, checkVD);
+    } else {
+      llvm::report_fatal_error("mask to valid info error");
+    }
+
+    orderVars.addUsedVar(dataVD, BI);
+    return BI;
+  }
+
+  void addPair(const ValueDecl* dataVD, const AnnotateAttr* dataAA,
+               const AnnotVarInfo& dataAVI) {
+    auto checkName = dataAVI.getCheckName();
+    llvm::outs() << checkName << "\n";
+    const ValueDecl* checkVD = getCheckVD(checkName);
+    AnnotVarInfo* checkAVI = getAVI(checkVD);
+    BaseInfo* BI = nullptr;
+
+    if (dataAVI.isMask()) {
+      // if data is masked
+      if (dataVD == checkVD) {
+        // pure masked
+        llvm::report_fatal_error("mask disable");
+        BI = addClMaskToValidInfo(dataVD, nullptr, nullptr, dataAVI);
       } else {
-        llvm::report_fatal_error("annotation not found - not possible");
+        // masked with validator
+        llvm::report_fatal_error("mask disable");
+        BI = addClMaskToValidInfo(dataVD, checkVD, dataAA, dataAVI);
       }
-
-      // also subscribe valids
-      if (checkVD != nullptr && BI != nullptr) {
-        orderVars.addUsedVar(checkVD, BI);
+    } else {
+      // data is not masked
+      if (checkAVI && checkAVI->isMask()) {
+        // check uses mask
+        BI = addClDataToMaskInfo(dataVD, checkVD, dataAVI);
+        llvm::report_fatal_error("mask disable");
+      } else {
+        // check is not masked
+        BI = addClInfo(dataVD, checkVD, dataAVI);
       }
     }
+
+    // also subscribe valids
+    if (checkVD && BI) {
+      orderVars.addUsedVar(checkVD, BI);
+    }
   }
+
+  void addAnnotation(const ValueDecl* dataVD, const AnnotateAttr* dataAA,
+                     const AnnotVarInfo& AVI) {
+
+    if (AVI.getClType() == AnnotVarInfo::Check) {
+      addCheck(dataVD);
+    } else {
+      addPair(dataVD, dataAA, AVI);
+    }
+
+  } // namespace clang::ento::nvm
 
 public:
   WriteWalker(OrderVars& orderVars_, OrderFncs& orderFncs_)

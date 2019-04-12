@@ -141,6 +141,8 @@ public:
 };
 
 class DclDataToMaskInfo : public DclInfo {
+  StringRef maskName;
+
 public:
   DclDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_)
       : DclInfo(data_, check_) {}
@@ -154,6 +156,7 @@ public:
     if (useData(SI)) {
       SclSpace::writeData(SI);
     } else {
+      // todo check masking
       SclSpace::writeCheck(SI);
     }
   }
@@ -173,13 +176,15 @@ public:
     if (useData(SI)) {
       SclSpace::writeData(SI);
     } else {
-      if (SI.S && usesMask(SI.S, false)) {
+      /*
+      if (SI.S && usesMask(SI.S, maskName, false)) {
         // write to c(c)
         SI.setMask();
         SclSpace::writeCheck(SI);
       } else {
         // write to c(d)
       }
+      */
     }
   }
 };
@@ -187,9 +192,10 @@ public:
 class MaskToValidInfo : public PairInfo {
 protected:
   const AnnotateAttr* ann;
+  StringRef maskName;
   MaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
-                  const AnnotateAttr* ann_)
-      : PairInfo(data_, check_), ann(ann_) {}
+                  const AnnotateAttr* ann_, StringRef maskName_)
+      : PairInfo(data_, check_), ann(ann_), maskName(maskName_) {}
 
   enum FieldKind { CHUNK_DATA, CHUNK_CHECK, CHECK_CHECK, NONE };
 
@@ -199,7 +205,7 @@ protected:
       return FieldKind::CHECK_CHECK;
     } else if (SI.S) {
       // write case
-      if (usesMask(SI.S, false)) {
+      if (usesMask(SI.S, maskName, false)) {
         // write check
         SI.setMask();
         return FieldKind::CHUNK_CHECK;
@@ -218,8 +224,8 @@ protected:
 class DclMaskToValidInfo : public MaskToValidInfo {
 public:
   DclMaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
-                     const AnnotateAttr* ann_)
-      : MaskToValidInfo(data_, check_, ann_) {}
+                     const AnnotateAttr* ann_, StringRef maskName_)
+      : MaskToValidInfo(data_, check_, ann_, maskName_) {}
 
   void dump() const {
     llvm::outs() << "DclMaskToValidInfo: ";
@@ -289,8 +295,8 @@ public:
 class SclMaskToValidInfo : public MaskToValidInfo {
 public:
   SclMaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
-                     const AnnotateAttr* ann_)
-      : MaskToValidInfo(data_, check_, ann_) {}
+                     const AnnotateAttr* ann_, StringRef maskName_)
+      : MaskToValidInfo(data_, check_, ann_, maskName_) {}
 
   void dump() const {
     llvm::outs() << "SclMaskToValidInfo: ";

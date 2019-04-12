@@ -33,6 +33,7 @@ void writeData(StateInfo& SI) {
   } else if (DS->isWriteCheck()) {
     DBG("isWriteCheck")
     //write data
+    llvm::outs() << "lol\n";
     State = State->set<DclMap>(D, DclState::getWriteData());
     SI.stateChanged = true;
   } else {
