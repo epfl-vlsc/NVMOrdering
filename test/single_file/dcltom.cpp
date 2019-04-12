@@ -13,50 +13,55 @@ struct DclToM {
   enum {
     MASK = 7,
   };
-  pdcl(DclToM::valid) int data;
-  int valid;
+  sentinelp(DclToM::chunk+dcl) int data;
+  sentinelp(DclToM::chunk+scl+MASK) int chunk;
 
-  void writeValid() { valid = (valid & ~MASK) | 1; }
-
-  void persistent_code correct() {
+  void writeData() {
     data = 1;
+    chunk = (chunk & MASK) | 1;
+  }
+
+  void writeValid() { chunk = (chunk & ~MASK) | 1; }
+
+  void analyze_writes correct() {
+    writeData();
     clflush(&data);
     pfence();
     writeValid();
   }
 
-  void persistent_code initWriteDataTwice() {
-    data = 1;
-    data = 1;
+  void analyze_writes initWriteDataTwice() {
+    writeData();
+    writeData();
     clflush(&data);
     pfence();
     writeValid();
   }
 
-  void persistent_code fenceNotFlushedData() {
-    data = 1;
+  void analyze_writes fenceNotFlushedData() {
+    writeData();
     pfence();
     writeValid();
   }
 
-  void persistent_code writeFlushedData() {
-    data = 1;
+  void analyze_writes writeFlushedData() {
+    writeData();
     clflush(&data);
-    data = 1;
+    writeData();
     pfence();
     writeValid();
   }
 
-  void persistent_code doubleFlushData() {
-    data = 1;
+  void analyze_writes doubleFlushData() {
+    writeData();
     clflush(&data);
     clflush(&data);
     pfence();
     writeValid();
   }
 
-  void persistent_code branch(bool useNvm) {
-    data = 1;
+  void analyze_writes branch(bool useNvm) {
+    writeData();
     if (useNvm) {
       clflush(&data);
       pfence();
@@ -64,27 +69,27 @@ struct DclToM {
     }
   }
 
-  void persistent_code writeInitValid() {
-    valid = 1;
-    data = 1;
+  void analyze_writes writeInitValid() {
+    writeValid();
+    writeData();
     clflush(&data);
     pfence();
-    valid = 1;
+    writeValid();
   }
 
-  void persistent_code writeDataValid() {
-    data = 1;
-    valid = 1;
+  void analyze_writes writeDataValid() {
+    writeData();
+    writeValid();
     clflush(&data);
     pfence();
-    valid = 1;
+    writeValid();
   }
-  
-  void persistent_code writeFlushValid() {
+
+  void analyze_writes writeFlushValid() {
     data = 1;
     clflush(&data);
-    valid = 1;
+    writeValid();
     pfence();
-    valid = 1;
+    writeValid();
   }
 };

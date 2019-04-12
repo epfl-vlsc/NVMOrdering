@@ -45,7 +45,7 @@ template <typename Derived, typename BaseInfo, typename OrderVars,
           typename OrderFncs>
 class TUDWalker : public RecursiveASTVisitor<Derived> {
 protected:
-  using AnnotMap = std::map<const ValueDecl*, AnnotVarInfo>;
+  using AnnotMap = std::map<const ValueDecl*, AnnotVarInfo*>;
   using StringMap = std::map<std::string, const ValueDecl*>;
   using BIVec = std::vector<BaseInfo*>;
   using ValueMap = std::map<const ValueDecl*, BIVec>;
@@ -64,65 +64,70 @@ protected:
   OrderVars& orderVars;
   OrderFncs& orderFncs;
 
-  AnnotVarInfo parseAnnotation(StringRef annotation) {
+  virtual ~TUDWalker(){
+    for(auto& [_, AVI]: annotatedVars){
+      delete AVI;
+    }
+  }
+
+  AnnotVarInfo* parseAnnotation(StringRef annotation) {
     auto [annotType, annotInfo] = annotation.split(KEY_SEP);
     if (annotType.contains(CHECK)) {
-      return AnnotVarInfo(AnnotVarInfo::Check);
+      return new AnnotVarInfo(AnnotVarInfo::Check);
     } else if (annotType.contains(PAIR)) {
       SmallVector<StringRef, 3> annotatedTokens;
       annotInfo.split(annotatedTokens, PAIR_SEP);
       StringRef checkName = annotatedTokens[0];
       if (annotatedTokens.size() == 1) {
-        return AnnotVarInfo(AnnotVarInfo::Unk, checkName);
+        return new AnnotVarInfo(AnnotVarInfo::Unk, checkName);
       } else if (annotatedTokens.size() == 2) {
         StringRef token1 = annotatedTokens[1];
         if (token1.contains(DCL)) {
-          return AnnotVarInfo(AnnotVarInfo::Dcl, checkName);
+          return new AnnotVarInfo(AnnotVarInfo::Dcl, checkName);
         } else if (token1.contains(SCL)) {
-          return AnnotVarInfo(AnnotVarInfo::Scl, checkName);
+          return new AnnotVarInfo(AnnotVarInfo::Scl, checkName);
         } else {
-          return AnnotVarInfo(AnnotVarInfo::Unk, checkName, token1);
+          return new AnnotVarInfo(AnnotVarInfo::Unk, checkName, token1);
         }
       } else if (annotatedTokens.size() == 3) {
         StringRef token1 = annotatedTokens[1];
         StringRef token2 = annotatedTokens[2];
 
         if (token1.contains(DCL)) {
-          return AnnotVarInfo(AnnotVarInfo::Dcl, checkName, token2);
+          return new AnnotVarInfo(AnnotVarInfo::Dcl, checkName, token2);
         } else if (token1.contains(SCL)) {
-          return AnnotVarInfo(AnnotVarInfo::Scl, checkName, token2);
+          return new AnnotVarInfo(AnnotVarInfo::Scl, checkName, token2);
         } else if (token2.contains(DCL)) {
-          return AnnotVarInfo(AnnotVarInfo::Dcl, checkName, token1);
+          return new AnnotVarInfo(AnnotVarInfo::Dcl, checkName, token1);
         } else if (token2.contains(SCL)) {
-          return AnnotVarInfo(AnnotVarInfo::Scl, checkName, token1);
+          return new AnnotVarInfo(AnnotVarInfo::Scl, checkName, token1);
         } else {
           llvm::report_fatal_error("wrong annotation");
-          return AnnotVarInfo();
+          return new AnnotVarInfo();
         }
       } else {
         llvm::report_fatal_error("wrong annotation");
-        return AnnotVarInfo();
+        return new AnnotVarInfo();
       }
 
     } else {
       llvm::report_fatal_error("wrong annotation");
-      return AnnotVarInfo();
+      return new AnnotVarInfo();
     }
   }
 
   AnnotVarInfo* getAVI(const ValueDecl* VD) {
-    if (VD) {
+    if (!VD) {
       // empty body masked dcl, scl
       return nullptr;
     }
-
-    dbg_assert(annotatedVars, VD, "check not tracked correctly");
-    return &annotatedVars[VD];
+   
+    return annotatedVars[VD];
   }
 
   virtual void addAnnotation(const ValueDecl* dataVD,
                              const AnnotateAttr* dataAA,
-                             const AnnotVarInfo& AVI) = 0;
+                             const AnnotVarInfo* AVI) = 0;
 
   void addIfAnnotated(const FieldDecl* FD, StringRef annotation) {
     if (!annotation.empty()) {
@@ -134,10 +139,10 @@ protected:
         // var is annotated
 
         // parse annotation
-        AnnotVarInfo AVI = parseAnnotation(annotation);
-        if (AVI.getClType() == AnnotVarInfo::Unk) {
+        AnnotVarInfo* AVI = parseAnnotation(annotation);
+        if (AVI->getClType() == AnnotVarInfo::Unk) {
           // do auto-determination
-          AVI.setDcl();
+          AVI->setDcl();
         }
 
         annotatedVars[FD] = AVI;
@@ -145,7 +150,7 @@ protected:
     }
   }
 
-  void createUsedVar(const ValueDecl* VD, const AnnotVarInfo& AVI) {
+  void createUsedVar(const ValueDecl* VD, const AnnotVarInfo* AVI) {
     for (const auto* Ann : VD->specific_attrs<AnnotateAttr>()) {
       // add to annotated vars
       addAnnotation(VD, Ann, AVI);

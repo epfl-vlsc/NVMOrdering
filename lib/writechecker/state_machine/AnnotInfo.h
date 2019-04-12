@@ -146,8 +146,9 @@ class DclDataToMaskInfo : public DclInfo {
   StringRef maskName;
 
 public:
-  DclDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_)
-      : DclInfo(data_, check_) {}
+  DclDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_,
+                    StringRef maskName_)
+      : DclInfo(data_, check_), maskName(maskName_) {}
 
   void dump() const {
     llvm::outs() << "DclDataToMaskInfo: ";
@@ -156,18 +157,27 @@ public:
 
   virtual void write(StateInfo& SI) const {
     if (useData(SI)) {
-      SclSpace::writeData(SI);
+      DclSpace::writeData(SI);
     } else {
-      // todo check masking
-      SclSpace::writeCheck(SI);
+      if (SI.S && usesMask(SI.S, maskName, false)) {
+        // write to c(c)
+        SI.setMask();
+        DclSpace::writeCheck(SI);
+      } else {
+        // write to c(d)
+        // do nothing
+      }
     }
   }
 };
 
 class SclDataToMaskInfo : public SclInfo {
+  StringRef maskName;
+
 public:
-  SclDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_)
-      : SclInfo(data_, check_) {}
+  SclDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_,
+                    StringRef maskName_)
+      : SclInfo(data_, check_), maskName(maskName_) {}
 
   void dump() const {
     llvm::outs() << "SclDataToMaskInfo: ";
@@ -178,15 +188,14 @@ public:
     if (useData(SI)) {
       SclSpace::writeData(SI);
     } else {
-      /*
       if (SI.S && usesMask(SI.S, maskName, false)) {
         // write to c(c)
         SI.setMask();
         SclSpace::writeCheck(SI);
       } else {
         // write to c(d)
+        // do nothing
       }
-      */
     }
   }
 };
@@ -232,7 +241,7 @@ protected:
 };
 
 class DclMaskToValidInfo : public MaskToValidInfo {
-  //setD, setVD, call transition
+  // setD, setVD, call transition
 public:
   DclMaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
                      const AnnotateAttr* ann_, StringRef maskName_)
@@ -306,7 +315,7 @@ public:
 };
 
 class SclMaskToValidInfo : public MaskToValidInfo {
-  //setD, setVD, call transition
+  // setD, setVD, call transition
 public:
   SclMaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
                      const AnnotateAttr* ann_, StringRef maskName_)

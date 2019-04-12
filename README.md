@@ -38,6 +38,8 @@ dclm: 3
 dclmt: 7
 sclm: 3
 sclmt: 7
+scltom: 4
+dcltom: 9
 simple_masstree: 0
 
 read
