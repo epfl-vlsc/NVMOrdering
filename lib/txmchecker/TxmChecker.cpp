@@ -1,12 +1,12 @@
 //===-- OrderingChecker.cpp -----------------------------------------*
 // ensure main handle functions only add one state
 
-#include "TxMChecker.h"
+#include "TxmChecker.h"
 
 namespace clang::ento::nvm {
 
-void TxMChecker::checkBeginFunction(CheckerContext& C) const {
-  bool isPFnc = nvmTxInfo.isPFunction(C);
+void TxmChecker::checkBeginFunction(CheckerContext& C) const {
+  bool isPFnc = txDecls.isPFunction(C);
   bool isTopFnc = isTopFunction(C);
 
   // if pmalloc or pfree function, do not analyze
@@ -17,7 +17,7 @@ void TxMChecker::checkBeginFunction(CheckerContext& C) const {
   }
 }
 
-void TxMChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
+void TxmChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                                    CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   const MemRegion* Region = Loc.getAsRegion();
@@ -37,18 +37,18 @@ void TxMChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   }
 }
 
-void TxMChecker::checkASTDecl(const FunctionDecl* D,
+void TxmChecker::checkASTDecl(const FunctionDecl* D,
                                       AnalysisManager& Mgr,
                                       BugReporter& BR) const {
-  nvmTxInfo.insertFunction(D);
+  txDecls.insertFunction(D);
 }
 
-void TxMChecker::checkDeadSymbols(SymbolReaper& SymReaper,
+void TxmChecker::checkDeadSymbols(SymbolReaper& SymReaper,
                                           CheckerContext& C) const {
   // llvm::outs() << "checkDeadSymbols\n";
 }
 
-ProgramStateRef TxMChecker::checkPointerEscape(
+ProgramStateRef TxmChecker::checkPointerEscape(
     ProgramStateRef State, const InvalidatedSymbols& Escaped,
     const CallEvent* Call, PointerEscapeKind Kind) const {
   // llvm::outs() << "checkPointerEscape\n";
@@ -56,23 +56,23 @@ ProgramStateRef TxMChecker::checkPointerEscape(
   return State;
 }
 
-void TxMChecker::checkPostCall(const CallEvent& Call,
+void TxmChecker::checkPostCall(const CallEvent& Call,
                                        CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(Call);
-  if (nvmTxInfo.isTxBeg(FD)) {
+  if (txDecls.isTxBeg(FD)) {
     handleTxBegin(C);
-  } else if (nvmTxInfo.isTxEnd(FD)) {
+  } else if (txDecls.isTxEnd(FD)) {
     handleTxEnd(C);
-  } else if (nvmTxInfo.isPalloc(FD)) {
+  } else if (txDecls.isPalloc(FD)) {
     handlePalloc(Call, C);
-  } else if (nvmTxInfo.isPfree(FD)) {
+  } else if (txDecls.isPfree(FD)) {
     handlePfree(Call, C);
   } else {
     // nothing
   }
 }
 
-void TxMChecker::handlePalloc(const CallEvent& Call,
+void TxmChecker::handlePalloc(const CallEvent& Call,
                                       CheckerContext& C) const {
   // taint
   ProgramStateRef State = C.getState();
@@ -96,7 +96,7 @@ void TxMChecker::handlePalloc(const CallEvent& Call,
   C.addTransition(State);
 }
 
-void TxMChecker::handlePfree(const CallEvent& Call,
+void TxmChecker::handlePfree(const CallEvent& Call,
                                      CheckerContext& C) const {
   if (Call.getNumArgs() > 1) {
     llvm::report_fatal_error("check pfree function");
@@ -127,7 +127,7 @@ void TxMChecker::handlePfree(const CallEvent& Call,
   }
 }
 
-void TxMChecker::handleTxBegin(CheckerContext& C) const {
+void TxmChecker::handleTxBegin(CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   unsigned txCount = State->get<TxCounter>();
   txCount += 1;
@@ -135,7 +135,7 @@ void TxMChecker::handleTxBegin(CheckerContext& C) const {
   C.addTransition(State);
 }
 
-void TxMChecker::handleTxEnd(CheckerContext& C) const {
+void TxmChecker::handleTxEnd(CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   unsigned txCount = State->get<TxCounter>();
   if (txCount) {
@@ -152,6 +152,6 @@ extern "C" const char clang_analyzerAPIVersionString[] =
     CLANG_ANALYZER_API_VERSION_STRING;
 
 extern "C" void clang_registerCheckers(clang::ento::CheckerRegistry& registry) {
-  registry.addChecker<clang::ento::nvm::TxMChecker>(
+  registry.addChecker<clang::ento::nvm::TxmChecker>(
       CHECKER_PLUGIN_NAME, "Checks cache line pair usage");
 }

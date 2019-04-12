@@ -2,19 +2,19 @@
 #pragma once
 #include "Common.h"
 #include "States.h"
-#include "TxMBugReporter.h"
-#include "TransactionInfos.h"
+#include "state_machine/TxmBugReporter.h"
+#include "state_machine/TxDecls.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.txmchecker";
 
 namespace clang::ento::nvm {
 
-class TxMChecker
+class TxmChecker
     : public Checker<check::BeginFunction, check::Bind,
                      check::ASTDecl<FunctionDecl>, check::DeadSymbols,
                      check::PointerEscape, check::PostCall> {
 public:
-  TxMChecker() : BReporter(*this) {}
+  TxmChecker() : BReporter(*this) {}
 
   void checkBeginFunction(CheckerContext& C) const;
 
@@ -42,7 +42,7 @@ private:
   void handlePfree(const CallEvent &Call, CheckerContext& C) const;
 
   TxMBugReporter BReporter;
-  mutable NVMTransactionInfo nvmTxInfo;
+  mutable TxDecls txDecls;
 };
 
 } // namespace clang::ento::nvm

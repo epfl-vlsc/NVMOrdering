@@ -1,5 +1,5 @@
 add_library(txmchecker MODULE
-  TxMChecker.cpp
+  TxmChecker.cpp
 )
 
 target_include_directories(txmchecker
