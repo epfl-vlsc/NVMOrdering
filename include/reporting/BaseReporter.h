@@ -8,17 +8,14 @@ using BugPtr = std::unique_ptr<BugType>;
 
 class BaseReporter {
 protected:
-  std::string getErrorMessage(CheckerContext& C, const char* D,
+  std::string getErrorMessage(CheckerContext& C, const ValueDecl* VD,
                               const char* msg) const {
     const FunctionDecl* FD = getTopFunction(C);
     std::string sbuf;
     llvm::raw_string_ostream ErrorOs(sbuf);
     ErrorOs << "At: " << FD->getQualifiedNameAsString() << " " << msg;
 
-    const Decl* BD = (const Decl*)D;
-    if (const ValueDecl* VD = dyn_cast_or_null<ValueDecl>(BD)) {
-      ErrorOs << " " << VD->getNameAsString();
-    }
+    ErrorOs << " " << VD->getNameAsString();
 
     return ErrorOs.str();
   }
@@ -34,10 +31,11 @@ protected:
   }
 
 public:
-  void report(CheckerContext& C, const char* D, const char* msg, SVal* Loc,
-              const ExplodedNode* const EN, const BugPtr& bugPtr) const {   
+  void report(CheckerContext& C, const ValueDecl* VD, const char* msg,
+              SVal* Loc, const ExplodedNode* const EN,
+              const BugPtr& bugPtr) const {
     BugReporter& BReporter = C.getBugReporter();
-    std::string ErrMsg = getErrorMessage(C, D, msg);
+    std::string ErrMsg = getErrorMessage(C, VD, msg);
     reportDirect(Loc, ErrMsg, EN, bugPtr, BReporter);
   }
 };
