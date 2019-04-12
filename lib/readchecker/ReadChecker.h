@@ -1,5 +1,5 @@
 #pragma once
-#include "AstWalkers.h"
+#include "ReadWalkers.h"
 #include "Common.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.readchecker";
@@ -26,8 +26,8 @@ private:
   void handleEnd(CheckerContext& C) const;
 
   ReadBugReporter BReporter;
-  mutable FunctionInfos fncInfos;
-  mutable VarInfos varInfos;
+  mutable OrderFncs orderFncs;
+  mutable OrderVars orderVars;
 };
 
 } // namespace clang::ento::nvm

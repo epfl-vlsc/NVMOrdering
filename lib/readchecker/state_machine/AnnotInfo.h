@@ -2,7 +2,7 @@
 
 #include "Common.h"
 #include "Walkers.h"
-#include "TransitionInfos.h"
+#include "StateInfo.h"
 #include "RecTransitions.h"
 
 namespace clang::ento::nvm {
@@ -15,8 +15,8 @@ protected:
 public:
   virtual void dump() const { llvm::outs() << data->getNameAsString(); }
 
-  virtual bool useData(ReportInfos& RI) const = 0;
-  virtual void read(ReportInfos& RI) const = 0;
+  virtual bool useData(StateInfo& SI) const = 0;
+  virtual void read(StateInfo& SI) const = 0;
 };
 
 class PairInfo : public BaseInfo {
@@ -33,11 +33,11 @@ public:
     }
   }
 
-  virtual bool useData(ReportInfos& RI) const {
-    RI.setD(data);
-    if (((const char*)data) == RI.VarAddr) {
+  virtual bool useData(StateInfo& SI) const {
+    SI.setD(data);
+    if (((const char*)data) == SI.VarAddr) {
       return true;
-    } else if (((const char*)check) == RI.VarAddr) {
+    } else if (((const char*)check) == SI.VarAddr) {
       return false;
     } else {
       llvm::report_fatal_error("not data nor check");
@@ -46,7 +46,7 @@ public:
   }
 
   // todo make it all pure abstract
-  virtual void read(ReportInfos& RI) const{}
+  virtual void read(StateInfo& SI) const{}
 };
 
 class RecInfo : public PairInfo {
@@ -60,11 +60,11 @@ public:
     PairInfo::dump();
   }
 
-  virtual void read(ReportInfos& RI) const {
-    if (useData(RI)) {
-      RecSpace::readData(RI);
+  virtual void read(StateInfo& SI) const {
+    if (useData(SI)) {
+      RecSpace::readData(SI);
     } else {
-      RecSpace::readCheck(RI);
+      RecSpace::readCheck(SI);
     }
   }
 };
@@ -89,19 +89,19 @@ protected:
 
   enum FieldKind { CHUNK_DATA, CHUNK_CHECK, CHECK_CHECK, NONE };
 
-  virtual FieldKind selectField(ReportInfos& RI) const {
-    if (((const char*)check) == RI.VarAddr) {
+  virtual FieldKind selectField(StateInfo& SI) const {
+    if (((const char*)check) == SI.VarAddr) {
       // transitive check
       return FieldKind::CHECK_CHECK;
-    } else if (RI.S) {
+    } else if (SI.S) {
       // read case
-      if (usesMask(RI.S, true)) {
+      if (usesMask(SI.S, true)) {
         // read check
-        RI.setMask();
+        SI.setMask();
         return FieldKind::CHUNK_CHECK;
       } else {
         // read data
-        RI.setMask();
+        SI.setMask();
         return FieldKind::CHUNK_DATA;
       }
     } else {
@@ -122,29 +122,29 @@ public:
     PairInfo::dump();
   }
 
-  virtual void read(ReportInfos& RI) const {
-    switch (selectField(RI)) {
+  virtual void read(StateInfo& SI) const {
+    switch (selectField(SI)) {
     case FieldKind::CHUNK_DATA: {
       DBG("chunk data " << (void*)data << "readData")
-      RI.setD(data);
-      RecSpace::readData(RI);
+      SI.setD(data);
+      RecSpace::readData(SI);
       break;
     }
     case FieldKind::CHUNK_CHECK: {
       DBG("chunk check " << (void*)data << "readCheck")
-      RI.setD(data);
-      RecSpace::readCheck(RI);
+      SI.setD(data);
+      RecSpace::readCheck(SI);
       if (ann) {
         DBG("chunk check " << (void*)ann << "readData")
-        RI.setD(ann);
-        RecSpace::readData(RI);
+        SI.setD(ann);
+        RecSpace::readData(SI);
       }
       break;
     }
     case FieldKind::CHECK_CHECK: {
       DBG("check " << (void*)ann << "readCheck")
-      RI.setD(ann);
-      RecSpace::readCheck(RI);
+      SI.setD(ann);
+      RecSpace::readCheck(SI);
       break;
     }
     default: {

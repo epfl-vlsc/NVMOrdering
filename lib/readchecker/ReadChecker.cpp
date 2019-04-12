@@ -9,16 +9,16 @@ void ReadChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
                                AnalysisManager& Mgr, BugReporter& BR) const {
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
   // fill data structures
-  TUDWalker tudWalker(varInfos, fncInfos);
+  TUDWalker tudWalker(orderVars, orderFncs);
   tudWalker.TraverseDecl(TUD);
   tudWalker.createUsedVars();
 
-  fncInfos.dump();
-  varInfos.dump();
+  orderFncs.dump();
+  orderVars.dump();
 }
 
 void ReadChecker::checkBeginFunction(CheckerContext& C) const {
-  bool isAnnotated = fncInfos.isRecoveryFunction(C);
+  bool isAnnotated = orderFncs.isRecoveryFunction(C);
   bool isTopFnc = isTopFunction(C);
 
   // if not an annotated function, do not analyze
@@ -40,19 +40,18 @@ void ReadChecker::checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
-  //get the statement where mask can exist
+  // get the statement where mask can exist
   const Stmt* PS = getParentStmt(S, C);
-  //PS->dump();
+  // PS->dump();
 
   if (const ValueDecl* VD = getValueDecl(Loc); VD) {
-    if (varInfos.isUsedVar(VD)) {
+    if (orderVars.isUsedVar(VD)) {
       DBG("read " << VD->getNameAsString())
-      auto& infoList = varInfos.getInfoList(VD);
+      auto& infoList = orderVars.getInfoList(VD);
       for (auto& BI : infoList) {
-        auto RI =
-            ReportInfos::getRI(C, State, (const char*)VD, BReporter, &Loc, PS);
-        BI->read(RI);
-        stateChanged |= RI.stateChanged;
+        auto SI = StateInfo(C, State, BReporter, &Loc, PS, (const char*)VD);
+        BI->read(SI);
+        stateChanged |= SI.stateChanged;
       }
     }
   }
@@ -61,7 +60,7 @@ void ReadChecker::checkLocation(SVal Loc, bool IsLoad, const Stmt* S,
 }
 
 void ReadChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,
-                                      bool stateChanged) const {
+                                     bool stateChanged) const {
   if (stateChanged) {
     DBG("state transition")
     C.addTransition(State);

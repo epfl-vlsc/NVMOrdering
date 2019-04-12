@@ -5,9 +5,9 @@
 
 namespace clang::ento::nvm::RecSpace {
 
-void readData(ReportInfos& RI) {
-  ProgramStateRef& State = RI.State;
-  const char* D = RI.getD();
+void readData(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+  const char* D = SI.getD();
 
   const RecState* RS = State->get<RecMap>(D);
 
@@ -16,12 +16,12 @@ void readData(ReportInfos& RI) {
   if (!RS) {
     DBG("!RS bug")
     // bug:not read check
-    RI.reportCheckNotRead();
+    SI.reportCheckNotRead();
   } else if (RS->isReadCheck()) {
     DBG("isReadCheck bug")
     // read data
     State = State->set<RecMap>(D, RecState::getReadData());
-    RI.stateChanged = true;
+    SI.stateChanged = true;
   } else if (RS->isReadData()) {
     DBG("isReadData bug")
     //do nothing
@@ -30,9 +30,9 @@ void readData(ReportInfos& RI) {
   }
 }
 
-void readCheck(ReportInfos& RI) {
-  ProgramStateRef& State = RI.State;
-  const char* D = RI.getD();
+void readCheck(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+  const char* D = SI.getD();
 
   const RecState* RS = State->get<RecMap>(D);
 
@@ -42,7 +42,7 @@ void readCheck(ReportInfos& RI) {
     DBG("!RS bug")
     // read check
     State = State->set<RecMap>(D, RecState::getReadCheck());
-    RI.stateChanged = true;
+    SI.stateChanged = true;
   } else if (RS->isReadData()) {
     DBG("isReadData bug")
     // do nothing

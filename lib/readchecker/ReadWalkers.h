@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
-#include "FunctionInfos.h"
-#include "StateMachine/DataInfos.h"
+#include "identify/OrderFncs.h"
+#include "state_machine/OrderVars.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang::ento::nvm {
@@ -27,8 +27,8 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
   StringSet maskedVars;
   StringMap varMap;
   ValueSet annotatedVars;
-  VarInfos& varInfos;
-  FunctionInfos& fncInfos;
+  OrderVars& orderVars;
+  OrderFncs& orderFncs;
 
   void addIfAnnotated(const FieldDecl* FD, StringRef annotation) {
     if (auto [annotInfo, textInfo] = annotation.split(SEP);
@@ -83,31 +83,31 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
           // if transitively has a validator
           llvm::outs() << "RecMaskToValidInfo" << dataVD->getNameAsString() << "\n";
           BI = new RecMaskToValidInfo(dataVD, checkVD, dataAA);
-          varInfos.addUsedVar(dataVD, BI);
-          varInfos.addUsedVar(dataAA, BI);
+          orderVars.addUsedVar(dataVD, BI);
+          orderVars.addUsedVar(dataAA, BI);
         } else {
           // does not have a validator
           llvm::outs() << "RecMaskToValidInfon" << dataVD->getNameAsString() << "\n";
           BI = new RecMaskToValidInfo(dataVD, nullptr, nullptr);
-          varInfos.addUsedVar(dataVD, BI);
+          orderVars.addUsedVar(dataVD, BI);
         }
       } else {
         if (!checkName.empty() && maskedVars.count(checkName)) {
           // masked valid
           llvm::outs() << "RecDataToMaskInfo" << dataVD->getNameAsString() << "\n";
           BI = new RecDataToMaskInfo(dataVD, checkVD);
-          varInfos.addUsedVar(dataVD, BI);
+          orderVars.addUsedVar(dataVD, BI);
         } else {
           // normal
           llvm::outs() << "RecInfo" << dataVD->getNameAsString() << "\n";
           BI = new RecInfo(dataVD, checkVD);
-          varInfos.addUsedVar(dataVD, BI);
+          orderVars.addUsedVar(dataVD, BI);
         }
       }
 
       // also subscribe valids
       if (checkVD != nullptr && BI != nullptr) {
-        varInfos.addUsedVar(checkVD, BI);
+        orderVars.addUsedVar(checkVD, BI);
       }
     }
   }
@@ -119,8 +119,8 @@ class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
   }
 
 public:
-  TUDWalker(VarInfos& varInfos_, FunctionInfos& fncInfos_)
-      : varInfos(varInfos_), fncInfos(fncInfos_) {}
+  TUDWalker(OrderVars& orderVars_, OrderFncs& orderFncs_)
+      : orderVars(orderVars_), orderFncs(orderFncs_) {}
 
   // todo add a visitor to support local var declaration
   bool VisitFieldDecl(const FieldDecl* FD) {
@@ -139,7 +139,7 @@ public:
   }
 
   bool VisitFunctionDecl(const FunctionDecl* FD) {
-    fncInfos.insertIfKnown(FD);
+    orderFncs.insertIfKnown(FD);
 
     // continue traversal
     return true;
@@ -165,6 +165,6 @@ public:
     }
   }
 
-}; // namespace clang::ento::nvm
+};
 
 } // namespace clang::ento::nvm

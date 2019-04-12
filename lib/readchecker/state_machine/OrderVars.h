@@ -1,10 +1,10 @@
 #pragma once
 #include "Common.h"
-#include "AnnotationInfos.h"
+#include "AnnotInfo.h"
 
 namespace clang::ento::nvm {
 
-class VarInfos {
+class OrderVars {
   using InfoList = std::set<BaseInfo*>;
   using ValueMap = std::map<const char*, InfoList>;
   ValueMap usedVars;

@@ -23,9 +23,8 @@ template <typename BugReporter> struct StateIn {
 
 protected:
   StateIn(CheckerContext& C_, ProgramStateRef& State_, const BugReporter& BR_,
-            SVal* Loc_, const Stmt* S_)
+          SVal* Loc_, const Stmt* S_)
       : C(C_), State(State_), BR(BR_), Loc(Loc_), S(S_) {}
-   
 };
 
 } // namespace clang::ento::nvm
