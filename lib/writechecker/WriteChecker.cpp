@@ -9,7 +9,8 @@ void WriteChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
                                 AnalysisManager& Mgr, BugReporter& BR) const {
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
   // fill data structures
-  WriteWalker tudWalker(orderVars, orderFncs);
+  const ASTContext& ASTC = Mgr.getASTContext();
+  WriteWalker tudWalker(orderVars, orderFncs, ASTC);
   tudWalker.TraverseDecl(TUD);
   tudWalker.createUsedVars();
 

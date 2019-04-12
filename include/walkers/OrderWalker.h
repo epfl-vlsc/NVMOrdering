@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "walkers/CachePlacement.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang::ento::nvm {
@@ -32,13 +33,9 @@ public:
 
   const std::string& getCheckName() const { return checkName; }
 
-  void setDcl(){
-    clKind = ClKind::Dcl;
-  }
+  void setDcl() { clKind = ClKind::Dcl; }
 
-  void setScl(){
-    clKind = ClKind::Scl;
-  }
+  void setScl() { clKind = ClKind::Scl; }
 };
 
 template <typename Derived, typename BaseInfo, typename OrderVars,
@@ -63,9 +60,10 @@ protected:
   AnnotMap annotatedVars;
   OrderVars& orderVars;
   OrderFncs& orderFncs;
+  ClPlace clPlace;
 
-  virtual ~TUDWalker(){
-    for(auto& [_, AVI]: annotatedVars){
+  virtual ~TUDWalker() {
+    for (auto& [_, AVI] : annotatedVars) {
       delete AVI;
     }
   }
@@ -121,7 +119,7 @@ protected:
       // empty body masked dcl, scl
       return nullptr;
     }
-   
+
     return annotatedVars[VD];
   }
 
@@ -142,7 +140,13 @@ protected:
         AnnotVarInfo* AVI = parseAnnotation(annotation);
         if (AVI->getClType() == AnnotVarInfo::Unk) {
           // do auto-determination
-          AVI->setDcl();
+          // AVI always have checkName
+          auto& checkName = AVI->getCheckName();
+          if (clPlace.isScl(FD, checkName)) {
+            AVI->setScl();
+          } else {
+            AVI->setDcl();
+          }
         }
 
         annotatedVars[FD] = AVI;
@@ -163,15 +167,16 @@ protected:
       return nullptr;
     }
 
-    if(!varMap.count(checkName)){
+    if (!varMap.count(checkName)) {
       llvm::report_fatal_error("check not found");
     }
     return varMap[checkName];
   }
 
 public:
-  TUDWalker(OrderVars& orderVars_, OrderFncs& orderFncs_)
-      : orderVars(orderVars_), orderFncs(orderFncs_) {}
+  TUDWalker(OrderVars& orderVars_, OrderFncs& orderFncs_,
+            const ASTContext& ASTC_)
+      : orderVars(orderVars_), orderFncs(orderFncs_), clPlace(ASTC_) {}
 
   // todo add a visitor to support local var declaration
   bool VisitFieldDecl(const FieldDecl* FD) {

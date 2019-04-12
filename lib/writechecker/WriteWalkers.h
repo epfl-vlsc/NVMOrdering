@@ -13,9 +13,10 @@ class WriteWalker
   void addCheck(const ValueDecl* dataVD) {
     orderVars.addUsedVar(dataVD, new CheckInfo(dataVD));
   }
-  BaseInfo* addClMaskToValidInfo(const ValueDecl* dataVD, const ValueDecl* checkVD,
-                            const AnnotateAttr* dataAA,
-                            const AnnotVarInfo* dataAVI) {
+  BaseInfo* addClMaskToValidInfo(const ValueDecl* dataVD,
+                                 const ValueDecl* checkVD,
+                                 const AnnotateAttr* dataAA,
+                                 const AnnotVarInfo* dataAVI) {
     BaseInfo* BI = nullptr;
     StringRef maskName = dataAVI->getMask();
     if (dataAVI->getClType() == AnnotVarInfo::Dcl) {
@@ -27,14 +28,14 @@ class WriteWalker
     }
 
     orderVars.addUsedVar(dataVD, BI);
-    if(dataAA){
+    if (dataAA) {
       orderVars.addUsedVar(dataAA, BI);
     }
     return BI;
   }
 
   BaseInfo* addClInfo(const ValueDecl* dataVD, const ValueDecl* checkVD,
-                 const AnnotVarInfo* dataAVI) {
+                      const AnnotVarInfo* dataAVI) {
     BaseInfo* BI = nullptr;
     if (dataAVI->getClType() == AnnotVarInfo::Dcl) {
       BI = new DclInfo(dataVD, checkVD);
@@ -48,8 +49,10 @@ class WriteWalker
     return BI;
   }
 
-  BaseInfo* addClDataToMaskInfo(const ValueDecl* dataVD, const ValueDecl* checkVD,
-                           const AnnotVarInfo* dataAVI, const StringRef& maskName) {
+  BaseInfo* addClDataToMaskInfo(const ValueDecl* dataVD,
+                                const ValueDecl* checkVD,
+                                const AnnotVarInfo* dataAVI,
+                                const StringRef& maskName) {
     BaseInfo* BI = nullptr;
     if (dataAVI->getClType() == AnnotVarInfo::Dcl) {
       BI = new DclDataToMaskInfo(dataVD, checkVD, maskName);
@@ -70,7 +73,7 @@ class WriteWalker
     AnnotVarInfo* checkAVI = getAVI(checkVD);
     BaseInfo* BI = nullptr;
 
-    if(!dataAVI){
+    if (!dataAVI) {
       llvm::report_fatal_error("data must be tracked for AVI");
     }
 
@@ -113,8 +116,9 @@ class WriteWalker
   } // namespace clang::ento::nvm
 
 public:
-  WriteWalker(OrderVars& orderVars_, OrderFncs& orderFncs_)
-      : TUDWalker(orderVars_, orderFncs_) {}
+  WriteWalker(OrderVars& orderVars_, OrderFncs& orderFncs_,
+              const ASTContext& ASTC_)
+      : TUDWalker(orderVars_, orderFncs_, ASTC_) {}
 };
 
 } // namespace clang::ento::nvm
