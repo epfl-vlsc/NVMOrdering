@@ -68,8 +68,10 @@ public:
   virtual bool useData(StateInfo& SI) const {
     SI.setD(data);
     if (((const char*)data) == SI.VarAddr) {
+      SI.setVD(data);
       return true;
     } else if (((const char*)check) == SI.VarAddr) {
+      SI.setVD(data);
       return false;
     } else {
       llvm::report_fatal_error("not data nor check");
@@ -202,26 +204,35 @@ protected:
   virtual FieldKind selectField(StateInfo& SI) const {
     if (((const char*)check) == SI.VarAddr) {
       // transitive check
+      SI.setVD(data);
       return FieldKind::CHECK_CHECK;
-    } else if (SI.S) {
-      // write case
-      if (usesMask(SI.S, maskName, false)) {
-        // write check
-        SI.setMask();
-        return FieldKind::CHUNK_CHECK;
+    } else if (((const char*)data) == SI.VarAddr) {
+      SI.setVD(data);
+
+      if (SI.S) {
+        // write
+        if (usesMask(SI.S, maskName, false)) {
+          // write check
+          SI.setMask();
+          return FieldKind::CHUNK_CHECK;
+        } else {
+          // write data
+          SI.setMask();
+          return FieldKind::CHUNK_DATA;
+        }
       } else {
-        // write data
+        // flush
         SI.setMask();
         return FieldKind::CHUNK_DATA;
       }
     } else {
-      // flush case
-      return FieldKind::CHUNK_DATA;
+      llvm::report_fatal_error("wrong pair addr");
     }
   }
 };
 
 class DclMaskToValidInfo : public MaskToValidInfo {
+  //setD, setVD, call transition
 public:
   DclMaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
                      const AnnotateAttr* ann_, StringRef maskName_)
@@ -277,11 +288,13 @@ public:
   }
 
   virtual void vfence(StateInfo& SI) const {
+    SI.setVD(data);
     SI.setD(data);
     SclSpace::vfenceData(SI);
   }
 
   virtual void pfence(StateInfo& SI) const {
+    SI.setVD(data);
     SI.setD(data);
     SclSpace::vfenceData(SI);
     if (ann) {
@@ -293,6 +306,7 @@ public:
 };
 
 class SclMaskToValidInfo : public MaskToValidInfo {
+  //setD, setVD, call transition
 public:
   SclMaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
                      const AnnotateAttr* ann_, StringRef maskName_)
@@ -331,6 +345,7 @@ public:
     }
   }
   virtual void vfence(StateInfo& SI) const {
+    SI.setVD(data);
     SI.setD(data);
     SclSpace::vfenceData(SI);
     if (ann) {
@@ -341,6 +356,7 @@ public:
   }
 
   virtual void pfence(StateInfo& SI) const {
+    SI.setVD(data);
     SI.setD(data);
     SclSpace::vfenceData(SI);
     if (ann) {

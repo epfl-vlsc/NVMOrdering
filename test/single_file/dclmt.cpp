@@ -13,7 +13,7 @@ struct TransitiveDclm {
   enum {
     MASK = 7,
   };
-  pdcl(TransitiveDclm::valid) int chunk;
+  sentinelp(TransitiveDclm::valid+dcl+MASK) int chunk;
   int valid;
 
   void writeCD() { chunk = (chunk & MASK) | 1; }
@@ -28,14 +28,14 @@ struct TransitiveDclm {
     writeCV();
   }
 
-  void persistent_code correct() {
+  void analyze_writes correct() {
     writeChunk();
     clflush(&chunk);
     pfence();
     valid = 1;
   }
 
-  void persistent_code initWriteDataTwice() {
+  void analyze_writes initWriteDataTwice() {
     writeChunk();
     writeChunk();
     clflush(&chunk);
@@ -43,13 +43,13 @@ struct TransitiveDclm {
     valid = 1;
   }
 
-  void persistent_code fenceNotFlushedData() {
+  void analyze_writes fenceNotFlushedData() {
     writeChunk();
     pfence();
     valid = 1;
   }
 
-  void persistent_code writeFlushedData() {
+  void analyze_writes writeFlushedData() {
     writeChunk();
     clflush(&chunk);
     writeChunk();
@@ -57,7 +57,7 @@ struct TransitiveDclm {
     valid = 1;
   }
 
-  void persistent_code doubleFlushData() {
+  void analyze_writes doubleFlushData() {
     writeChunk();
     clflush(&chunk);
     clflush(&chunk);
@@ -65,7 +65,7 @@ struct TransitiveDclm {
     valid = 1;
   }
 
-  void persistent_code branch(bool useNvm) {
+  void analyze_writes branch(bool useNvm) {
     writeChunk();
     if (useNvm) {
       clflush(&chunk);
@@ -74,7 +74,7 @@ struct TransitiveDclm {
     }
   }
 
-  void persistent_code writeInitValid() {
+  void analyze_writes writeInitValid() {
     valid = 1;
     writeChunk();
     clflush(&chunk);
@@ -82,7 +82,7 @@ struct TransitiveDclm {
     valid = 1;
   }
 
-  void persistent_code writeDataValid() {
+  void analyze_writes writeDataValid() {
     writeChunk();
     valid = 1;
     clflush(&chunk);
@@ -90,7 +90,7 @@ struct TransitiveDclm {
     valid = 1;
   }
   
-  void persistent_code writeFlushValid() {
+  void analyze_writes writeFlushValid() {
     writeChunk();
     clflush(&chunk);
     valid = 1;

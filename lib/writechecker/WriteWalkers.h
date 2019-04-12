@@ -27,6 +27,9 @@ class WriteWalker
     }
 
     orderVars.addUsedVar(dataVD, BI);
+    if(dataAA){
+      orderVars.addUsedVar(dataAA, BI);
+    }
     return BI;
   }
 
@@ -63,7 +66,6 @@ class WriteWalker
   void addPair(const ValueDecl* dataVD, const AnnotateAttr* dataAA,
                const AnnotVarInfo& dataAVI) {
     auto checkName = dataAVI.getCheckName();
-    llvm::outs() << checkName << "\n";
     const ValueDecl* checkVD = getCheckVD(checkName);
     AnnotVarInfo* checkAVI = getAVI(checkVD);
     BaseInfo* BI = nullptr;
@@ -72,11 +74,9 @@ class WriteWalker
       // if data is masked
       if (dataVD == checkVD) {
         // pure masked
-        llvm::report_fatal_error("mask disable");
         BI = addClMaskToValidInfo(dataVD, nullptr, nullptr, dataAVI);
       } else {
         // masked with validator
-        llvm::report_fatal_error("mask disable");
         BI = addClMaskToValidInfo(dataVD, checkVD, dataAA, dataAVI);
       }
     } else {
