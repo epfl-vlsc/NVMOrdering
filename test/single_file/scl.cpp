@@ -9,49 +9,49 @@ void vfence() { std::atomic_thread_fence(std::memory_order_release); }
 void pfence() { _mm_sfence(); }
 void clflush(void const* p) { _mm_clflush(p); }
 
-struct SimpleSCL {
-  pscl(SimpleSCL::valid) int data;
+struct SimpleScl {
+  sentinelp(SimpleScl::valid+scl) int data;
   int valid;
 
-  void persistent_code correct() {
+  void analyze_writes correct() {
     data = 1;
     vfence();
     valid = 1;
   }
 
-  void persistent_code correctPfence() {
+  void analyze_writes correctPfence() {
     data = 1;
     pfence();
     valid = 1;
   }
 
-  void persistent_code initWriteDataTwice() {
+  void analyze_writes initWriteDataTwice() {
     data = 1;
     data = 1;
     vfence();
     valid = 1;
   }
 
-  void persistent_code notFencedData() {
+  void analyze_writes notFencedData() {
     data = 1;
     valid = 1;
   }
 
-  void persistent_code initValid() {
+  void analyze_writes initValid() {
     valid = 1;
     data = 1;
     vfence();
     valid = 1;
   }
 
-  void persistent_code beforeValidWriteData() {
+  void analyze_writes beforeValidWriteData() {
     data = 1;
     vfence();
     data = 1;
     valid = 1;
   }
 
-  void persistent_code branch(bool useNvm) {
+  void analyze_writes branch(bool useNvm) {
     data = 1;
     if (useNvm) {
       vfence();
