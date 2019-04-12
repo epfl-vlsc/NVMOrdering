@@ -13,7 +13,7 @@ struct TransitiveSclm {
   enum {
     MASK = 7,
   };
-  pscl(TransitiveSclm::valid) int chunk;
+  sentinelp(TransitiveSclm::valid+scl+MASK) int chunk;
   int valid;
 
   void writeCD() { chunk = (chunk & MASK) | 1; }
@@ -22,7 +22,7 @@ struct TransitiveSclm {
 
   void writeValid() { valid = 1; }
 
-  void persistent_code correct() {
+  void analyze_writes correct() {
     writeCD();
     vfence();
     writeCV();
@@ -30,7 +30,7 @@ struct TransitiveSclm {
     writeValid();
   }
 
-  void persistent_code correctPfence() {
+  void analyze_writes correctPfence() {
     writeCD();
     pfence();
     writeCV();
@@ -38,31 +38,22 @@ struct TransitiveSclm {
     writeValid();
   }
 
-  void persistent_code firstFenceMissing() {
+  void analyze_writes firstFenceMissing() {
     writeCD();
     writeCV();
     vfence();
     writeValid();
   }
 
-  void persistent_code secondFenceMissing() {
+  void analyze_writes secondFenceMissing() {
     writeCD();
     vfence();
     writeCV();
     writeValid();
   }
 
-  void persistent_code initValid() {
+  void analyze_writes initValid() {
     writeValid();
-    writeCD();
-    vfence();
-    writeCV();
-    vfence();
-    writeValid();
-  }
-
-  void persistent_code initCV() {
-    writeCV();
     writeCD();
     vfence();
     writeCV();
@@ -70,7 +61,16 @@ struct TransitiveSclm {
     writeValid();
   }
 
-  void persistent_code writeValidBeforeCV() {
+  void analyze_writes initCV() {
+    writeCV();
+    writeCD();
+    vfence();
+    writeCV();
+    vfence();
+    writeValid();
+  }
+
+  void analyze_writes writeValidBeforeCV() {
     writeCD();
     vfence();
     writeValid();

@@ -15,7 +15,9 @@ protected:
     llvm::raw_string_ostream ErrorOs(sbuf);
     ErrorOs << "At: " << FD->getQualifiedNameAsString() << " " << msg;
 
-    ErrorOs << " " << VD->getNameAsString();
+    if (VD) {
+      ErrorOs << " " << VD->getNameAsString();
+    }
 
     return ErrorOs.str();
   }
