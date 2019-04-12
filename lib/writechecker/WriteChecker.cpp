@@ -9,17 +9,17 @@ void WriteChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
                                 AnalysisManager& Mgr, BugReporter& BR) const {
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
   // fill data structures
-  TUDWalker tudWalker(varInfos, fncInfos);
+  TUDWalker tudWalker(orderVars, orderFncs);
   tudWalker.TraverseDecl(TUD);
   tudWalker.createUsedVars();
 
-  fncInfos.dump();
-  varInfos.dump();
+  orderFncs.dump();
+  orderVars.dump();
 }
 
 void WriteChecker::checkBeginFunction(CheckerContext& C) const {
   DBG("checkBeginFunction")
-  bool isAnnotated = fncInfos.isPersistentFunction(C);
+  bool isAnnotated = orderFncs.isPersistentFunction(C);
   bool isTopFnc = isTopFunction(C);
 
   // if not an annotated function, do not analyze
@@ -40,15 +40,15 @@ void WriteChecker::checkMapStates(ProgramStateRef& State,
   DBG("checkMapStates")
   for (auto& [D, SS] : State->get<SMap>()) {
     if (!SS.isFinal()) {
-      auto RI = ReportInfos::getRI(C, State, D, BReporter, nullptr, nullptr);
-      RI.reportModelBug(SS.getExplanation());
+      auto SI = StateInfo(C, State, BReporter, nullptr, nullptr, D);
+      SI.reportModelBug(SS.getExplanation());
     }
   }
 }
 
 void WriteChecker::checkEndFunction(CheckerContext& C) const {
   DBG("checkEndFunction")
-  bool isAnnotated = fncInfos.isPersistentFunction(C);
+  bool isAnnotated = orderFncs.isPersistentFunction(C);
   bool isTopFnc = isTopFunction(C);
   if (isAnnotated && isTopFnc) {
     // ensured it is the top function and annotated
@@ -77,14 +77,13 @@ void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   bool stateChanged = false;
 
   if (const ValueDecl* VD = getValueDecl(Loc); VD) {
-    if (varInfos.isUsedVar(VD)) {
+    if (orderVars.isUsedVar(VD)) {
       DBG("write " << VD->getNameAsString())
-      auto& infoList = varInfos.getInfoList(VD);
+      auto& infoList = orderVars.getInfoList(VD);
       for (auto& BI : infoList) {
-        auto RI =
-            ReportInfos::getRI(C, State, (const char*)VD, BReporter, &Loc, S);
-        BI->write(RI);
-        stateChanged |= RI.stateChanged;
+        auto SI = StateInfo(C, State, BReporter, &Loc, S, (const char*)VD);
+        BI->write(SI);
+        stateChanged |= SI.stateChanged;
       }
     }
   }
@@ -94,13 +93,13 @@ void WriteChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
 
 void WriteChecker::checkPreCall(const CallEvent& Call,
                                 CheckerContext& C) const {
-  if (fncInfos.isFlushFunction(Call)) {
+  if (orderFncs.isFlushFunction(Call)) {
     handleFlush(Call, C);
-  } else if (fncInfos.isPFenceFunction(Call)) {
+  } else if (orderFncs.isPFenceFunction(Call)) {
     handleFence<true>(Call, C);
-  } else if (fncInfos.isVFenceFunction(Call)) {
+  } else if (orderFncs.isVFenceFunction(Call)) {
     handleFence<false>(Call, C);
-  } else if (fncInfos.isEndFunction(Call)) {
+  } else if (orderFncs.isEndFunction(Call)) {
     handleEnd(C);
   }
 }
@@ -118,14 +117,14 @@ void WriteChecker::handleFlush(const CallEvent& Call, CheckerContext& C) const {
 
   SVal Loc = Call.getArgSVal(0);
   if (const ValueDecl* VD = getValueDecl(Loc); VD) {
-    if (varInfos.isUsedVar(VD)) {
+    if (orderVars.isUsedVar(VD)) {
       DBG("flush " << VD->getNameAsString())
-      auto& infoList = varInfos.getInfoList(VD);
+      auto& infoList = orderVars.getInfoList(VD);
       for (auto& BI : infoList) {
-        auto RI = ReportInfos::getRI(C, State, (const char*)VD, BReporter, &Loc,
-                                     nullptr);
-        BI->flush(RI);
-        stateChanged |= RI.stateChanged;
+        auto SI =
+            StateInfo(C, State, BReporter, &Loc, nullptr, (const char*)VD);
+        BI->flush(SI);
+        stateChanged |= SI.stateChanged;
       }
     }
   }
@@ -139,16 +138,17 @@ void WriteChecker::checkFenceStates(ProgramStateRef& State, CheckerContext& C,
   for (auto& [D, _] : State->get<SMap>()) {
     DBG("fence " << (void*)D)
     // todo optimize for repeats
-    auto& infoList = varInfos.getInfoList(D);
+    auto& infoList = orderVars.getInfoList(D);
     for (auto& BI : infoList) {
-      auto RI = ReportInfos::getRI(C, State, D, BReporter, nullptr, nullptr);
+      auto SI =
+          StateInfo(C, State, BReporter, nullptr, nullptr, D);
 
       if constexpr (pfence == true)
-        BI->pfence(RI);
+        BI->pfence(SI);
       else
-        BI->vfence(RI);
+        BI->vfence(SI);
 
-      stateChanged |= RI.stateChanged;
+      stateChanged |= SI.stateChanged;
     }
   }
 }
@@ -168,8 +168,8 @@ void WriteChecker::handleFence(const CallEvent& Call, CheckerContext& C) const {
 
 void WriteChecker::checkBranchCondition(const Stmt* S,
                                         CheckerContext& C) const {
-  //S->dump();
-  if(usesName(S, "useNvm")){
+  // S->dump();
+  if (usesName(S, "useNvm")) {
     handleEnd(C);
   }
 }

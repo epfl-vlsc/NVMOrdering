@@ -1,11 +1,11 @@
 #pragma once
-#include "BaseFunctionInfos.h"
+#include "BaseFunction.h"
 
 namespace clang::ento::nvm {
 
-class SpecialFunction : public BaseFunction {
+class NamedFunction : public BaseFunction {
 public:
-  virtual ~SpecialFunction() {}
+  virtual ~NamedFunction() {}
 
   bool checkName(const FunctionDecl* FD) const {
     return checkName(FD->getIdentifier());
@@ -20,35 +20,35 @@ public:
   virtual bool checkName(const IdentifierInfo* II) const = 0;
 };
 
-class FlushFunction : public SpecialFunction {
+class FlushFunction : public NamedFunction {
 public:
   bool checkName(const IdentifierInfo* II) const {
     return II && II->isStr("clflush");
   }
 };
 
-class FlushOptFunction : public SpecialFunction {
+class FlushOptFunction : public NamedFunction {
 public:
   bool checkName(const IdentifierInfo* II) const {
     return II && (II->isStr("clflushopt") || II->isStr("clwb"));
   }
 };
 
-class NtiFunction : public SpecialFunction {
+class NtiFunction : public NamedFunction {
 public:
   bool checkName(const IdentifierInfo* II) const {
     return II && II->isStr("nti");
   }
 };
 
-class PFenceFunction : public SpecialFunction {
+class PFenceFunction : public NamedFunction {
 public:
   bool checkName(const IdentifierInfo* II) const {
     return II && II->isStr("pfence");
   }
 };
 
-class VFenceFunction : public SpecialFunction {
+class VFenceFunction : public NamedFunction {
 public:
   bool checkName(const IdentifierInfo* II) const {
     return II && II->isStr("vfence");

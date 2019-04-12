@@ -3,35 +3,35 @@
 #include "SclState.h"
 
 namespace clang::ento::nvm::SclSpace {
-void writeData(ReportInfos& RI) {
-  ProgramStateRef& State = RI.State;
-  const char* D = RI.getD();
+void writeData(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+  const char* D = SI.getD();
 
   const SclState* SS = State->get<SclMap>(D);
 
   if (!SS) {
     State = State->set<SclMap>(D, SclState::getWriteData());
-    RI.stateChanged = true;
+    SI.stateChanged = true;
   } else if (SS->isWriteData()) {
-    if (!RI.useMask()) {
+    if (!SI.useMask()) {
       // bug:already written data
-      RI.reportDataAlreadyWritten();
+      SI.reportDataAlreadyWritten();
     } else {
       // todo do nothing uses mask
     }
   } else if (SS->isVfenceData()) {
     // bug:already written data
-    RI.reportDataAlreadyWritten();
+    SI.reportDataAlreadyWritten();
   } else if (SS->isWriteCheck()) {
     State = State->set<SclMap>(D, SclState::getWriteData());
-    RI.stateChanged = true;
+    SI.stateChanged = true;
   } else {
     llvm::report_fatal_error("not possible");
   }
 }
-void vfenceData(ReportInfos& RI) {
-  ProgramStateRef& State = RI.State;
-  const char* D = RI.getD();
+void vfenceData(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+  const char* D = SI.getD();
 
   const SclState* SS = State->get<SclMap>(D);
 
@@ -39,7 +39,7 @@ void vfenceData(ReportInfos& RI) {
     // do nothing
   } else if (SS->isWriteData()) {
     State = State->set<SclMap>(D, SclState::getVfenceData());
-    RI.stateChanged = true;
+    SI.stateChanged = true;
   } else if (SS->isVfenceData()) {
     // do nothing
   } else if (SS->isWriteCheck()) {
@@ -49,25 +49,25 @@ void vfenceData(ReportInfos& RI) {
   }
 }
 
-void writeCheck(ReportInfos& RI) {
-  ProgramStateRef& State = RI.State;
-  const char* D = RI.getD();
+void writeCheck(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+  const char* D = SI.getD();
 
   const SclState* SS = State->get<SclMap>(D);
 
   if (!SS) {
     // bug:not written data
-    RI.reportDataNotWritten();
+    SI.reportDataNotWritten();
   } else if (SS->isWriteData()) {
     // bug:not fenced data
-    RI.reportDataNotFenced();
+    SI.reportDataNotFenced();
   } else if (SS->isVfenceData()) {
     State = State->set<SclMap>(D, SclState::getWriteCheck());
-    RI.stateChanged = true;
+    SI.stateChanged = true;
   } else if (SS->isWriteCheck()) {
-    if (!RI.useMask()) {
+    if (!SI.useMask()) {
       // bug:already written check
-      RI.reportCheckAlreadyWritten();
+      SI.reportCheckAlreadyWritten();
     } else {
       // todo do nothing uses mask
     }

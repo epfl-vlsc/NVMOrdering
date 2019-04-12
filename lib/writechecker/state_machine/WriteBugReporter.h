@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "clang/StaticAnalyzer/Core/BugReporter/BugType.h"
-#include "BaseReporter.h"
+#include "reporting/BaseReporter.h"
 
 namespace clang::ento::nvm {
 

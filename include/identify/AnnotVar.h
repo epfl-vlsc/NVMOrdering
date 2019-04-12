@@ -5,14 +5,14 @@
 
 namespace clang::ento::nvm {
 
-class SpecialValue {
+class AnnotVar {
   using ValueSet = std::set<const ValueDecl*>;
   ValueSet valueSet;
   const char* specialAnnot;
 
 public:
-  SpecialValue(const char* specialAnnot_) : specialAnnot(specialAnnot_) {}
-  virtual ~SpecialValue() {}
+  AnnotVar(const char* specialAnnot_) : specialAnnot(specialAnnot_) {}
+  virtual ~AnnotVar() {}
 
   void addBasedOnAnnot(const ValueDecl* VD, const AnnotateAttr* AA) {
     StringRef annotation = AA->getAnnotation();

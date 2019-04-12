@@ -1,5 +1,5 @@
 #pragma once
-#include "AstWalkers.h"
+#include "WriteWalkers.h"
 #include "Common.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.writechecker";
@@ -49,8 +49,8 @@ private:
   void handleEnd(CheckerContext& C) const;
 
   const WriteBugReporter BReporter;
-  mutable FunctionInfos fncInfos;
-  mutable VarInfos varInfos;
+  mutable OrderFncs orderFncs;
+  mutable OrderVars orderVars;
 };
 
 } // namespace clang::ento::nvm

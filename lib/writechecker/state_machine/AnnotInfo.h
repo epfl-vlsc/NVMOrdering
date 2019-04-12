@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Common.h"
-#include "Walkers.h"
-#include "TransitionInfos.h"
+#include "StateInfo.h"
 #include "Transitions.h"
+#include "walkers/Walkers.h"
 
 namespace clang::ento::nvm {
 
@@ -15,11 +15,11 @@ protected:
 public:
   virtual void dump() const { llvm::outs() << data->getNameAsString(); }
 
-  virtual bool useData(ReportInfos& RI) const = 0;
-  virtual void write(ReportInfos& RI) const = 0;
-  virtual void flush(ReportInfos& RI) const = 0;
-  virtual void pfence(ReportInfos& RI) const = 0;
-  virtual void vfence(ReportInfos& RI) const = 0;
+  virtual bool useData(StateInfo& SI) const = 0;
+  virtual void write(StateInfo& SI) const = 0;
+  virtual void flush(StateInfo& SI) const = 0;
+  virtual void pfence(StateInfo& SI) const = 0;
+  virtual void vfence(StateInfo& SI) const = 0;
 };
 
 class CheckInfo : public BaseInfo {
@@ -32,23 +32,23 @@ public:
     BaseInfo::dump();
   }
 
-  bool useData(ReportInfos& RI) const {
-    RI.setD(data);
+  bool useData(StateInfo& SI) const {
+    SI.setD(data);
     return true;
   }
-  void write(ReportInfos& RI) const {
-    useData(RI);
-    CheckSpace::writeData(RI);
+  void write(StateInfo& SI) const {
+    useData(SI);
+    CheckSpace::writeData(SI);
   }
-  void flush(ReportInfos& RI) const {
-    useData(RI);
-    CheckSpace::flushData(RI);
+  void flush(StateInfo& SI) const {
+    useData(SI);
+    CheckSpace::flushData(SI);
   }
-  void pfence(ReportInfos& RI) const {
-    useData(RI);
-    CheckSpace::pfenceData(RI);
+  void pfence(StateInfo& SI) const {
+    useData(SI);
+    CheckSpace::pfenceData(SI);
   }
-  void vfence(ReportInfos& RI) const {}
+  void vfence(StateInfo& SI) const {}
 };
 
 class PairInfo : public BaseInfo {
@@ -65,11 +65,11 @@ public:
     }
   }
 
-  virtual bool useData(ReportInfos& RI) const {
-    RI.setD(data);
-    if (((const char*)data) == RI.VarAddr) {
+  virtual bool useData(StateInfo& SI) const {
+    SI.setD(data);
+    if (((const char*)data) == SI.VarAddr) {
       return true;
-    } else if (((const char*)check) == RI.VarAddr) {
+    } else if (((const char*)check) == SI.VarAddr) {
       return false;
     } else {
       llvm::report_fatal_error("not data nor check");
@@ -78,10 +78,10 @@ public:
   }
 
   // todo make it all pure abstract
-  virtual void write(ReportInfos& RI) const {}
-  virtual void flush(ReportInfos& RI) const {}
-  virtual void pfence(ReportInfos& RI) const {}
-  virtual void vfence(ReportInfos& RI) const {}
+  virtual void write(StateInfo& SI) const {}
+  virtual void flush(StateInfo& SI) const {}
+  virtual void pfence(StateInfo& SI) const {}
+  virtual void vfence(StateInfo& SI) const {}
 };
 
 class DclInfo : public PairInfo {
@@ -95,21 +95,21 @@ public:
     PairInfo::dump();
   }
 
-  virtual void write(ReportInfos& RI) const {
-    if (useData(RI)) {
-      DclSpace::writeData(RI);
+  virtual void write(StateInfo& SI) const {
+    if (useData(SI)) {
+      DclSpace::writeData(SI);
     } else {
-      DclSpace::writeCheck(RI);
+      DclSpace::writeCheck(SI);
     }
   }
-  virtual void flush(ReportInfos& RI) const {
-    if (useData(RI)) {
-      DclSpace::flushData(RI);
+  virtual void flush(StateInfo& SI) const {
+    if (useData(SI)) {
+      DclSpace::flushData(SI);
     }
   }
-  virtual void pfence(ReportInfos& RI) const {
-    useData(RI);
-    DclSpace::pfenceData(RI);
+  virtual void pfence(StateInfo& SI) const {
+    useData(SI);
+    DclSpace::pfenceData(SI);
   }
 };
 
@@ -123,20 +123,20 @@ public:
     PairInfo::dump();
   }
 
-  virtual void write(ReportInfos& RI) const {
-    if (useData(RI)) {
-      SclSpace::writeData(RI);
+  virtual void write(StateInfo& SI) const {
+    if (useData(SI)) {
+      SclSpace::writeData(SI);
     } else {
-      SclSpace::writeCheck(RI);
+      SclSpace::writeCheck(SI);
     }
   }
-  virtual void vfence(ReportInfos& RI) const {
-    useData(RI);
-    SclSpace::vfenceData(RI);
+  virtual void vfence(StateInfo& SI) const {
+    useData(SI);
+    SclSpace::vfenceData(SI);
   }
-  virtual void pfence(ReportInfos& RI) const {
-    useData(RI);
-    SclSpace::vfenceData(RI);
+  virtual void pfence(StateInfo& SI) const {
+    useData(SI);
+    SclSpace::vfenceData(SI);
   }
 };
 
@@ -150,11 +150,11 @@ public:
     PairInfo::dump();
   }
 
-  virtual void write(ReportInfos& RI) const {
-    if (useData(RI)) {
-      SclSpace::writeData(RI);
+  virtual void write(StateInfo& SI) const {
+    if (useData(SI)) {
+      SclSpace::writeData(SI);
     } else {
-      SclSpace::writeCheck(RI);
+      SclSpace::writeCheck(SI);
     }
   }
 };
@@ -169,16 +169,16 @@ public:
     PairInfo::dump();
   }
 
-  virtual void write(ReportInfos& RI) const {
-    if (useData(RI)) {
-      SclSpace::writeData(RI);
+  virtual void write(StateInfo& SI) const {
+    if (useData(SI)) {
+      SclSpace::writeData(SI);
     } else {
-      if(RI.S && usesMask(RI.S, false)){
-        //write to c(c)
-        RI.setMask();
-        SclSpace::writeCheck(RI);
-      }else{
-        //write to c(d)
+      if (SI.S && usesMask(SI.S, false)) {
+        // write to c(c)
+        SI.setMask();
+        SclSpace::writeCheck(SI);
+      } else {
+        // write to c(d)
       }
     }
   }
@@ -193,19 +193,19 @@ protected:
 
   enum FieldKind { CHUNK_DATA, CHUNK_CHECK, CHECK_CHECK, NONE };
 
-  virtual FieldKind selectField(ReportInfos& RI) const {
-    if (((const char*)check) == RI.VarAddr) {
+  virtual FieldKind selectField(StateInfo& SI) const {
+    if (((const char*)check) == SI.VarAddr) {
       // transitive check
       return FieldKind::CHECK_CHECK;
-    } else if (RI.S) {
+    } else if (SI.S) {
       // write case
-      if (usesMask(RI.S, false)) {
+      if (usesMask(SI.S, false)) {
         // write check
-        RI.setMask();
+        SI.setMask();
         return FieldKind::CHUNK_CHECK;
       } else {
         // write data
-        RI.setMask();
+        SI.setMask();
         return FieldKind::CHUNK_DATA;
       }
     } else {
@@ -226,25 +226,25 @@ public:
     PairInfo::dump();
   }
 
-  virtual void write(ReportInfos& RI) const {
-    switch (selectField(RI)) {
+  virtual void write(StateInfo& SI) const {
+    switch (selectField(SI)) {
     case FieldKind::CHUNK_DATA: {
-      RI.setD(data);
-      SclSpace::writeData(RI);
+      SI.setD(data);
+      SclSpace::writeData(SI);
       break;
     }
     case FieldKind::CHUNK_CHECK: {
-      RI.setD(data);
-      SclSpace::writeCheck(RI);
+      SI.setD(data);
+      SclSpace::writeCheck(SI);
       if (ann) {
-        RI.setD(ann);
-        DclSpace::writeData(RI);
+        SI.setD(ann);
+        DclSpace::writeData(SI);
       }
       break;
     }
     case FieldKind::CHECK_CHECK: {
-      RI.setD(ann);
-      DclSpace::writeCheck(RI);
+      SI.setD(ann);
+      DclSpace::writeCheck(SI);
       break;
     }
     default: {
@@ -254,34 +254,34 @@ public:
     }
   }
 
-  virtual void flush(ReportInfos& RI) const {
-    switch (selectField(RI)) {
+  virtual void flush(StateInfo& SI) const {
+    switch (selectField(SI)) {
     case FieldKind::CHUNK_DATA: {
       if (ann) {
-        RI.setD(ann);
-        DclSpace::flushData(RI);
+        SI.setD(ann);
+        DclSpace::flushData(SI);
       }
       break;
     }
     default: {
-      //do nothing
+      // do nothing
       break;
     }
     }
   }
 
-  virtual void vfence(ReportInfos& RI) const {
-    RI.setD(data);
-    SclSpace::vfenceData(RI);
+  virtual void vfence(StateInfo& SI) const {
+    SI.setD(data);
+    SclSpace::vfenceData(SI);
   }
 
-  virtual void pfence(ReportInfos& RI) const {
-    RI.setD(data);
-    SclSpace::vfenceData(RI);
+  virtual void pfence(StateInfo& SI) const {
+    SI.setD(data);
+    SclSpace::vfenceData(SI);
     if (ann) {
       // has transitive validator
-      RI.setD(ann);
-      DclSpace::pfenceData(RI);
+      SI.setD(ann);
+      DclSpace::pfenceData(SI);
     }
   }
 };
@@ -297,25 +297,25 @@ public:
     PairInfo::dump();
   }
 
-  virtual void write(ReportInfos& RI) const {
-    switch (selectField(RI)) {
+  virtual void write(StateInfo& SI) const {
+    switch (selectField(SI)) {
     case FieldKind::CHUNK_DATA: {
-      RI.setD(data);
-      SclSpace::writeData(RI);
+      SI.setD(data);
+      SclSpace::writeData(SI);
       break;
     }
     case FieldKind::CHUNK_CHECK: {
-      RI.setD(data);
-      SclSpace::writeCheck(RI);
+      SI.setD(data);
+      SclSpace::writeCheck(SI);
       if (ann) {
-        RI.setD(ann);
-        SclSpace::writeData(RI);
+        SI.setD(ann);
+        SclSpace::writeData(SI);
       }
       break;
     }
     case FieldKind::CHECK_CHECK: {
-      RI.setD(ann);
-      SclSpace::writeCheck(RI);
+      SI.setD(ann);
+      SclSpace::writeCheck(SI);
       break;
     }
     default: {
@@ -324,23 +324,23 @@ public:
     }
     }
   }
-  virtual void vfence(ReportInfos& RI) const {
-    RI.setD(data);
-    SclSpace::vfenceData(RI);
+  virtual void vfence(StateInfo& SI) const {
+    SI.setD(data);
+    SclSpace::vfenceData(SI);
     if (ann) {
       // has transitive validator
-      RI.setD(ann);
-      SclSpace::vfenceData(RI);
+      SI.setD(ann);
+      SclSpace::vfenceData(SI);
     }
   }
 
-  virtual void pfence(ReportInfos& RI) const {
-    RI.setD(data);
-    SclSpace::vfenceData(RI);
+  virtual void pfence(StateInfo& SI) const {
+    SI.setD(data);
+    SclSpace::vfenceData(SI);
     if (ann) {
       // has transitive validator
-      RI.setD(ann);
-      SclSpace::vfenceData(RI);
+      SI.setD(ann);
+      SclSpace::vfenceData(SI);
     }
   }
 };

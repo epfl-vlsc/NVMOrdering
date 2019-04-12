@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseFunctionInfos.h"
+#include "BaseFunction.h"
 
 namespace clang::ento::nvm {
 

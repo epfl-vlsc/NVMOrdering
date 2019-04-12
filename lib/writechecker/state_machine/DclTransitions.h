@@ -5,9 +5,9 @@
 
 namespace clang::ento::nvm::DclSpace {
 
-void writeData(ReportInfos& RI) {
-  ProgramStateRef& State = RI.State;
-  const char* D = RI.getD();
+void writeData(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+  const char* D = SI.getD();
 
   const DclState* DS = State->get<DclMap>(D);
 
@@ -17,32 +17,32 @@ void writeData(ReportInfos& RI) {
     DBG("!DS bug")
     //write data
     State = State->set<DclMap>(D, DclState::getWriteData());
-    RI.stateChanged = true;
+    SI.stateChanged = true;
   } else if (DS->isWriteData()) {
     DBG("isWriteDatabug ")
     // bug:already written data
-    RI.reportDataAlreadyWritten();
+    SI.reportDataAlreadyWritten();
   } else if (DS->isFlushData()) {
     DBG("isFlushData bug")
     // bug:already written data
-    RI.reportDataAlreadyWritten();
+    SI.reportDataAlreadyWritten();
   } else if (DS->isPfenceData()) {
     DBG("isPfenceData bug")
     // bug:already written data
-    RI.reportDataAlreadyWritten();
+    SI.reportDataAlreadyWritten();
   } else if (DS->isWriteCheck()) {
     DBG("isWriteCheck")
     //write data
     State = State->set<DclMap>(D, DclState::getWriteData());
-    RI.stateChanged = true;
+    SI.stateChanged = true;
   } else {
     llvm::report_fatal_error("not possible");
   }
 }
 
-void flushData(ReportInfos& RI) {
-  ProgramStateRef& State = RI.State;
-  const char* D = RI.getD();
+void flushData(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+  const char* D = SI.getD();
 
   const DclState* DS = State->get<DclMap>(D);
 
@@ -51,32 +51,32 @@ void flushData(ReportInfos& RI) {
   if (!DS) {
     DBG("!DS bug")
     // bug:not written data
-    RI.reportDataNotWritten();
+    SI.reportDataNotWritten();
   } else if (DS->isWriteData()) {
     DBG("isWriteData")
     //flush data
     State = State->set<DclMap>(D, DclState::getFlushData());
-    RI.stateChanged = true;
+    SI.stateChanged = true;
   } else if (DS->isFlushData()) {
     DBG("isFlushData bug")
     // bug:already flushed data
-    RI.reportDataAlreadyFlushed();
+    SI.reportDataAlreadyFlushed();
   } else if (DS->isPfenceData()) {
     DBG("isPfenceData bug")
     // bug: already flushed data
-    RI.reportDataAlreadyFlushed();
+    SI.reportDataAlreadyFlushed();
   } else if (DS->isWriteCheck()) {
     DBG("isWriteCheck bug")
     // bug: already flushed data
-    RI.reportDataAlreadyFlushed();
+    SI.reportDataAlreadyFlushed();
   } else {
     llvm::report_fatal_error("not possible");
   }
 }
 
-void pfenceData(ReportInfos& RI) {
-  ProgramStateRef& State = RI.State;
-  const char* D = RI.getD();
+void pfenceData(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+  const char* D = SI.getD();
 
   const DclState* DS = State->get<DclMap>(D);
 
@@ -88,12 +88,12 @@ void pfenceData(ReportInfos& RI) {
   } else if (DS->isWriteData()) {
     DBG("isWriteData bug")
     // bug:not flushed data
-    RI.reportDataNotFlushed();
+    SI.reportDataNotFlushed();
   } else if (DS->isFlushData()) {
     DBG("isFlushData")
     //pfence data
     State = State->set<DclMap>(D, DclState::getPfenceData());
-    RI.stateChanged = true;
+    SI.stateChanged = true;
   } else if (DS->isPfenceData()) {
     DBG("isPfenceData")
     //do nothing
@@ -105,9 +105,9 @@ void pfenceData(ReportInfos& RI) {
   }
 }
 
-void writeCheck(ReportInfos& RI) {
-  ProgramStateRef& State = RI.State;
-  const char* D = RI.getD();
+void writeCheck(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+  const char* D = SI.getD();
 
   const DclState* DS = State->get<DclMap>(D);
 
@@ -116,23 +116,23 @@ void writeCheck(ReportInfos& RI) {
   if (!DS) {
     DBG("!DS bug")
     // bug:not written data
-    RI.reportDataNotWritten();
+    SI.reportDataNotWritten();
   } else if (DS->isWriteData()) {
     DBG("isWriteData bug")
     // bug:not persisted data
-    RI.reportDataNotPersisted();
+    SI.reportDataNotPersisted();
   } else if (DS->isFlushData()) {
     DBG("isFlushData bug")
     // bug:not persisted data
-    RI.reportDataNotPersisted();
+    SI.reportDataNotPersisted();
   } else if (DS->isPfenceData()) {
     DBG("isPfenceData")
     State = State->set<DclMap>(D, DclState::getWriteCheck());
-    RI.stateChanged = true;
+    SI.stateChanged = true;
   } else if (DS->isWriteCheck()) {
     DBG("isWriteCheck bug")
     // bug:already written check
-    RI.reportCheckAlreadyWritten();
+    SI.reportCheckAlreadyWritten();
   } else {
     llvm::report_fatal_error("not possible");
   }

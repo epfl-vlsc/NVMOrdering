@@ -1,10 +1,10 @@
 #pragma once
-#include "AnnotFunctionInfos.h"
-#include "SpecialFunctionInfos.h"
+#include "AnnotFunction.h"
+#include "NamedFunctions.h"
 
 namespace clang::ento::nvm {
 
-class FunctionInfos {
+class OrderFncs {
   static constexpr const char* PERSISTENT = "PersistentCode";
   static constexpr const char* RECOVERY = "RecoveryCode";
   static constexpr const char* END = "EndCode";
@@ -19,7 +19,7 @@ class FunctionInfos {
   NtiFunction ntiFnc;
 
 public:
-  FunctionInfos() : persistentFnc(PERSISTENT), recoveryFnc(RECOVERY), endFnc(END) {}
+  OrderFncs() : persistentFnc(PERSISTENT), recoveryFnc(RECOVERY), endFnc(END) {}
 
   void insertIfKnown(const FunctionDecl* FD) {
     persistentFnc.insertIfKnown(FD);
