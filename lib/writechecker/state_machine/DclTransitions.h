@@ -1,7 +1,8 @@
 #pragma once
 #include "Common.h"
-#include "DclState.h"
 #include "DbgState.h"
+#include "DclState.h"
+#include "StateInfo.h"
 
 namespace clang::ento::nvm::DclSpace {
 
@@ -15,7 +16,7 @@ void writeData(StateInfo& SI) {
 
   if (!DS) {
     DBG("!DS bug")
-    //write data
+    // write data
     State = State->set<DclMap>(D, DclState::getWriteData());
     SI.stateChanged = true;
   } else if (DS->isWriteData()) {
@@ -32,7 +33,7 @@ void writeData(StateInfo& SI) {
     SI.reportDataAlreadyWritten();
   } else if (DS->isWriteCheck()) {
     DBG("isWriteCheck")
-    //write data
+    // write data
     llvm::outs() << "lol\n";
     State = State->set<DclMap>(D, DclState::getWriteData());
     SI.stateChanged = true;
@@ -55,7 +56,7 @@ void flushData(StateInfo& SI) {
     SI.reportDataNotWritten();
   } else if (DS->isWriteData()) {
     DBG("isWriteData")
-    //flush data
+    // flush data
     State = State->set<DclMap>(D, DclState::getFlushData());
     SI.stateChanged = true;
   } else if (DS->isFlushData()) {
@@ -85,22 +86,22 @@ void pfenceData(StateInfo& SI) {
 
   if (!DS) {
     DBG("!DS")
-    //do nothing
+    // do nothing
   } else if (DS->isWriteData()) {
     DBG("isWriteData bug")
     // bug:not flushed data
     SI.reportDataNotFlushed();
   } else if (DS->isFlushData()) {
     DBG("isFlushData")
-    //pfence data
+    // pfence data
     State = State->set<DclMap>(D, DclState::getPfenceData());
     SI.stateChanged = true;
   } else if (DS->isPfenceData()) {
     DBG("isPfenceData")
-    //do nothing
+    // do nothing
   } else if (DS->isWriteCheck()) {
     DBG("isWriteCheck")
-    //do nothing
+    // do nothing
   } else {
     llvm::report_fatal_error("not possible");
   }
@@ -139,5 +140,4 @@ void writeCheck(StateInfo& SI) {
   }
 }
 
-
-} // namespace clang::ento::nvm::dcl
+} // namespace clang::ento::nvm::DclSpace

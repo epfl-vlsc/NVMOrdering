@@ -2,6 +2,7 @@
 #include "Common.h"
 #include "DbgState.h"
 #include "RecState.h"
+#include "StateInfo.h"
 
 namespace clang::ento::nvm::RecSpace {
 
@@ -24,7 +25,7 @@ void readData(StateInfo& SI) {
     SI.stateChanged = true;
   } else if (RS->isReadData()) {
     DBG("isReadData bug")
-    //do nothing
+    // do nothing
   } else {
     llvm::report_fatal_error("not possible");
   }
@@ -46,9 +47,9 @@ void readCheck(StateInfo& SI) {
   } else if (RS->isReadData()) {
     DBG("isReadData bug")
     // do nothing
-  }  else if (RS->isReadCheck()) {
+  } else if (RS->isReadCheck()) {
     DBG("isReadCheck bug")
-    //do nothing
+    // do nothing
   } else {
     llvm::report_fatal_error("not possible");
   }

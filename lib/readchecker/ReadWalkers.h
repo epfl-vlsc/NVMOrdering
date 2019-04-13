@@ -11,7 +11,7 @@ namespace clang::ento::nvm {
 using OrderVarsBI = OrderVars<BaseInfo>;
 
 class ReadWalker
-    : public TUDWalker<WriteWalker, BaseInfo, OrderVars, OrderFncs> {
+    : public TUDWalker<ReadWalker, BaseInfo, OrderVarsBI, OrderFncs> {
 
   BaseInfo* addClMaskToValidInfo(const ValueDecl* dataVD,
                                  const ValueDecl* checkVD,
@@ -94,7 +94,7 @@ class ReadWalker
   }
 
 public:
-  ReadWalker(OrderVars& orderVars_, OrderFncs& orderFncs_,
+  ReadWalker(OrderVarsBI& orderVars_, OrderFncs& orderFncs_,
              const ASTContext& ASTC_)
       : TUDWalker(orderVars_, orderFncs_, ASTC_) {}
 };

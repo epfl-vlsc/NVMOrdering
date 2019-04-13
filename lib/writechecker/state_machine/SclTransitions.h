@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "SclState.h"
+#include "StateInfo.h"
 
 namespace clang::ento::nvm::SclSpace {
 void writeData(StateInfo& SI) {
