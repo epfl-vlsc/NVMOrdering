@@ -3,18 +3,18 @@
 #include <utility>
 
 struct SimpleRec {
-  pdcl(SimpleRec::dvalid) int ddata1;
-  pdcl(SimpleRec::dvalid) int ddata2;
+  sentinelp(SimpleRec::dvalid+dcl) int ddata1;
+  sentinelp(SimpleRec::dvalid+dcl) int ddata2;
   int dvalid;
 
-  pscl(SimpleRec::svalid) int sdata;
+  sentinelp(SimpleRec::svalid+scl) int sdata;
   int svalid;
 
   int dfix1;
   int dfix2;
   int sfix;
 
-  void recovery_code correctSeperate() {
+  void analyze_recovery correctSeperate() {
     if (dvalid) {
       dfix1 = ddata1;
       dfix2 = ddata2;
@@ -24,7 +24,7 @@ struct SimpleRec {
     }
   }
 
-  void recovery_code correctCombined() {
+  void analyze_recovery correctCombined() {
     if (dvalid && svalid) {
       dfix1 = ddata1;
       dfix2 = ddata2;
@@ -32,7 +32,7 @@ struct SimpleRec {
     }
   }
 
-  void recovery_code notChecked() {
+  void analyze_recovery notChecked() {
     dfix1 = ddata1;
     dfix2 = ddata2;
     sfix = sdata;

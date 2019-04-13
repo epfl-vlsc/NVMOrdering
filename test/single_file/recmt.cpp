@@ -6,7 +6,7 @@ struct Recmt {
     MASK = 7,
   };
 
-  pscl(Recmt::valid) int chunk;
+  sentinelp(Recmt::valid+scl+MASK) int chunk;
   int valid;
 
   int readCD() {
@@ -22,13 +22,13 @@ struct Recmt {
   }
 };
 
-int recovery_code readDirect() {
+int analyze_recovery readDirect() {
   Recmt* entry = new Recmt;
   return entry->readCD();
   
 }
 
-int recovery_code correct() {
+int analyze_recovery correct() {
   Recmt* entry = new Recmt;
   
   if(entry->readValid() && entry->readCC()){
@@ -37,7 +37,7 @@ int recovery_code correct() {
   return 0;
 }
 
-int recovery_code readCCFist() {
+int analyze_recovery readCCFist() {
   Recmt* entry = new Recmt;
   
   if(entry->readCC() && entry->readValid()){

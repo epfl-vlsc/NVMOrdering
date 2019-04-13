@@ -6,7 +6,7 @@ struct Recm {
     MASK = 7,
   };
 
-  pscl() int chunk;
+  sentinelp(Recm::chunk+scl+MASK) int chunk;
 
   int readData() { return (chunk & ~MASK); }
 
@@ -16,12 +16,12 @@ struct Recm {
 
   void writeValid() { chunk = (chunk & ~MASK) | 1; }
 
-  int recovery_code correctCombined() {
+  int analyze_recovery correctCombined() {
     if (readValid()) {
       return readData();
     }
     return 0;
   }
 
-  int recovery_code notChecked() { return readData(); }
+  int analyze_recovery notChecked() { return readData(); }
 };
