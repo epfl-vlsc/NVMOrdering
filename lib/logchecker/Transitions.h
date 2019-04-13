@@ -4,6 +4,8 @@
 
 namespace clang::ento::nvm {
 
+
+/*
 void codeTransition(ProgramStateRef& State, CheckerContext& C) {
   State = State->set<Logged>(true);
   C.addTransition(State);
@@ -52,5 +54,5 @@ void writeTransition(const ValueDecl* VD, ProgramStateRef& State,
     llvm::report_fatal_error("not possible transition");
   }
 }
-
+*/
 } // namespace clang::ento::nvm

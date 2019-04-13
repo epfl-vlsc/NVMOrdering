@@ -8,10 +8,8 @@
 #define analyze_recovery __attribute((annotate("RecoveryCode")))
 #define analyze_safe __attribute((annotate("SafeCode")))
 
-#define plog __attribute((annotate("log")))
-#define log_ptr __attribute((annotate("LogPtr")))
-#define log_code __attribute((annotate("LogCode")))
-
+#define logging(CHECKER) __attribute((annotate("log-" TOSTRING(CHECKER))))
+#define analyze_logging __attribute((annotate("LogCode")))
 
 void tx_begin(){}
 void tx_end(){}

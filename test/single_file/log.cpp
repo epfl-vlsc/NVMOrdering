@@ -3,67 +3,58 @@
 #include <stdio.h>
 #include <xmmintrin.h>
 
-//not important if it is log1 or log2
-void log_ptr log1(void* ptr){}
-void log_ptr log2(void* ptr){}
-void log_code log3(){}
+void log0(){}
+void log1(void* ptr){}
+void log2(void* ptr){}
 
 struct SimpleLog {
-  plog int data1;
-  plog int data2;
-  int data3;
+  logging(log0) int data0;
+  logging(log1+0) int data1;
+  logging(log2+0+SimpleLog::logged) int data2;
+  bool logged;
 
-  void correct() {
+  void analyze_writes correct() {
+    log0();
+    data0 = 4;
+
     log1(&data1);
     data1 = 1;
     
     log2(&data2);
     data2 = 1;
-
-    data3 = 1;
   }
 
-  void correctLogCode() {
-    log3();
-    data1 = 1;
-    data2 = 1;
-    data3 = 1;
-  }
-
-  void correctAnyLog() {
+  void analyze_writes correctLogCode() {
     log1(&data1);
     data1 = 1;
-
-    log1(&data2);
-    data2 = 1;
     
-    log1(&data3);
-    data3 = 1;
-  }
-
-  void writeBeforeLogCode() {
-    data1 = 1;
-    log3();
+    if(!logged){
+      log2(&data2);
+    }
     data2 = 1;
-    data3 = 1;
   }
 
-  void noLogData2() {
+  void analyze_writes wrongLog() {
+    log2(&data1);
+    data1 = 1;
+  }
+
+  void analyze_writes forgotLogging() {
     log1(&data1);
     data1 = 1;
     
     data2 = 1;
   }
 
-  void noLogData() {
+  void analyze_writes doubleLog() {
+    log1(&data1);
+    log1(&data1);
     data1 = 1;
+    
     data2 = 1;
   }
 
-  void noLogData1() {
+  void analyze_writes noLogData() {
     data1 = 1;
-    
-    log2(&data2);
-    data2 = 1;
   }
 };

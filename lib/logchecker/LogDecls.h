@@ -1,11 +1,11 @@
 #pragma once
 #include "Common.h"
-#include "FunctionInfos.h"
+#include "AnnotFunction.h"
 #include "TypeInfos.h"
 
 namespace clang::ento::nvm {
 
-class LogInfos {
+class LogDecls {
   static constexpr const char* PTR = "LogPtr";
   static constexpr const char* CODE = "LogCode";
   static constexpr const char* REC = "RecoveryCode";
@@ -15,10 +15,10 @@ class LogInfos {
   AnnotFunction codeFnc;
   AnnotFunction recFnc;
 
-  SpecialValue specialValue;
+  AnnotVar logVar;
 
 public:
-  LogInfos() : ptrFnc(PTR), codeFnc(CODE), recFnc(REC), specialValue(LOG) {}
+  LogDecls() : ptrFnc(PTR), codeFnc(CODE), recFnc(REC), logVar(LOG) {}
 
   void insertIfKnown(const FunctionDecl* FD) {
     ptrFnc.insertIfKnown(FD);
@@ -26,7 +26,7 @@ public:
     recFnc.insertIfKnown(FD);
   }
 
-  void insertIfKnown(const ValueDecl* VD) { specialValue.insertIfKnown(VD); }
+  void insertIfKnown(const ValueDecl* VD) { logVar.insertIfKnown(VD); }
 
   bool isPtrFunction(const CallEvent& Call) const {
     const FunctionDecl* FD = getFuncDecl(Call);
@@ -42,15 +42,15 @@ public:
     return recFnc.inFunctions(FD);
   }
 
-  bool isSpecialValue(const ValueDecl* VD) const {
-    return specialValue.inValues(VD);
+  bool islogVar(const ValueDecl* VD) const {
+    return logVar.inValues(VD);
   }
 
   void dump() {
     ptrFnc.dump();
     codeFnc.dump();
     recFnc.dump();
-    specialValue.dump();
+    logVar.dump();
   }
 };
 
