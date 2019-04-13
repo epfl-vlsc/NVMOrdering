@@ -50,7 +50,7 @@ private:
 
   const WriteBugReporter BReporter;
   mutable OrderFncs orderFncs;
-  mutable OrderVars orderVars;
+  mutable OrderVarsBI orderVars;
 };
 
 } // namespace clang::ento::nvm

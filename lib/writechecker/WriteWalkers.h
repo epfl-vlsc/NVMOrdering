@@ -1,14 +1,17 @@
 #pragma once
 #include "Common.h"
 #include "identify/OrderFncs.h"
-#include "state_machine/OrderVars.h"
+#include "identify/OrderVars.h"
+#include "state_machine/AnnotInfo.h"
 #include "walkers/OrderWalker.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang::ento::nvm {
 
+using OrderVarsBI = OrderVars<BaseInfo>;
+
 class WriteWalker
-    : public TUDWalker<WriteWalker, BaseInfo, OrderVars, OrderFncs> {
+    : public TUDWalker<WriteWalker, BaseInfo, OrderVarsBI, OrderFncs> {
 
   void addCheck(const ValueDecl* dataVD) {
     orderVars.addUsedVar(dataVD, new CheckInfo(dataVD));
@@ -112,11 +115,10 @@ class WriteWalker
     } else {
       addPair(dataVD, dataAA, AVI);
     }
-
-  } // namespace clang::ento::nvm
+  }
 
 public:
-  WriteWalker(OrderVars& orderVars_, OrderFncs& orderFncs_,
+  WriteWalker(OrderVarsBI& orderVars_, OrderFncs& orderFncs_,
               const ASTContext& ASTC_)
       : TUDWalker(orderVars_, orderFncs_, ASTC_) {}
 };
