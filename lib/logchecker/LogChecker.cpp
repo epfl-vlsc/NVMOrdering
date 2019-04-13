@@ -5,33 +5,19 @@
 
 namespace clang::ento::nvm {
 
-void LogChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
-                              BugReporter& BR) const {
+void LogChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
+                              AnalysisManager& Mgr, BugReporter& BR) const {}
 
-}
-
-void LogChecker::checkASTDecl(const ValueDecl* VD, AnalysisManager& Mgr,
-                              BugReporter& BR) const {
-
-}
-
-void LogChecker::checkBeginFunction(CheckerContext& C) const {
-  
-}
+void LogChecker::checkBeginFunction(CheckerContext& C) const {}
 
 void LogChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
-  
+
 }
 
 void LogChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
-                           CheckerContext& C) const {
+                           CheckerContext& C) const {}
 
-  
-}
-
-void LogChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const{
-
-}
+void LogChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {}
 
 } // namespace clang::ento::nvm
 
