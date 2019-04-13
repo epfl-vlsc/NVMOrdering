@@ -41,6 +41,13 @@ void WriteChecker::checkMapStates(ProgramStateRef& State,
   DBG("checkMapStates")
   for (auto& [D, SS] : State->get<SMap>()) {
     if (!SS.isFinal()) {
+
+      auto& infoList = orderVars.getInfoList(D);
+      for (auto& BI : infoList) {
+        BI->dump();
+        llvm::errs() << "\n";
+      }
+
       auto SI = StateInfo(C, State, BReporter, nullptr, nullptr, D);
       SI.reportModelBug(SS.getExplanation());
     }

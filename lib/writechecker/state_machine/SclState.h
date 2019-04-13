@@ -18,7 +18,7 @@ public:
   bool isVfenceData() const { return K == VD; }
   bool isWriteCheck() const { return K == WC; }
 
-  bool isFinal() const { return K == WC; }
+  bool isFinal() const { return K == WC || K == VD; }
   static SclState getInit() { return SclState(WD); }
 
   static SclState getWriteData() { return SclState(WD); }
