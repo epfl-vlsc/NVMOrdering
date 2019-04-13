@@ -24,9 +24,9 @@ struct Log {
   leafnode* testNode;
 
   struct LogEntry {
-    pdcl(Log::current) leafnode* data;
+    sentinelp(Log::current+dcl) leafnode* data;
 
-    void end_code log(leafnode* data_) {
+    void analyze_safe log(leafnode* data_) {
       data = data_;
       clflush(&data);
       pfence();
@@ -41,7 +41,7 @@ struct Log {
   LogEntry buf[N];
   int current;
 
-  bool persistent_code logNode(leafnode* data_) {
+  bool analyze_writes logNode(leafnode* data_) {
     buf[current].log(data_);
 
     current++;
@@ -50,7 +50,7 @@ struct Log {
     return true;
   }
 
-  void recovery_code recover(){
+  void analyze_recovery recover(){
     int i = 0;
     while(i < current){
       testNode = buf[i].getEntry();
@@ -67,7 +67,7 @@ struct ValInCLL {
   enum EPOCH { MASK = 4 };
 
   //pscl() uint64_t incll;
-  uint64_t incll;
+  sentinelp(ValInCLL::incll+scl+MASK) uint64_t incll;
 
   /*
   long idx:4;
@@ -101,13 +101,13 @@ class leafnode : public basenode {
   uint64_t nodeEpoch;
   bool logged;
   bool InsAllowed;
-  pscl(leafnode::nodeEpoch) uint64_t permutationInCLL;
-  plog uint64_t permutation;
-  plog uint64_t keys[14];
+  sentinelp(leafnode::nodeEpoch+scl) uint64_t permutationInCLL;
+  logging(leafnode::setInCLL) uint64_t permutation;
+  logging(leafnode::setInCLL) uint64_t keys[14];
   uint64_t padding[3];
-  pscl(ValInCLL::incll) ValInCLL InCLL1;
-  plog uint64_t* vals[14];
-  pscl(ValInCLL::incll) ValInCLL InCLL2;
+  sentinelp(ValInCLL::incll+scl) ValInCLL InCLL1;
+  logging(leafnode::setInCLL) uint64_t* vals[14];
+  sentinelp(ValInCLL::incll+scl) ValInCLL InCLL2;
 
   void remove_idx(uint64_t* permutation, int idx) {
     (void)permutation;
@@ -121,7 +121,7 @@ class leafnode : public basenode {
   int find_idx(int key) { return (rand() + key) % 14; }
 
 public:
-  void log_code setInCLL(bool InCLLallowed, uint64_t permInCLL,
+  void setInCLL(bool InCLLallowed, uint64_t permInCLL,
                                 ValInCLL valInCLL1, ValInCLL valInCLL2) {
     if (globalEpoch != nodeEpoch) {
       InsAllowed = true;
@@ -143,7 +143,7 @@ public:
     vfence();
   }
 
-  void persistent_code remove(uint64_t key) {
+  void analyze_writes remove(uint64_t key) {
   //void persistent_code remove(uint64_t key) {
     int idx = find_idx(key);
     setInCLL(true, permutation, ValInCLL(), ValInCLL());
@@ -151,14 +151,14 @@ public:
     remove_idx(&permutation, idx);
   }
 
-  void persistent_code insert(uint64_t key, uint64_t* val) {
+  void analyze_writes insert(uint64_t key, uint64_t* val) {
     int idx = insert_idx(&permutation);
     setInCLL(InsAllowed, permutation, ValInCLL(), ValInCLL());
     keys[idx] = key;
     vals[idx] = val;
   }
 
-  void persistent_code update(int idx, uint64_t* val) {
+  void analyze_writes update(int idx, uint64_t* val) {
   //void persistent_code update(int idx, uint64_t* val) {
     if (idx <= 6) {
       ValInCLL& incll = InCLL1;
@@ -180,7 +180,7 @@ public:
   }
 
   // before first access to a leaf node
-  void recovery_code lazyNodeRecovery() {
+  void analyze_recovery lazyNodeRecovery() {
       if (nodeEpoch < currExecEpoch) {
         nodeRecovery();
       }
