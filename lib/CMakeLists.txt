@@ -1,5 +1,5 @@
 add_subdirectory(writechecker)
-#add_subdirectory(readchecker)
+add_subdirectory(readchecker)
 #add_subdirectory(txmchecker)
 #add_subdirectory(txpchecker)
 #add_subdirectory(logchecker)

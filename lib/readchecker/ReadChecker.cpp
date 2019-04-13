@@ -9,7 +9,8 @@ void ReadChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
                                AnalysisManager& Mgr, BugReporter& BR) const {
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
   // fill data structures
-  TUDWalker tudWalker(orderVars, orderFncs);
+  const ASTContext& ASTC = Mgr.getASTContext();
+  ReadWalker tudWalker(orderVars, orderFncs, ASTC);
   tudWalker.TraverseDecl(TUD);
   tudWalker.createUsedVars();
 

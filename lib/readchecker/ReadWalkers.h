@@ -1,170 +1,102 @@
 #pragma once
 #include "Common.h"
 #include "identify/OrderFncs.h"
-#include "state_machine/OrderVars.h"
+#include "identify/OrderVars.h"
+#include "state_machine/AnnotInfo.h"
+#include "walkers/OrderWalker.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang::ento::nvm {
 
-class TUDWalker : public RecursiveASTVisitor<TUDWalker> {
-  using ValueSet = std::set<const ValueDecl*>;
-  using StringSet = std::set<std::string>;
-  using StringMap = std::map<std::string, const ValueDecl*>;
-  using BIVec = std::vector<BaseInfo*>;
-  using ValueMap = std::map<const ValueDecl*, BIVec>;
+using OrderVarsBI = OrderVars<BaseInfo>;
 
-  static constexpr const char* SEP = "-";
-  static constexpr const char* CHECK = "check";
-  static constexpr const char* DCL = "dcl";
-  static constexpr const char* SCL = "scl";
-  static constexpr const char* DCLM = "dclm";
-  static constexpr const char* SCLM = "sclm";
-  static constexpr const char* MASK = "mask";
-  static constexpr const char* MASK_ANN = "MASK";
+class ReadWalker
+    : public TUDWalker<WriteWalker, BaseInfo, OrderVars, OrderFncs> {
 
-  static constexpr const std::array<const char*, 2> ANNOTS = {DCL, SCL};
-
-  StringSet maskedVars;
-  StringMap varMap;
-  ValueSet annotatedVars;
-  OrderVars& orderVars;
-  OrderFncs& orderFncs;
-
-  void addIfAnnotated(const FieldDecl* FD, StringRef annotation) {
-    if (auto [annotInfo, textInfo] = annotation.split(SEP);
-        !annotInfo.empty()) {
-      // if any annotation exists
-      if (std::any_of(ANNOTS.begin(), ANNOTS.end(),
-                      [&annotation](const char* a) {
-                        return annotation.contains(a);
-                      })) {
-        // var is annotated
-        annotatedVars.insert(FD);
-      }
+  BaseInfo* addClMaskToValidInfo(const ValueDecl* dataVD,
+                                 const ValueDecl* checkVD,
+                                 const AnnotateAttr* dataAA,
+                                 const AnnotVarInfo* dataAVI) {
+    BaseInfo* BI = nullptr;
+    StringRef maskName = dataAVI->getMask();
+    BI = new RecMaskToValidInfo(dataVD, checkVD, dataAA, maskName);
+    orderVars.addUsedVar(dataVD, BI);
+    if (dataAA) {
+      orderVars.addUsedVar(dataAA, BI);
     }
+    return BI;
   }
 
-  void createUsedVar(const ValueDecl* VD) {
-    for (const auto* Ann : VD->specific_attrs<AnnotateAttr>()) {
-      // add to annotated vars
-      addBasedOnAnnot(VD, Ann);
-    }
+  BaseInfo* addClInfo(const ValueDecl* dataVD, const ValueDecl* checkVD,
+                      const AnnotVarInfo* dataAVI) {
+    BaseInfo* BI = nullptr;
+    BI = new RecInfo(dataVD, checkVD);
+
+    orderVars.addUsedVar(dataVD, BI);
+    return BI;
   }
 
-  const ValueDecl* getCheckVD(const StringRef& checkNameRef) {
-    if (checkNameRef.empty()) {
-      // empty body masked dcl, scl
-      return nullptr;
-    }
+  BaseInfo* addClDataToMaskInfo(const ValueDecl* dataVD,
+                                const ValueDecl* checkVD,
+                                const AnnotVarInfo* dataAVI,
+                                const StringRef& maskName) {
+    BaseInfo* BI = nullptr;
+    BI = new RecDataToMaskInfo(dataVD, checkVD, maskName);
 
-    auto checkName = checkNameRef.str();
-    dbg_assert(varMap, checkName, "check not tracked correctly");
-    return varMap[checkName];
+    orderVars.addUsedVar(dataVD, BI);
+    return BI;
   }
 
-  void addBasedOnAnnot(const ValueDecl* dataVD, const AnnotateAttr* dataAA) {
-
-    StringRef dataAnnotation = dataAA->getAnnotation();
-    auto [annotInfo, textInfo] = dataAnnotation.split(SEP);
-
-    // pair variables
-    std::string dataName = dataVD->getQualifiedNameAsString();
-    const ValueDecl* checkVD = getCheckVD(textInfo);
-    std::string checkName = "";
-    if (checkVD) {
-      checkName = checkVD->getQualifiedNameAsString();
-    }
+  void addPair(const ValueDecl* dataVD, const AnnotateAttr* dataAA,
+               const AnnotVarInfo* dataAVI) {
+    auto checkName = dataAVI->getCheckName();
+    const ValueDecl* checkVD = getCheckVD(checkName);
+    AnnotVarInfo* checkAVI = getAVI(checkVD);
     BaseInfo* BI = nullptr;
 
-    if (annotInfo.contains(DCL) || annotInfo.contains(SCL)) {
-      if (!dataName.empty() && maskedVars.count(dataName)) {
-        // masked vars
-        if (!textInfo.empty()) {
-          // if transitively has a validator
-          llvm::outs() << "RecMaskToValidInfo" << dataVD->getNameAsString() << "\n";
-          BI = new RecMaskToValidInfo(dataVD, checkVD, dataAA);
-          orderVars.addUsedVar(dataVD, BI);
-          orderVars.addUsedVar(dataAA, BI);
-        } else {
-          // does not have a validator
-          llvm::outs() << "RecMaskToValidInfon" << dataVD->getNameAsString() << "\n";
-          BI = new RecMaskToValidInfo(dataVD, nullptr, nullptr);
-          orderVars.addUsedVar(dataVD, BI);
-        }
-      } else {
-        if (!checkName.empty() && maskedVars.count(checkName)) {
-          // masked valid
-          llvm::outs() << "RecDataToMaskInfo" << dataVD->getNameAsString() << "\n";
-          BI = new RecDataToMaskInfo(dataVD, checkVD);
-          orderVars.addUsedVar(dataVD, BI);
-        } else {
-          // normal
-          llvm::outs() << "RecInfo" << dataVD->getNameAsString() << "\n";
-          BI = new RecInfo(dataVD, checkVD);
-          orderVars.addUsedVar(dataVD, BI);
-        }
-      }
+    if (!dataAVI) {
+      llvm::report_fatal_error("data must be tracked for AVI");
+    }
 
-      // also subscribe valids
-      if (checkVD != nullptr && BI != nullptr) {
-        orderVars.addUsedVar(checkVD, BI);
+    if (dataAVI->isMask()) {
+      // if data is masked
+      if (dataVD == checkVD) {
+        // pure masked
+        BI = addClMaskToValidInfo(dataVD, nullptr, nullptr, dataAVI);
+      } else {
+        // masked with validator
+        BI = addClMaskToValidInfo(dataVD, checkVD, dataAA, dataAVI);
       }
+    } else {
+      // data is not masked
+      if (checkAVI && checkAVI->isMask()) {
+        StringRef maskName = checkAVI->getMask();
+        // check uses mask
+        BI = addClDataToMaskInfo(dataVD, checkVD, dataAVI, maskName);
+      } else {
+        // check is not masked
+        BI = addClInfo(dataVD, checkVD, dataAVI);
+      }
+    }
+
+    // also subscribe valids
+    if (checkVD && BI) {
+      orderVars.addUsedVar(checkVD, BI);
     }
   }
 
-  bool hasMask(const Stmt* S) {
-    MaskWalker maskWalker(true);
-    maskWalker.Visit(S);
-    return maskWalker.hasMask();
+  void addAnnotation(const ValueDecl* dataVD, const AnnotateAttr* dataAA,
+                     const AnnotVarInfo* AVI) {
+
+    if (AVI->getClType() != AnnotVarInfo::Check) {
+      addPair(dataVD, dataAA, AVI);
+    }
   }
 
 public:
-  TUDWalker(OrderVars& orderVars_, OrderFncs& orderFncs_)
-      : orderVars(orderVars_), orderFncs(orderFncs_) {}
-
-  // todo add a visitor to support local var declaration
-  bool VisitFieldDecl(const FieldDecl* FD) {
-    for (const auto* Ann : FD->specific_attrs<AnnotateAttr>()) {
-      StringRef annotation = Ann->getAnnotation();
-      // add to annotated vars
-      addIfAnnotated(FD, annotation);
-    }
-
-    // add to known fields
-    std::string varName = FD->getQualifiedNameAsString();
-    varMap[varName] = FD;
-
-    // continue traversal
-    return true;
-  }
-
-  bool VisitFunctionDecl(const FunctionDecl* FD) {
-    orderFncs.insertIfKnown(FD);
-
-    // continue traversal
-    return true;
-  }
-
-  bool VisitBinaryOperator(const BinaryOperator* BO) {
-    if (BO->isAssignmentOp() && hasMask(BO)) {
-      Expr* E = BO->getLHS();
-      if (const MemberExpr* ME = dyn_cast_or_null<MemberExpr>(E)) {
-        ValueDecl* VD = ME->getMemberDecl();
-        std::string fqName = VD->getQualifiedNameAsString();
-        maskedVars.insert(fqName);
-      }
-    }
-
-    // continue traversal
-    return true;
-  }
-
-  void createUsedVars() {
-    for (auto VD : annotatedVars) {
-      createUsedVar(VD);
-    }
-  }
-
+  ReadWalker(OrderVars& orderVars_, OrderFncs& orderFncs_,
+             const ASTContext& ASTC_)
+      : TUDWalker(orderVars_, orderFncs_, ASTC_) {}
 };
 
 } // namespace clang::ento::nvm

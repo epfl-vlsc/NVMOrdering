@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Common.h"
-#include "Walkers.h"
-#include "StateInfo.h"
 #include "RecTransitions.h"
+#include "StateInfo.h"
+#include "walkers/Walkers.h"
 
 namespace clang::ento::nvm {
 
@@ -36,8 +36,10 @@ public:
   virtual bool useData(StateInfo& SI) const {
     SI.setD(data);
     if (((const char*)data) == SI.VarAddr) {
+      SI.setVD(check);
       return true;
     } else if (((const char*)check) == SI.VarAddr) {
+      SI.setVD(check);
       return false;
     } else {
       llvm::report_fatal_error("not data nor check");
@@ -46,7 +48,7 @@ public:
   }
 
   // todo make it all pure abstract
-  virtual void read(StateInfo& SI) const{}
+  virtual void read(StateInfo& SI) const {}
 };
 
 class RecInfo : public PairInfo {
@@ -70,43 +72,70 @@ public:
 };
 
 class RecDataToMaskInfo : public RecInfo {
+  StringRef maskName;
+
 public:
-  RecDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_)
+  RecDataToMaskInfo(const ValueDecl* data_, const ValueDecl* check_,
+                    StringRef maskName_)
       : RecInfo(data_, check_) {}
 
   void dump() const {
     llvm::outs() << "RecDataToMaskInfo: ";
     PairInfo::dump();
   }
+
+  virtual void read(StateInfo& SI) const {
+    if (useData(SI)) {
+      RecSpace::readData(SI);
+    } else {
+      if (SI.S && usesMask(SI.S, maskName, true)) {
+        // write to c(c)
+        SI.setMask();
+        RecSpace::readCheck(SI);
+      } else {
+        // write to c(d)
+        // do nothing
+      }
+    }
+  }
 };
 
 class MaskToValidInfo : public PairInfo {
 protected:
   const AnnotateAttr* ann;
+  StringRef maskName;
   MaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
-                  const AnnotateAttr* ann_)
-      : PairInfo(data_, check_), ann(ann_) {}
+                  const AnnotateAttr* ann_, StringRef maskName_)
+      : PairInfo(data_, check_), ann(ann_), maskName(maskName_) {}
 
   enum FieldKind { CHUNK_DATA, CHUNK_CHECK, CHECK_CHECK, NONE };
 
   virtual FieldKind selectField(StateInfo& SI) const {
     if (((const char*)check) == SI.VarAddr) {
       // transitive check
+      SI.setVD(data);
       return FieldKind::CHECK_CHECK;
-    } else if (SI.S) {
-      // read case
-      if (usesMask(SI.S, true)) {
-        // read check
-        SI.setMask();
-        return FieldKind::CHUNK_CHECK;
+    } else if (((const char*)data) == SI.VarAddr) {
+      SI.setVD(data);
+
+      if (SI.S) {
+        // write
+        if (usesMask(SI.S, maskName, true)) {
+          // write check
+          SI.setMask();
+          return FieldKind::CHUNK_CHECK;
+        } else {
+          // write data
+          SI.setMask();
+          return FieldKind::CHUNK_DATA;
+        }
       } else {
-        // read data
+        // flush
         SI.setMask();
         return FieldKind::CHUNK_DATA;
       }
     } else {
-      // flush case
-      return FieldKind::CHUNK_DATA;
+      llvm::report_fatal_error("wrong pair addr");
     }
   }
 };
@@ -114,8 +143,8 @@ protected:
 class RecMaskToValidInfo : public MaskToValidInfo {
 public:
   RecMaskToValidInfo(const ValueDecl* data_, const ValueDecl* check_,
-                     const AnnotateAttr* ann_)
-      : MaskToValidInfo(data_, check_, ann_) {}
+                     const AnnotateAttr* ann_, StringRef maskName_)
+      : MaskToValidInfo(data_, check_, ann_, maskName_) {}
 
   void dump() const {
     llvm::outs() << "DclMaskToValidInfo: ";
@@ -154,6 +183,5 @@ public:
     }
   }
 };
-
 
 } // namespace clang::ento::nvm
