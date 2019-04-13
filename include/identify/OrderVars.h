@@ -1,9 +1,9 @@
 #pragma once
-#include "AnnotInfo.h"
 #include "Common.h"
 
 namespace clang::ento::nvm {
 
+template<typename BaseInfo>
 class OrderVars {
   using InfoList = std::set<BaseInfo*>;
   using ValueMap = std::map<const char*, InfoList>;
@@ -45,7 +45,6 @@ public:
 
   void dump() {
     for (auto& [D, BIV] : usedVars) {
-
       llvm::outs() << (void*)D << "\n";
 
       for (auto& BI : BIV) {
