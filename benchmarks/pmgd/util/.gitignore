@@ -1,7 +1,0 @@
-*.o
-*.d
-jarvis-util.lib
-loader.cc
-loader.hh
-scanner.cc
-scanner.hh
