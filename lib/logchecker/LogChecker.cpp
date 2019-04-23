@@ -1,7 +1,6 @@
 //===-- LogChecker.cpp -----------------------------------------*
 
 #include "LogChecker.h"
-#include "Transitions.h"
 
 namespace clang::ento::nvm {
 

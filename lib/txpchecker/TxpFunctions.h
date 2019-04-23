@@ -1,10 +1,10 @@
 #pragma once
 #include "Common.h"
-#include "AnnotFunctionInfos.h"
+#include "AnnotFunction.h"
 
 namespace clang::ento::nvm {
 
-class NVMTransactionInfo {
+class TxpFunctions {
   AnnotFunction txFnc;
   std::set<const FunctionDecl*> txBegSet;
   std::set<const FunctionDecl*> txRangeSet;
@@ -16,7 +16,7 @@ class NVMTransactionInfo {
   std::set<const FunctionDecl*> pdirectFncSet;
 
 public:
-  NVMTransactionInfo():txFnc("TxCode"){}
+  TxpFunctions():txFnc("TxCode"){}
 
   void insertFunction(const FunctionDecl* FD) {
     txFnc.insertIfKnown(FD);

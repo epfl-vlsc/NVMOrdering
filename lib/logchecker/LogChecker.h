@@ -1,6 +1,8 @@
 // transaction pmdk checker
 #pragma once
 #include "Common.h"
+#include "identify/LogDecls.h"
+#include "state_machine/LogBugReporter.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.logchecker";
 
@@ -11,7 +13,7 @@ class LogChecker
                      check::PostCall, check::BeginFunction,
                      check::BranchCondition> {
 public:
-  LogChecker() {}
+  LogChecker():BReporter(*this) {}
 
   void checkBind(SVal Loc, SVal Val, const Stmt* S, CheckerContext& C) const;
 
@@ -25,6 +27,8 @@ public:
   void checkBranchCondition(const Stmt* S, CheckerContext& C) const;
 
 private:
+mutable LogDecls logDecls;
+const LogBugReporter BReporter;
 };
 
 } // namespace clang::ento::nvm

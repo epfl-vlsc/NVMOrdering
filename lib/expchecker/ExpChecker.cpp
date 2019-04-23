@@ -7,6 +7,7 @@ namespace clang::ento::nvm {
 
 void ExpChecker::checkASTDecl(const RecordDecl* RD, AnalysisManager& Mgr,
                               BugReporter& BR) const {
+                                /*
   ASTContext& ASTC = Mgr.getASTContext();
   llvm::outs() << "record: " << RD->getNameAsString() << "\n";
 
@@ -18,16 +19,17 @@ void ExpChecker::checkASTDecl(const RecordDecl* RD, AnalysisManager& Mgr,
     QualType QT = FD->getType();
     QT.dump();
     const Type* type = QT.getTypePtr();
-    if(type->isConstantSizeType()){
+    if (type->isConstantSizeType()) {
       uint64_t fieldSize = ASTC.getTypeSizeInChars(type).getQuantity();
       llvm::outs() << "size: " << fieldSize << "\n";
       current += fieldSize;
       CL = current / CACHE_LINE_SIZE;
       llvm::outs() << "currently at CL: " << CL << "\n";
-    }else{
-      //fallback to dcl
+    } else {
+      // fallback to dcl
     }
   }
+  */
 }
 
 void ExpChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
@@ -38,7 +40,14 @@ void ExpChecker::checkBeginFunction(CheckerContext& C) const {}
 void ExpChecker::checkEndFunction(CheckerContext& C) const {}
 
 void ExpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
-                           CheckerContext& C) const {}
+                           CheckerContext& C) const {
+  
+  llvm::outs() << "bind\n";
+  S->dumpPretty(C.getASTContext());
+  llvm::outs() << "\n";
+  Loc.dump();
+  llvm::outs() << "\n";
+}
 
 void ExpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
   const Decl* BD = Call.getDecl();
