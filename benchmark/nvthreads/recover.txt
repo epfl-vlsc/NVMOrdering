@@ -1,0 +1,3 @@
+g++ -g   -DNVTHREAD -I../..//src/include ../..//src/source/nvrecovery.cpp  recover_int.c -o recover_int.o -rdynamic ../..//src/libnvthread.so -ldl
+g++ -g   -DNVTHREAD -I../..//src/include ../..//src/source/nvrecovery.cpp  recover_array.c -o recover_array.o -rdynamic ../..//src/libnvthread.so -ldl
+g++ -g   -DNVTHREAD -I../..//src/include ../..//src/source/nvrecovery.cpp  recover_aggr.c -o recover_aggr.o -rdynamic ../..//src/libnvthread.so -ldl

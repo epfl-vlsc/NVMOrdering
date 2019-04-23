@@ -74,6 +74,77 @@ git diff > patch/owriteback/pmfs1.patch
  git reset --hard
 
 
+# benchmark details #
+## nova ##
+    
+    make V=1 > make.txt
+
+## nvthreads ##
+
+    make libnvthread.so > nvthreads.txt
+
+    cd $NVthreads/tests/recover/
+    make > recover.txt
+
+## pmgd ##
+
+    make PMOPT=PM -n > make.txt
+
+
+## pmwcas ##
+
+    mkdir build
+    cd build
+    cmake -DPMEM_BACKEND=Volatile -DCMAKE_BUILD_TYPE=Debug ..
+    make VERBOSE=1 > make.txt 
+
+## kv echo ##
+ 
+    make > make.txt
+
+## mnemosyne ##
+
+    scons --build-example=simple --verbose > simple.txt
+    scons --build-bench=stamp-kozy --verbose > stamp.txt
+
+## nstore ## 
+
+    make > make.txt
+
+## pmfs
+
+    make V=1 > make.txt
+
+## redis ##
+
+    make USE_NVML=yes STD=-std=gnu99 V=1
+
+## atlas ##
+
+    make VERBOSE=1 > make.txt
+
+## nvml ## 
+* delete pfence
+
+    ./build.sh > make.txt
+
+## redis ## 
+    
+    make USE_NVML=yes STD=-std=gnu99 V=1 > make.txt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## benchmark compilation ##
 nvml
 ./build.sh - full build takes 34 seconds on desktop

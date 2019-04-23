@@ -1,0 +1,557 @@
+/usr/bin/cmake -H/home/aksun/git/NvmBenchmarks/pmwcas -B/home/aksun/git/NvmBenchmarks/pmwcas/build --check-build-system CMakeFiles/Makefile.cmake 0
+/usr/bin/cmake -E cmake_progress_start /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/progress.marks
+make -f CMakeFiles/Makefile2 all
+make[1]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f CMakeFiles/GFlagsExternal.dir/build.make CMakeFiles/GFlagsExternal.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/GFlagsExternal.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f CMakeFiles/GFlagsExternal.dir/build.make CMakeFiles/GFlagsExternal.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[  1%] Creating directories for 'GFlagsExternal'
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/tmp
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-mkdir
+[  3%] Performing download step (DIR copy) for 'GFlagsExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src && /usr/bin/cmake -P /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-download-Debug.cmake
+-- GFlagsExternal download command succeeded.  See also /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-download-*.log
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-download
+[  4%] No patch step for 'GFlagsExternal'
+/usr/bin/cmake -E echo_append
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-patch
+[  6%] No update step for 'GFlagsExternal'
+/usr/bin/cmake -E echo_append
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-update
+[  7%] Performing configure step for 'GFlagsExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build && /usr/bin/cmake -P /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-configure-Debug.cmake
+-- GFlagsExternal configure command succeeded.  See also /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-configure-*.log
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-configure
+[  9%] Performing build step for 'GFlagsExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build && /usr/bin/cmake -Dmake=make -P /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-build-Debug.cmake
+-- GFlagsExternal build command succeeded.  See also /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-build-*.log
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-build
+[ 11%] No install step for 'GFlagsExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build && /usr/bin/cmake -E echo_append
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-install
+[ 12%] Completed 'GFlagsExternal'
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/GFlagsExternal-complete
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-stamp/GFlagsExternal-done
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 12%] Built target GFlagsExternal
+make -f CMakeFiles/GLogExternal.dir/build.make CMakeFiles/GLogExternal.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/GLogExternal.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f CMakeFiles/GLogExternal.dir/build.make CMakeFiles/GLogExternal.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 14%] Creating directories for 'GLogExternal'
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/glog
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/tmp
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-mkdir
+[ 15%] Performing download step (DIR copy) for 'GLogExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src && /usr/bin/cmake -P /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-download-Debug.cmake
+-- GLogExternal download command succeeded.  See also /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-download-*.log
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-download
+[ 17%] No patch step for 'GLogExternal'
+/usr/bin/cmake -E echo_append
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-patch
+[ 19%] No update step for 'GLogExternal'
+/usr/bin/cmake -E echo_append
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-update
+[ 20%] Performing configure step for 'GLogExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build && /usr/bin/cmake -P /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-configure-Debug.cmake
+-- GLogExternal configure command succeeded.  See also /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-configure-*.log
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-configure
+[ 22%] Performing build step for 'GLogExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build && /usr/bin/cmake -Dmake=make -P /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-build-Debug.cmake
+-- GLogExternal build command succeeded.  See also /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-build-*.log
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-build
+[ 23%] No install step for 'GLogExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build && /usr/bin/cmake -E echo_append
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-install
+[ 25%] Completed 'GLogExternal'
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/GLogExternal-complete
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-stamp/GLogExternal-done
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 25%] Built target GLogExternal
+make -f CMakeFiles/GTestExternal.dir/build.make CMakeFiles/GTestExternal.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/GTestExternal.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f CMakeFiles/GTestExternal.dir/build.make CMakeFiles/GTestExternal.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 26%] Creating directories for 'GTestExternal'
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/tmp
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-mkdir
+[ 28%] Performing download step (DIR copy) for 'GTestExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src && /usr/bin/cmake -P /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-download-Debug.cmake
+-- GTestExternal download command succeeded.  See also /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-download-*.log
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-download
+[ 30%] No patch step for 'GTestExternal'
+/usr/bin/cmake -E echo_append
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-patch
+[ 31%] No update step for 'GTestExternal'
+/usr/bin/cmake -E echo_append
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-update
+[ 33%] Performing configure step for 'GTestExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build && /usr/bin/cmake -P /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-configure-Debug.cmake
+-- GTestExternal configure command succeeded.  See also /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-configure-*.log
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-configure
+[ 34%] Performing build step for 'GTestExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build && /usr/bin/cmake -Dmake=make -P /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-build-Debug.cmake
+-- GTestExternal build command succeeded.  See also /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-build-*.log
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-build
+[ 36%] No install step for 'GTestExternal'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build && /usr/bin/cmake -E echo_append
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build && /usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-install
+[ 38%] Completed 'GTestExternal'
+/usr/bin/cmake -E make_directory /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/GTestExternal-complete
+/usr/bin/cmake -E touch /home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-stamp/GTestExternal-done
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 38%] Built target GTestExternal
+make -f CMakeFiles/pmwcas.dir/build.make CMakeFiles/pmwcas.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/pmwcas.dir/DependInfo.cmake --color=
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/pmwcas.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/pmwcas.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/pmwcas.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/pmwcas.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/pmwcas.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/pmwcas.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/pmwcas.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/pmwcas.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/pmwcas.dir/depend.internal".
+Clearing dependencies in "/home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles/pmwcas.dir/depend.make".
+Scanning dependencies of target pmwcas
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f CMakeFiles/pmwcas.dir/build.make CMakeFiles/pmwcas.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 39%] Building CXX object CMakeFiles/pmwcas.dir/src/util/nvram.cc.o
+/usr/bin/c++   -DDESC_CAP=4 -Dpmwcas_EXPORTS -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g -fPIC   -o CMakeFiles/pmwcas.dir/src/util/nvram.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/util/nvram.cc
+[ 41%] Building CXX object CMakeFiles/pmwcas.dir/src/util/status.cc.o
+/usr/bin/c++   -DDESC_CAP=4 -Dpmwcas_EXPORTS -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g -fPIC   -o CMakeFiles/pmwcas.dir/src/util/status.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/util/status.cc
+[ 42%] Building CXX object CMakeFiles/pmwcas.dir/src/environment/environment.cc.o
+/usr/bin/c++   -DDESC_CAP=4 -Dpmwcas_EXPORTS -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g -fPIC   -o CMakeFiles/pmwcas.dir/src/environment/environment.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment.cc
+[ 44%] Building CXX object CMakeFiles/pmwcas.dir/src/common/allocator_internal.cc.o
+/usr/bin/c++   -DDESC_CAP=4 -Dpmwcas_EXPORTS -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g -fPIC   -o CMakeFiles/pmwcas.dir/src/common/allocator_internal.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/common/allocator_internal.cc
+[ 46%] Building CXX object CMakeFiles/pmwcas.dir/src/common/pmwcas_internal.cc.o
+/usr/bin/c++   -DDESC_CAP=4 -Dpmwcas_EXPORTS -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g -fPIC   -o CMakeFiles/pmwcas.dir/src/common/pmwcas_internal.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/common/pmwcas_internal.cc
+[ 47%] Building CXX object CMakeFiles/pmwcas.dir/src/common/environment_internal.cc.o
+/usr/bin/c++   -DDESC_CAP=4 -Dpmwcas_EXPORTS -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g -fPIC   -o CMakeFiles/pmwcas.dir/src/common/environment_internal.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/common/environment_internal.cc
+[ 49%] Building CXX object CMakeFiles/pmwcas.dir/src/common/epoch.cc.o
+/usr/bin/c++   -DDESC_CAP=4 -Dpmwcas_EXPORTS -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g -fPIC   -o CMakeFiles/pmwcas.dir/src/common/epoch.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/common/epoch.cc
+[ 50%] Building CXX object CMakeFiles/pmwcas.dir/src/mwcas/mwcas.cc.o
+/usr/bin/c++   -DDESC_CAP=4 -Dpmwcas_EXPORTS -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g -fPIC   -o CMakeFiles/pmwcas.dir/src/mwcas/mwcas.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/mwcas/mwcas.cc
+[ 52%] Building CXX object CMakeFiles/pmwcas.dir/src/environment/environment_linux.cc.o
+/usr/bin/c++   -DDESC_CAP=4 -Dpmwcas_EXPORTS -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g -fPIC   -o CMakeFiles/pmwcas.dir/src/environment/environment_linux.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment_linux.cc
+[ 53%] Linking CXX shared library libpmwcas.so
+/usr/bin/cmake -E cmake_link_script CMakeFiles/pmwcas.dir/link.txt --verbose=1
+/usr/bin/c++  -fPIC  -std=c++11 -g  -lpthread -lrt -lnuma -shared -Wl,-soname,libpmwcas.so -o libpmwcas.so CMakeFiles/pmwcas.dir/src/util/nvram.cc.o CMakeFiles/pmwcas.dir/src/util/status.cc.o CMakeFiles/pmwcas.dir/src/environment/environment.cc.o CMakeFiles/pmwcas.dir/src/common/allocator_internal.cc.o CMakeFiles/pmwcas.dir/src/common/pmwcas_internal.cc.o CMakeFiles/pmwcas.dir/src/common/environment_internal.cc.o CMakeFiles/pmwcas.dir/src/common/epoch.cc.o CMakeFiles/pmwcas.dir/src/mwcas/mwcas.cc.o CMakeFiles/pmwcas.dir/src/environment/environment_linux.cc.o  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 53%] Built target pmwcas
+make -f src/double-linked-list/CMakeFiles/double-linked-list.dir/build.make src/double-linked-list/CMakeFiles/double-linked-list.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/src/double-linked-list /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list /home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/double-linked-list.dir/DependInfo.cmake --color=
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/double-linked-list.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/double-linked-list.dir/depend.internal".
+Clearing dependencies in "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/double-linked-list.dir/depend.make".
+Scanning dependencies of target double-linked-list
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f src/double-linked-list/CMakeFiles/double-linked-list.dir/build.make src/double-linked-list/CMakeFiles/double-linked-list.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 55%] Building CXX object src/double-linked-list/CMakeFiles/double-linked-list.dir/doubly_linked_list.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g   -o CMakeFiles/double-linked-list.dir/doubly_linked_list.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/double-linked-list/doubly_linked_list.cc
+[ 57%] Linking CXX static library ../../libdouble-linked-list.a
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list && /usr/bin/cmake -P CMakeFiles/double-linked-list.dir/cmake_clean_target.cmake
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list && /usr/bin/cmake -E cmake_link_script CMakeFiles/double-linked-list.dir/link.txt --verbose=1
+/usr/bin/ar qc ../../libdouble-linked-list.a  CMakeFiles/double-linked-list.dir/doubly_linked_list.cc.o
+/usr/bin/ranlib ../../libdouble-linked-list.a
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 57%] Built target double-linked-list
+make -f src/environment/CMakeFiles/environment_tests.dir/build.make src/environment/CMakeFiles/environment_tests.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/src/environment /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment /home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/DependInfo.cmake --color=
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-death-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-message.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-param-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-test-part.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-typed-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_pred_impl.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-death-test-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-filepath.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-linked_ptr.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util-generated.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port-arch.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-string.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-tuple.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-type-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.internal".
+Clearing dependencies in "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment/CMakeFiles/environment_tests.dir/depend.make".
+Scanning dependencies of target environment_tests
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f src/environment/CMakeFiles/environment_tests.dir/build.make src/environment/CMakeFiles/environment_tests.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 58%] Building CXX object src/environment/CMakeFiles/environment_tests.dir/environment_tests.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/environment_tests.dir/environment_tests.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment_tests.cc
+[ 60%] Building CXX object src/environment/CMakeFiles/environment_tests.dir/environment_linux.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/environment_tests.dir/environment_linux.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment_linux.cc
+[ 61%] Linking CXX executable ../../environment_tests
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/environment && /usr/bin/cmake -E cmake_link_script CMakeFiles/environment_tests.dir/link.txt --verbose=1
+/usr/bin/c++    -std=c++11 -g   -lpthread -lrt -lnuma CMakeFiles/environment_tests.dir/environment_tests.cc.o CMakeFiles/environment_tests.dir/environment_linux.cc.o  -o ../../environment_tests  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -rdynamic ../../libpmwcas.so -lpthread -lrt -lnuma -lglog -lgflags -lgtest ../../libdouble-linked-list.a ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -Wl,-rpath,/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest:/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib:/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 61%] Built target environment_tests
+make -f src/common/CMakeFiles/garbage_list_test.dir/build.make src/common/CMakeFiles/garbage_list_test.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/src/common /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/DependInfo.cmake --color=
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-death-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-message.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-param-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-test-part.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-typed-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_pred_impl.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-death-test-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-filepath.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-linked_ptr.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util-generated.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port-arch.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-string.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-tuple.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-type-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.internal".
+Clearing dependencies in "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/garbage_list_test.dir/depend.make".
+Scanning dependencies of target garbage_list_test
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f src/common/CMakeFiles/garbage_list_test.dir/build.make src/common/CMakeFiles/garbage_list_test.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 63%] Building CXX object src/common/CMakeFiles/garbage_list_test.dir/garbage_list_test.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/garbage_list_test.dir/garbage_list_test.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/common/garbage_list_test.cc
+[ 65%] Building CXX object src/common/CMakeFiles/garbage_list_test.dir/__/environment/environment_linux.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/garbage_list_test.dir/__/environment/environment_linux.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment_linux.cc
+[ 66%] Linking CXX executable ../../garbage_list_test
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common && /usr/bin/cmake -E cmake_link_script CMakeFiles/garbage_list_test.dir/link.txt --verbose=1
+/usr/bin/c++    -std=c++11 -g   -lpthread -lrt -lnuma CMakeFiles/garbage_list_test.dir/garbage_list_test.cc.o CMakeFiles/garbage_list_test.dir/__/environment/environment_linux.cc.o  -o ../../garbage_list_test  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -rdynamic ../../libpmwcas.so -lpthread -lrt -lnuma -lglog -lgflags -lgtest ../../libdouble-linked-list.a ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -Wl,-rpath,/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest:/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib:/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 66%] Built target garbage_list_test
+make -f src/common/CMakeFiles/allocator_internal_test.dir/build.make src/common/CMakeFiles/allocator_internal_test.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/src/common /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/DependInfo.cmake --color=
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-death-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-message.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-param-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-test-part.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-typed-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_pred_impl.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-death-test-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-filepath.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-linked_ptr.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util-generated.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port-arch.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-string.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-tuple.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-type-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.internal".
+Clearing dependencies in "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/allocator_internal_test.dir/depend.make".
+Scanning dependencies of target allocator_internal_test
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f src/common/CMakeFiles/allocator_internal_test.dir/build.make src/common/CMakeFiles/allocator_internal_test.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 68%] Building CXX object src/common/CMakeFiles/allocator_internal_test.dir/allocator_internal_test.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/allocator_internal_test.dir/allocator_internal_test.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/common/allocator_internal_test.cc
+[ 69%] Building CXX object src/common/CMakeFiles/allocator_internal_test.dir/__/environment/environment_linux.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/allocator_internal_test.dir/__/environment/environment_linux.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment_linux.cc
+[ 71%] Linking CXX executable ../../allocator_internal_test
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common && /usr/bin/cmake -E cmake_link_script CMakeFiles/allocator_internal_test.dir/link.txt --verbose=1
+/usr/bin/c++    -std=c++11 -g   -lpthread -lrt -lnuma CMakeFiles/allocator_internal_test.dir/allocator_internal_test.cc.o CMakeFiles/allocator_internal_test.dir/__/environment/environment_linux.cc.o  -o ../../allocator_internal_test  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -rdynamic ../../libpmwcas.so -lpthread -lrt -lnuma -lglog -lgflags -lgtest ../../libdouble-linked-list.a ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -Wl,-rpath,/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest:/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib:/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 71%] Built target allocator_internal_test
+make -f src/common/CMakeFiles/epoch_test.dir/build.make src/common/CMakeFiles/epoch_test.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/src/common /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/DependInfo.cmake --color=
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-death-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-message.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-param-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-test-part.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-typed-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_pred_impl.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-death-test-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-filepath.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-linked_ptr.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util-generated.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port-arch.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-string.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-tuple.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-type-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.internal".
+Clearing dependencies in "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/common/CMakeFiles/epoch_test.dir/depend.make".
+Scanning dependencies of target epoch_test
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f src/common/CMakeFiles/epoch_test.dir/build.make src/common/CMakeFiles/epoch_test.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 73%] Building CXX object src/common/CMakeFiles/epoch_test.dir/epoch_test.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/epoch_test.dir/epoch_test.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/common/epoch_test.cc
+[ 74%] Building CXX object src/common/CMakeFiles/epoch_test.dir/__/environment/environment_linux.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/epoch_test.dir/__/environment/environment_linux.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment_linux.cc
+[ 76%] Linking CXX executable ../../epoch_test
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/common && /usr/bin/cmake -E cmake_link_script CMakeFiles/epoch_test.dir/link.txt --verbose=1
+/usr/bin/c++    -std=c++11 -g   -lpthread -lrt -lnuma CMakeFiles/epoch_test.dir/epoch_test.cc.o CMakeFiles/epoch_test.dir/__/environment/environment_linux.cc.o  -o ../../epoch_test  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -rdynamic ../../libpmwcas.so -lpthread -lrt -lnuma -lglog -lgflags -lgtest ../../libdouble-linked-list.a ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -Wl,-rpath,/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest:/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib:/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 76%] Built target epoch_test
+make -f src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/build.make src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/src/benchmarks /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/DependInfo.cmake --color=
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-death-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-message.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-param-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-test-part.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-typed-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_pred_impl.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-death-test-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-filepath.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-linked_ptr.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util-generated.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port-arch.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-string.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-tuple.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-type-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.internal".
+Clearing dependencies in "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/depend.make".
+Scanning dependencies of target doubly_linked_list_benchmark
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/build.make src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 77%] Building CXX object src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/doubly_linked_list_benchmark.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g   -o CMakeFiles/doubly_linked_list_benchmark.dir/doubly_linked_list_benchmark.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/benchmarks/doubly_linked_list_benchmark.cc
+[ 79%] Building CXX object src/benchmarks/CMakeFiles/doubly_linked_list_benchmark.dir/__/environment/environment_linux.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g   -o CMakeFiles/doubly_linked_list_benchmark.dir/__/environment/environment_linux.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment_linux.cc
+[ 80%] Linking CXX executable ../../doubly_linked_list_benchmark
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks && /usr/bin/cmake -E cmake_link_script CMakeFiles/doubly_linked_list_benchmark.dir/link.txt --verbose=1
+/usr/bin/c++    -std=c++11 -g   -lpthread -lrt -lnuma CMakeFiles/doubly_linked_list_benchmark.dir/doubly_linked_list_benchmark.cc.o CMakeFiles/doubly_linked_list_benchmark.dir/__/environment/environment_linux.cc.o  -o ../../doubly_linked_list_benchmark  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -rdynamic ../../libpmwcas.so ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -lpthread -lrt -lnuma -lglog -lgflags -lgtest ../../libdouble-linked-list.a ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -Wl,-rpath,/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest:/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib:/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 80%] Built target doubly_linked_list_benchmark
+make -f src/benchmarks/CMakeFiles/mwcas_benchmark.dir/build.make src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/src/benchmarks /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/DependInfo.cmake --color=
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-death-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-message.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-param-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-test-part.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-typed-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_pred_impl.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-death-test-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-filepath.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-linked_ptr.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util-generated.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port-arch.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-string.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-tuple.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-type-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.internal".
+Clearing dependencies in "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_benchmark.dir/depend.make".
+Scanning dependencies of target mwcas_benchmark
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f src/benchmarks/CMakeFiles/mwcas_benchmark.dir/build.make src/benchmarks/CMakeFiles/mwcas_benchmark.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 82%] Building CXX object src/benchmarks/CMakeFiles/mwcas_benchmark.dir/mwcas_benchmark.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g   -o CMakeFiles/mwcas_benchmark.dir/mwcas_benchmark.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/benchmarks/mwcas_benchmark.cc
+[ 84%] Building CXX object src/benchmarks/CMakeFiles/mwcas_benchmark.dir/__/environment/environment_linux.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g   -o CMakeFiles/mwcas_benchmark.dir/__/environment/environment_linux.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment_linux.cc
+[ 85%] Linking CXX executable ../../mwcas_benchmark
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks && /usr/bin/cmake -E cmake_link_script CMakeFiles/mwcas_benchmark.dir/link.txt --verbose=1
+/usr/bin/c++    -std=c++11 -g   -lpthread -lrt -lnuma CMakeFiles/mwcas_benchmark.dir/mwcas_benchmark.cc.o CMakeFiles/mwcas_benchmark.dir/__/environment/environment_linux.cc.o  -o ../../mwcas_benchmark  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -rdynamic ../../libpmwcas.so ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -lpthread -lrt -lnuma -lglog -lgflags -lgtest ../../libdouble-linked-list.a ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -Wl,-rpath,/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest:/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib:/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 85%] Built target mwcas_benchmark
+make -f src/benchmarks/CMakeFiles/mwcas_shm_server.dir/build.make src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/src/benchmarks /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/DependInfo.cmake --color=
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-death-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-message.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-param-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-test-part.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-typed-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_pred_impl.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-death-test-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-filepath.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-linked_ptr.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util-generated.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port-arch.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-string.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-tuple.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-type-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.internal".
+Clearing dependencies in "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks/CMakeFiles/mwcas_shm_server.dir/depend.make".
+Scanning dependencies of target mwcas_shm_server
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f src/benchmarks/CMakeFiles/mwcas_shm_server.dir/build.make src/benchmarks/CMakeFiles/mwcas_shm_server.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 87%] Building CXX object src/benchmarks/CMakeFiles/mwcas_shm_server.dir/mwcas_shm_server.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g   -o CMakeFiles/mwcas_shm_server.dir/mwcas_shm_server.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/benchmarks/mwcas_shm_server.cc
+[ 88%] Building CXX object src/benchmarks/CMakeFiles/mwcas_shm_server.dir/__/environment/environment_linux.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src  -std=c++11 -g   -o CMakeFiles/mwcas_shm_server.dir/__/environment/environment_linux.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment_linux.cc
+[ 90%] Linking CXX executable ../../mwcas_shm_server
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/benchmarks && /usr/bin/cmake -E cmake_link_script CMakeFiles/mwcas_shm_server.dir/link.txt --verbose=1
+/usr/bin/c++    -std=c++11 -g   -lpthread -lrt -lnuma CMakeFiles/mwcas_shm_server.dir/mwcas_shm_server.cc.o CMakeFiles/mwcas_shm_server.dir/__/environment/environment_linux.cc.o  -o ../../mwcas_shm_server  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -rdynamic ../../libpmwcas.so ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -lpthread -lrt -lnuma -lglog -lgflags -lgtest ../../libdouble-linked-list.a ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -Wl,-rpath,/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest:/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib:/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 90%] Built target mwcas_shm_server
+make -f src/mwcas/CMakeFiles/mwcas_tests.dir/build.make src/mwcas/CMakeFiles/mwcas_tests.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/src/mwcas /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas /home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/DependInfo.cmake --color=
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-death-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-message.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-param-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-test-part.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-typed-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_pred_impl.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-death-test-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-filepath.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-linked_ptr.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util-generated.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port-arch.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-string.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-tuple.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-type-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.internal".
+Clearing dependencies in "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas/CMakeFiles/mwcas_tests.dir/depend.make".
+Scanning dependencies of target mwcas_tests
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f src/mwcas/CMakeFiles/mwcas_tests.dir/build.make src/mwcas/CMakeFiles/mwcas_tests.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 92%] Building CXX object src/mwcas/CMakeFiles/mwcas_tests.dir/mwcas_tests.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/mwcas_tests.dir/mwcas_tests.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/mwcas/mwcas_tests.cc
+[ 93%] Building CXX object src/mwcas/CMakeFiles/mwcas_tests.dir/__/environment/environment_linux.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/mwcas_tests.dir/__/environment/environment_linux.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment_linux.cc
+[ 95%] Linking CXX executable ../../mwcas_tests
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/mwcas && /usr/bin/cmake -E cmake_link_script CMakeFiles/mwcas_tests.dir/link.txt --verbose=1
+/usr/bin/c++    -std=c++11 -g   -lpthread -lrt -lnuma CMakeFiles/mwcas_tests.dir/mwcas_tests.cc.o CMakeFiles/mwcas_tests.dir/__/environment/environment_linux.cc.o  -o ../../mwcas_tests  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -rdynamic ../../libpmwcas.so -lpthread -lrt -lnuma -lglog -lgflags -lgtest ../../libdouble-linked-list.a ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -Wl,-rpath,/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest:/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib:/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 95%] Built target mwcas_tests
+make -f src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/build.make src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/pmwcas /home/aksun/git/NvmBenchmarks/pmwcas/src/double-linked-list /home/aksun/git/NvmBenchmarks/pmwcas/build /home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list /home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/DependInfo.cmake --color=
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "glog/src/GLogExternal/src/glog/log_severity.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-death-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-message.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-param-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-test-part.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest-typed-test.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_pred_impl.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/gtest_prod.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/custom/gtest-printers.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-death-test-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-filepath.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-internal.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-linked_ptr.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util-generated.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-param-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port-arch.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-port.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-string.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-tuple.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Dependee "gtest/src/GTestExternal/googletest/include/gtest/internal/gtest-type-util.h" is newer than depends file "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.internal".
+Clearing dependencies in "/home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/depend.make".
+Scanning dependencies of target doubly_linked_list_tests
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+make -f src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/build.make src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[ 96%] Building CXX object src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/doubly_linked_list_tests.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/doubly_linked_list_tests.dir/doubly_linked_list_tests.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/double-linked-list/doubly_linked_list_tests.cc
+[ 98%] Building CXX object src/double-linked-list/CMakeFiles/doubly_linked_list_tests.dir/__/environment/environment_linux.cc.o
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list && /usr/bin/c++   -DDESC_CAP=4 -I/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal/googletest/include -isystem /home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/include -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal/src -I/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -I/home/aksun/git/NvmBenchmarks/pmwcas -I/home/aksun/git/NvmBenchmarks/pmwcas/src -I/include  -std=c++11 -g   -o CMakeFiles/doubly_linked_list_tests.dir/__/environment/environment_linux.cc.o -c /home/aksun/git/NvmBenchmarks/pmwcas/src/environment/environment_linux.cc
+[100%] Linking CXX executable ../../doubly_linked_list_tests
+cd /home/aksun/git/NvmBenchmarks/pmwcas/build/src/double-linked-list && /usr/bin/cmake -E cmake_link_script CMakeFiles/doubly_linked_list_tests.dir/link.txt --verbose=1
+/usr/bin/c++    -std=c++11 -g   -lpthread -lrt -lnuma CMakeFiles/doubly_linked_list_tests.dir/doubly_linked_list_tests.cc.o CMakeFiles/doubly_linked_list_tests.dir/__/environment/environment_linux.cc.o  -o ../../doubly_linked_list_tests  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib  -L/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build -rdynamic ../../libpmwcas.so -lpthread -lrt -lnuma -lglog -lgflags -lgtest ../../libdouble-linked-list.a ../../gflags/src/GFlagsExternal-build/lib/libgflags.a ../../glog/src/GLogExternal-build/libglog.a -Wl,-rpath,/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build/gtest/src/GTestExternal-build/googlemock/gtest:/home/aksun/git/NvmBenchmarks/pmwcas/build/gflags/src/GFlagsExternal-build/lib:/home/aksun/git/NvmBenchmarks/pmwcas/build/glog/src/GLogExternal-build:/home/aksun/git/NvmBenchmarks/pmwcas/build 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+[100%] Built target doubly_linked_list_tests
+make[1]: Leaving directory '/home/aksun/git/NvmBenchmarks/pmwcas/build'
+/usr/bin/cmake -E cmake_progress_start /home/aksun/git/NvmBenchmarks/pmwcas/build/CMakeFiles 0

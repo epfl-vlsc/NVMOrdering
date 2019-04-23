@@ -1,0 +1,161 @@
+/usr/bin/cmake -H/home/aksun/git/NvmBenchmarks/Atlas/runtime -B/home/aksun/git/NvmBenchmarks/Atlas/runtime/build --check-build-system CMakeFiles/Makefile.cmake 0
+/usr/bin/cmake -E cmake_progress_start /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/CMakeFiles /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/CMakeFiles/progress.marks
+make -f CMakeFiles/Makefile2 all
+make[1]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f src/pregion_mgr/CMakeFiles/Pregion_mgr.dir/build.make src/pregion_mgr/CMakeFiles/Pregion_mgr.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/pregion_mgr /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/pregion_mgr /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/pregion_mgr/CMakeFiles/Pregion_mgr.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f src/pregion_mgr/CMakeFiles/Pregion_mgr.dir/build.make src/pregion_mgr/CMakeFiles/Pregion_mgr.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[  3%] Building CXX object src/pregion_mgr/CMakeFiles/Pregion_mgr.dir/pregion_mgr_api.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/pregion_mgr && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Pregion_mgr.dir/pregion_mgr_api.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/pregion_mgr/pregion_mgr_api.cpp
+[  6%] Building CXX object src/pregion_mgr/CMakeFiles/Pregion_mgr.dir/pregion_mgr.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/pregion_mgr && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Pregion_mgr.dir/pregion_mgr.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/pregion_mgr/pregion_mgr.cpp
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[  6%] Built target Pregion_mgr
+make -f src/cache_flush/CMakeFiles/Cache_flush.dir/build.make src/cache_flush/CMakeFiles/Cache_flush.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/cache_flush /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/cache_flush /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/cache_flush/CMakeFiles/Cache_flush.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f src/cache_flush/CMakeFiles/Cache_flush.dir/build.make src/cache_flush/CMakeFiles/Cache_flush.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 10%] Building CXX object src/cache_flush/CMakeFiles/Cache_flush.dir/delayed.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/cache_flush && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Cache_flush.dir/delayed.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/cache_flush/delayed.cpp
+[ 13%] Building CXX object src/cache_flush/CMakeFiles/Cache_flush.dir/generic.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/cache_flush && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Cache_flush.dir/generic.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/cache_flush/generic.cpp
+[ 16%] Building CXX object src/cache_flush/CMakeFiles/Cache_flush.dir/table_based.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/cache_flush && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Cache_flush.dir/table_based.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/cache_flush/table_based.cpp
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 16%] Built target Cache_flush
+make -f src/consistency/CMakeFiles/Consistency.dir/build.make src/consistency/CMakeFiles/Consistency.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/consistency /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/consistency /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/consistency/CMakeFiles/Consistency.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f src/consistency/CMakeFiles/Consistency.dir/build.make src/consistency/CMakeFiles/Consistency.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 20%] Building CXX object src/consistency/CMakeFiles/Consistency.dir/consistency.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/consistency && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Consistency.dir/consistency.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/consistency/consistency.cpp
+[ 23%] Building CXX object src/consistency/CMakeFiles/Consistency.dir/consistency_mgr.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/consistency && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Consistency.dir/consistency_mgr.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/consistency/consistency_mgr.cpp
+[ 26%] Building CXX object src/consistency/CMakeFiles/Consistency.dir/durability_graph_builder.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/consistency && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Consistency.dir/durability_graph_builder.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/consistency/durability_graph_builder.cpp
+[ 30%] Building CXX object src/consistency/CMakeFiles/Consistency.dir/helper_driver.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/consistency && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Consistency.dir/helper_driver.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/consistency/helper_driver.cpp
+[ 33%] Building CXX object src/consistency/CMakeFiles/Consistency.dir/log_pruner.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/consistency && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Consistency.dir/log_pruner.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/consistency/log_pruner.cpp
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 33%] Built target Consistency
+make -f src/logger/CMakeFiles/Logger.dir/build.make src/logger/CMakeFiles/Logger.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/logger /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/logger /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/logger/CMakeFiles/Logger.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f src/logger/CMakeFiles/Logger.dir/build.make src/logger/CMakeFiles/Logger.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 36%] Building CXX object src/logger/CMakeFiles/Logger.dir/log_mgr_api.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/logger && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Logger.dir/log_mgr_api.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/logger/log_mgr_api.cpp
+[ 40%] Building CXX object src/logger/CMakeFiles/Logger.dir/log_mgr.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/logger && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Logger.dir/log_mgr.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/logger/log_mgr.cpp
+[ 43%] Building CXX object src/logger/CMakeFiles/Logger.dir/log_entry_create.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/logger && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Logger.dir/log_entry_create.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/logger/log_entry_create.cpp
+[ 46%] Building CXX object src/logger/CMakeFiles/Logger.dir/log_entry_publish.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/logger && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Logger.dir/log_entry_publish.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/logger/log_entry_publish.cpp
+[ 50%] Building CXX object src/logger/CMakeFiles/Logger.dir/circular_buffer.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/logger && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Logger.dir/circular_buffer.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/logger/circular_buffer.cpp
+[ 53%] Building CXX object src/logger/CMakeFiles/Logger.dir/happens_before.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/logger && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Logger.dir/happens_before.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/logger/happens_before.cpp
+[ 56%] Building CXX object src/logger/CMakeFiles/Logger.dir/log_elision.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/logger && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Logger.dir/log_elision.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/logger/log_elision.cpp
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 56%] Built target Logger
+make -f src/util/CMakeFiles/Util.dir/build.make src/util/CMakeFiles/Util.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/util /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/util /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/util/CMakeFiles/Util.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f src/util/CMakeFiles/Util.dir/build.make src/util/CMakeFiles/Util.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 60%] Building CXX object src/util/CMakeFiles/Util.dir/stats.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/util && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Util.dir/stats.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/util/stats.cpp
+[ 63%] Building CXX object src/util/CMakeFiles/Util.dir/util.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/util && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Util.dir/util.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/util/util.cpp
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 63%] Built target Util
+make -f src/pmalloc/CMakeFiles/Pmalloc.dir/build.make src/pmalloc/CMakeFiles/Pmalloc.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/pmalloc /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/pmalloc /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/pmalloc/CMakeFiles/Pmalloc.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f src/pmalloc/CMakeFiles/Pmalloc.dir/build.make src/pmalloc/CMakeFiles/Pmalloc.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 66%] Building CXX object src/pmalloc/CMakeFiles/Pmalloc.dir/pmalloc.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/pmalloc && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Pmalloc.dir/pmalloc.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/pmalloc/pmalloc.cpp
+[ 70%] Building CXX object src/pmalloc/CMakeFiles/Pmalloc.dir/pregion.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/pmalloc && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/Pmalloc.dir/pregion.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/pmalloc/pregion.cpp
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 70%] Built target Pmalloc
+make -f CMakeFiles/atlas.dir/build.make CMakeFiles/atlas.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/CMakeFiles/atlas.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f CMakeFiles/atlas.dir/build.make CMakeFiles/atlas.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 73%] Linking CXX static library lib/libatlas.a
+/usr/bin/cmake -P CMakeFiles/atlas.dir/cmake_clean_target.cmake
+/usr/bin/cmake -E cmake_link_script CMakeFiles/atlas.dir/link.txt --verbose=1
+/usr/bin/ar qc lib/libatlas.a  src/cache_flush/CMakeFiles/Cache_flush.dir/delayed.cpp.o src/cache_flush/CMakeFiles/Cache_flush.dir/generic.cpp.o src/cache_flush/CMakeFiles/Cache_flush.dir/table_based.cpp.o src/consistency/CMakeFiles/Consistency.dir/consistency.cpp.o src/consistency/CMakeFiles/Consistency.dir/consistency_mgr.cpp.o src/consistency/CMakeFiles/Consistency.dir/durability_graph_builder.cpp.o src/consistency/CMakeFiles/Consistency.dir/helper_driver.cpp.o src/consistency/CMakeFiles/Consistency.dir/log_pruner.cpp.o src/logger/CMakeFiles/Logger.dir/log_mgr_api.cpp.o src/logger/CMakeFiles/Logger.dir/log_mgr.cpp.o src/logger/CMakeFiles/Logger.dir/log_entry_create.cpp.o src/logger/CMakeFiles/Logger.dir/log_entry_publish.cpp.o src/logger/CMakeFiles/Logger.dir/circular_buffer.cpp.o src/logger/CMakeFiles/Logger.dir/happens_before.cpp.o src/logger/CMakeFiles/Logger.dir/log_elision.cpp.o src/util/CMakeFiles/Util.dir/stats.cpp.o src/util/CMakeFiles/Util.dir/util.cpp.o src/pregion_mgr/CMakeFiles/Pregion_mgr.dir/pregion_mgr_api.cpp.o src/pregion_mgr/CMakeFiles/Pregion_mgr.dir/pregion_mgr.cpp.o src/pmalloc/CMakeFiles/Pmalloc.dir/pmalloc.cpp.o src/pmalloc/CMakeFiles/Pmalloc.dir/pregion.cpp.o
+/usr/bin/ranlib lib/libatlas.a
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 73%] Built target atlas
+make -f src/recover/CMakeFiles/recover.dir/build.make src/recover/CMakeFiles/recover.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/recover /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover/CMakeFiles/recover.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f src/recover/CMakeFiles/recover.dir/build.make src/recover/CMakeFiles/recover.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 76%] Building CXX object src/recover/CMakeFiles/recover.dir/recover.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/recover.dir/recover.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/recover/recover.cpp
+[ 80%] Linking CXX executable ../../tools/recover
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover && /usr/bin/cmake -E cmake_link_script CMakeFiles/recover.dir/link.txt --verbose=1
+clang++    -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   CMakeFiles/recover.dir/recover.cpp.o  -o ../../tools/recover -rdynamic ../../lib/libatlas.a -lpthread -lrt -pthread 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 80%] Built target recover
+make -f src/recover/CMakeFiles/del_rgn.dir/build.make src/recover/CMakeFiles/del_rgn.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/recover /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover/CMakeFiles/del_rgn.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f src/recover/CMakeFiles/del_rgn.dir/build.make src/recover/CMakeFiles/del_rgn.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 83%] Building CXX object src/recover/CMakeFiles/del_rgn.dir/del_rgn.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/del_rgn.dir/del_rgn.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/recover/del_rgn.cpp
+[ 86%] Linking CXX executable ../../tools/del_rgn
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover && /usr/bin/cmake -E cmake_link_script CMakeFiles/del_rgn.dir/link.txt --verbose=1
+clang++    -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   CMakeFiles/del_rgn.dir/del_rgn.cpp.o  -o ../../tools/del_rgn -rdynamic ../../lib/libatlas.a -lpthread -lrt -pthread 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 86%] Built target del_rgn
+make -f src/recover/CMakeFiles/clean_mem.dir/build.make src/recover/CMakeFiles/clean_mem.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/recover /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover/CMakeFiles/clean_mem.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f src/recover/CMakeFiles/clean_mem.dir/build.make src/recover/CMakeFiles/clean_mem.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 90%] Building CXX object src/recover/CMakeFiles/clean_mem.dir/clean_mem.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/clean_mem.dir/clean_mem.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/recover/clean_mem.cpp
+[ 93%] Linking CXX executable ../../tools/clean_mem
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover && /usr/bin/cmake -E cmake_link_script CMakeFiles/clean_mem.dir/link.txt --verbose=1
+clang++    -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   CMakeFiles/clean_mem.dir/clean_mem.cpp.o  -o ../../tools/clean_mem -rdynamic ../../lib/libatlas.a -lpthread -lrt -pthread 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 93%] Built target clean_mem
+make -f src/recover/CMakeFiles/del_log.dir/build.make src/recover/CMakeFiles/del_log.dir/depend
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build && /usr/bin/cmake -E cmake_depends "Unix Makefiles" /home/aksun/git/NvmBenchmarks/Atlas/runtime /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/recover /home/aksun/git/NvmBenchmarks/Atlas/runtime/build /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover/CMakeFiles/del_log.dir/DependInfo.cmake --color=
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+make -f src/recover/CMakeFiles/del_log.dir/build.make src/recover/CMakeFiles/del_log.dir/build
+make[2]: Entering directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[ 96%] Building CXX object src/recover/CMakeFiles/del_log.dir/del_log.cpp.o
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover && clang++    -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/src/internal_includes -I/home/aksun/git/NvmBenchmarks/Atlas/runtime/include  -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   -pthread -std=gnu++11 -o CMakeFiles/del_log.dir/del_log.cpp.o -c /home/aksun/git/NvmBenchmarks/Atlas/runtime/src/recover/del_log.cpp
+[100%] Linking CXX executable ../../tools/del_log
+cd /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/src/recover && /usr/bin/cmake -E cmake_link_script CMakeFiles/del_log.dir/link.txt --verbose=1
+clang++    -O3 -Wall -Wextra -pedantic -Wno-unused-parameter -Winline -DATLAS_ALLOC_DUMP -DATLAS_ALLOC_TRACE -g3 -DDEBUG   CMakeFiles/del_log.dir/del_log.cpp.o  -o ../../tools/del_log -rdynamic ../../lib/libatlas.a -lpthread -lrt -pthread 
+make[2]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+[100%] Built target del_log
+make[1]: Leaving directory '/home/aksun/git/NvmBenchmarks/Atlas/runtime/build'
+/usr/bin/cmake -E cmake_progress_start /home/aksun/git/NvmBenchmarks/Atlas/runtime/build/CMakeFiles 0
