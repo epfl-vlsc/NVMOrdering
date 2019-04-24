@@ -66,7 +66,7 @@ run_tool(){
 }
 
 run_mini(){
-    PMDK_DIR=${TEST_DIR}/pmdk_mini
+    PMDK_DIR=${TEST_DIR}/mini
     cd ${BUILD_DIR}
     clang ${SBFLAGS} ${PLUGIN} -c -std=gnu99 -ggdb -Wall -Werror -fPIC \
     -I$PMDK_DIR/include -I$PMDK_DIR $PMDK_DIR/btree_map.c

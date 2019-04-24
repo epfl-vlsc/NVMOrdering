@@ -8,7 +8,8 @@ namespace clang::ento::nvm {
 class ExpChecker
     : public Checker<check::ASTDecl<TranslationUnitDecl>,
                      check::ASTDecl<RecordDecl>, check::BeginFunction,
-                     check::PreCall, check::Bind, check::EndFunction> {
+                     check::PreCall, check::PostCall, check::Bind,
+                     check::EndFunction, eval::Call> {
 
 public:
   ExpChecker() {}
@@ -19,13 +20,17 @@ public:
 
   void checkPreCall(const CallEvent& Call, CheckerContext& C) const;
 
+  void checkPostCall(const CallEvent& Call, CheckerContext& C) const;
+
   void checkBind(SVal Loc, SVal Val, const Stmt* S, CheckerContext& C) const;
 
   void checkASTDecl(const TranslationUnitDecl* CTUD, AnalysisManager& Mgr,
                     BugReporter& BR) const;
 
   void checkASTDecl(const RecordDecl* RD, AnalysisManager& Mgr,
-                                BugReporter& BR) const;
+                    BugReporter& BR) const;
+
+  bool evalCall(const CallExpr* CE, CheckerContext& C) const;
 
 private:
 };
