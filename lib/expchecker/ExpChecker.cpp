@@ -35,16 +35,20 @@ llvm::outs() << "currently at CL: " << CL << "\n";
 void ExpChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
                               AnalysisManager& Mgr, BugReporter& BR) const {}
 
-void ExpChecker::checkBeginFunction(CheckerContext& C) const {}
+void ExpChecker::checkBeginFunction(CheckerContext& C) const {
+  const LocationContext* LC = C.getLocationContext();
+  const Decl* BD = LC->getDecl();
+  if (const FunctionDecl* FD = dyn_cast_or_null<FunctionDecl>(BD)) {
+    auto fncName = FD->getNameAsString();
+    if (C.inTopFrame() && fncName == "insert") {
+      ExplodedNode* ErrNode = C.generateErrorNode();
+      if (!ErrNode)
+        return;
+    }
+  }
+}
 
 void ExpChecker::checkEndFunction(CheckerContext& C) const {}
-
-bool ExpChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
-  llvm::errs() << "eval:";
-  CE->dumpPretty(C.getASTContext());
-  llvm::errs() << "\n";
-  return false;
-}
 
 void ExpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
@@ -54,14 +58,96 @@ void ExpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   llvm::errs() << "\n";
 }
 
-void ExpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
-  const Decl* BD = Call.getDecl();
-  if (const FunctionDecl* FD = dyn_cast_or_null<FunctionDecl>(BD)) {
-    llvm::errs() << "function:";
-    llvm::errs() << FD->getNameAsString() << "\n";
+void printArg(const CallEvent& Call, CheckerContext& C) {
+  SVal Loc = Call.getArgSVal(0);
+  unsigned kind = Loc.getRawKind();
+  llvm::errs() << "arg:";
+  Loc.dump();
+  llvm::errs() << " " << kind;
+  llvm::errs() << "\n";
+
+  if (kind == 11) {
+    nonloc::LazyCompoundVal LCV = Loc.castAs<nonloc::LazyCompoundVal>();
+    const TypedValueRegion* TVR = LCV.getRegion();
+    llvm::errs() << "tvr:";
+    TVR->dump();
+    llvm::errs() << "\n";
+
+    const MemRegion* MR = TVR->getSuperRegion();
+    if (MR) {
+      llvm::errs() << "mr:";
+      MR->dump();
+      llvm::errs() << "\n";
+    }
   }
 }
 
+void printReturn(const CallEvent& Call, CheckerContext& C) {
+  SVal Loc = Call.getReturnValue();
+  unsigned kind = Loc.getRawKind();
+  llvm::errs() << "return:";
+  Loc.dump();
+  llvm::errs() << " " << kind;
+  llvm::errs() << "\n";
+}
+
+void ExpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
+  const Decl* BD = Call.getDecl();
+  if (const FunctionDecl* FD = dyn_cast_or_null<FunctionDecl>(BD)) {
+    std::string fncName = FD->getNameAsString();
+    llvm::errs() << "function:";
+    llvm::errs() << fncName << "\n";
+
+    if (fncName == "pmemobj_tx_add_range_direct" ||
+        fncName == "pmemobj_tx_add_range" || fncName == "pmemobj_direct") {
+      printArg(Call, C);
+    }
+
+    if (fncName == "pmemobj_direct") {
+      SVal Loc = Call.getArgSVal(0);
+      unsigned kind = Loc.getRawKind();
+
+      if (kind == 11) {
+        nonloc::LazyCompoundVal LCV = Loc.castAs<nonloc::LazyCompoundVal>();
+        const TypedValueRegion* TVR = LCV.getRegion();
+  
+        const MemRegion* MR = TVR->getSuperRegion();
+
+        ProgramStateRef State = C.getState();
+        const Expr* CE = Call.getOriginExpr();
+        SVal NewRetVal = State->getSVal(MR);
+        const LocationContext* LC = C.getLocationContext();
+        State = State->BindExpr(CE, LC, NewRetVal);
+        C.addTransition(State);
+      }
+
+      printReturn(Call, C);
+    }
+  }
+}
+
+/*
+bool ExpChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
+  const FunctionDecl* FD = C.getCalleeDecl(CE);
+  if (!FD)
+    return false;
+
+  const IdentifierInfo* II = FD->getIdentifier();
+  if(!II || !II->isStr("pmemobj_direct")){
+    return false;
+  }
+
+  SValBuilder &SVB = C.getSValBuilder();
+  SVal RetVal = SVB.makeIntVal(5, true);
+
+  llvm::errs() << "eval:\n";
+  ProgramStateRef State = C.getState();
+  const LocationContext* LC = C.getLocationContext();
+  State = State->BindExpr(CE, LC, RetVal);
+  C.addTransition(State);
+  return true;
+}
+*/
 void ExpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {}
 
 } // namespace clang::ento::nvm
