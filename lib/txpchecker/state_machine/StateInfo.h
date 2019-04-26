@@ -28,17 +28,12 @@ struct StateInfo : public StateOut, public StateIn<TxpBugReporter> {
     }
   }
 
-  void reportWriteOutTxBug() const {
-    auto& bugPtr = BR.WriteOutTxBugType;
-    report(bugPtr, "write outside tx:");
+  void reportAccessOutTxBug() const {
+    auto& bugPtr = BR.AccessOutTxBugType;
+    report(bugPtr, "access outside tx:");
   }
 
-  void reportDoubleWriteBug() const {
-    auto& bugPtr = BR.DoubleWriteBugType;
-    report(bugPtr, "write twice:");
-  }
-
-  void reportDoubleLogBugBug() const {
+   void reportDoubleLogBug() const {
     auto& bugPtr = BR.DoubleLogBugType;
     report(bugPtr, "log twice:");
   }

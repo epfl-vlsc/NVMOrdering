@@ -10,18 +10,15 @@ class TxpBugReporter : public BaseReporter {
 
 public:
   // path-sensitive bug types
-  BugPtr WriteOutTxBugType;
-  BugPtr DoubleWriteBugType;
+  BugPtr AccessOutTxBugType;
   BugPtr DoubleLogBugType;
   BugPtr NotLogBeforeWriteBugType;
   BugPtr NotTxPairBugType;
 
 public:
   TxpBugReporter(const CheckerBase& CB) {
-    WriteOutTxBugType.reset(
-        new BugType(&CB, "Writing outside transaction", TxPError));
-    DoubleWriteBugType.reset(
-        new BugType(&CB, "Writing the same thing twice", TxPError));
+    AccessOutTxBugType.reset(
+        new BugType(&CB, "Access outside transaction", TxPError));
     DoubleLogBugType.reset(new BugType(&CB, "Double logging", TxPError));
     NotLogBeforeWriteBugType.reset(
         new BugType(&CB, "Not logged before write", TxPError));
