@@ -2,7 +2,8 @@
 #pragma once
 #include "Common.h"
 #include "TxpBugReporter.h"
-#include "state_machine/TxpFunctions.h"
+#include "parser/TxpFunctions.h"
+#include "parser/AssignmentWalkers.h"
 #include "DbgState.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.txpchecker";

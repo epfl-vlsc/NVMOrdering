@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "identify/AnnotFunction.h"
+#include "FncNames.h"
 
 namespace clang::ento::nvm {
 
@@ -14,38 +15,6 @@ class TxpFunctions {
   std::set<const FunctionDecl*> pallocFncSet;
   std::set<const FunctionDecl*> pfreeFncSet;
   std::set<const FunctionDecl*> pdirectFncSet;
-
-  bool inAlloc(const IdentifierInfo* II) const {
-    return II->isStr("pmalloc") || II->isStr("pmemobj_tx_alloc") ||
-           II->isStr("pmemobj_tx_zalloc") || II->isStr("pmemobj_tx_xalloc") ||
-           II->isStr("pmemobj_tx_realloc") ||
-           II->isStr("pmemobj_tx_zrealloc") || II->isStr("pmemobj_tx_strdup") ||
-           II->isStr("pmemobj_tx_wcsdup");
-  }
-
-  bool inFree(const IdentifierInfo* II) const {
-    return II->isStr("pfree") || II->isStr("pmemobj_tx_free");
-  }
-
-  bool inDirect(const IdentifierInfo* II) const {
-    return II->isStr("pmemobj_direct");
-  }
-
-  bool inAddRange(const IdentifierInfo* II) const {
-    return II->isStr("pmemobj_tx_add_range");
-  }
-
-  bool inAddRangeDirect(const IdentifierInfo* II) const {
-    return II->isStr("pmemobj_tx_add_range_direct");
-  }
-
-  bool inTxBeg(const IdentifierInfo* II) const {
-    return II->isStr("tx_begin") || II->isStr("pmemobj_tx_begin");
-  }
-
-  bool inTxEnd(const IdentifierInfo* II) const {
-    return II->isStr("tx_end") || II->isStr("pmemobj_tx_end");
-  }
 
 public:
   TxpFunctions() : txFnc("TxCode") {}

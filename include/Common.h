@@ -19,6 +19,24 @@
 
 namespace clang::ento::nvm {
 
+const Stmt* getNthChild(const Stmt* S, int i) {
+  if (!S) {
+    return nullptr;
+  }
+
+  int c = 0;
+  for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
+       I != E; ++I) {
+    const Stmt* Child = *I;
+    if (i == c) {
+      return Child;
+    }
+    c++;
+  }
+
+  return nullptr;
+}
+
 const AnnotateAttr* getAnnotation(const ValueDecl* VD) {
   for (const auto* Ann : VD->specific_attrs<AnnotateAttr>()) {
     // add to annotated vars

@@ -9,7 +9,6 @@ void TxPChecker::checkBeginFunction(CheckerContext& C) const {
   bool isPFnc = txpFunctions.isPFunction(FD);
   bool isAnalyzeFnc = txpFunctions.isAnnotatedFnc(FD);
   bool isTopFnc = isTopFunction(C);
-  
 
   // if pmalloc/pfree/paccess function, do not analyze
   if ((isPFnc || !isAnalyzeFnc) && isTopFnc) {
@@ -45,6 +44,16 @@ void TxPChecker::printStates(ProgramStateRef& State, CheckerContext& C) const {
 
 void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
+
+  AssignmentWalker aw;
+  aw.TraverseStmt((Stmt*)S);
+  if (aw.isWriteObj()) {
+    llvm::errs() << "write obj\n";
+  } else if (aw.isWriteField()) {
+    llvm::errs() << "write field\n";
+  } else if (aw.isInitObj()) {
+    llvm::errs() << "init obj\n";
+  }
 
   /*
     DBG("Bind")
