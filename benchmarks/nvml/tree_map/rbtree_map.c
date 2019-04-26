@@ -37,6 +37,7 @@
 #include <assert.h>
 #include <errno.h>
 #include "rbtree_map.h"
+#include "annot.h"
 
 TOID_DECLARE(struct tree_map_node, RBTREE_MAP_TYPE_OFFSET + 1);
 
@@ -97,7 +98,7 @@ struct rbtree_map {
 /*
  * rbtree_map_new -- allocates a new red-black tree instance
  */
-int
+int tx_code
 rbtree_map_new(PMEMobjpool *pop, TOID(struct rbtree_map) *map, void *arg)
 {
 	int ret = 0;
@@ -147,7 +148,7 @@ rbtree_map_clear_node(TOID(struct rbtree_map) map, TOID(struct tree_map_node) p)
 /*
  * rbtree_map_clear -- removes all elements from the map
  */
-int
+int tx_code
 rbtree_map_clear(PMEMobjpool *pop, TOID(struct rbtree_map) map)
 {
 	TX_BEGIN(pop) {
@@ -168,7 +169,7 @@ rbtree_map_clear(PMEMobjpool *pop, TOID(struct rbtree_map) map)
 /*
  * rbtree_map_delete -- cleanups and frees red-black tree instance
  */
-int
+int tx_code
 rbtree_map_delete(PMEMobjpool *pop, TOID(struct rbtree_map) *map)
 {
 	int ret = 0;
@@ -265,7 +266,7 @@ rbtree_map_recolor(TOID(struct rbtree_map) map,
 /*
  * rbtree_map_insert -- inserts a new key-value pair into the map
  */
-int
+int tx_code
 rbtree_map_insert(PMEMobjpool *pop, TOID(struct rbtree_map) map,
 	uint64_t key, PMEMoid value)
 {
@@ -387,7 +388,7 @@ rbtree_map_repair(TOID(struct rbtree_map) map, TOID(struct tree_map_node) n)
 /*
  * rbtree_map_remove -- removes key-value pair from the map
  */
-PMEMoid
+PMEMoid tx_code
 rbtree_map_remove(PMEMobjpool *pop, TOID(struct rbtree_map) map, uint64_t key)
 {
 	PMEMoid ret = OID_NULL;
@@ -516,7 +517,7 @@ rbtree_map_check(PMEMobjpool *pop, TOID(struct rbtree_map) map)
 /*
  * rbtree_map_insert_new -- allocates a new object and inserts it into the tree
  */
-int
+int tx_code
 rbtree_map_insert_new(PMEMobjpool *pop, TOID(struct rbtree_map) map,
 		uint64_t key, size_t size, unsigned int type_num,
 		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
@@ -538,7 +539,7 @@ rbtree_map_insert_new(PMEMobjpool *pop, TOID(struct rbtree_map) map,
 /*
  * rbtree_map_remove_free -- removes and frees an object from the tree
  */
-int
+int tx_code
 rbtree_map_remove_free(PMEMobjpool *pop, TOID(struct rbtree_map) map,
 		uint64_t key)
 {

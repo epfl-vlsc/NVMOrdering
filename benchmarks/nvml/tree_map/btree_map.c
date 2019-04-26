@@ -38,6 +38,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include "btree_map.h"
+#include "annot.h"
 
 TOID_DECLARE(struct tree_map_node, BTREE_MAP_TYPE_OFFSET + 1);
 
@@ -65,7 +66,7 @@ struct btree_map {
 /*
  * btree_map_new -- allocates a new btree instance
  */
-int
+int tx_code
 btree_map_new(PMEMobjpool *pop, TOID(struct btree_map) *map, void *arg)
 {
 	int ret = 0;
@@ -97,7 +98,7 @@ btree_map_clear_node(TOID(struct tree_map_node) node)
 /*
  * btree_map_clear -- removes all elements from the map
  */
-int
+int tx_code
 btree_map_clear(PMEMobjpool *pop, TOID(struct btree_map) map)
 {
 	int ret = 0;
@@ -114,7 +115,7 @@ btree_map_clear(PMEMobjpool *pop, TOID(struct btree_map) map)
 /*
  * btree_map_delete -- cleanups and frees btree instance
  */
-int
+int tx_code
 btree_map_delete(PMEMobjpool *pop, TOID(struct btree_map) *map)
 {
 	int ret = 0;
@@ -284,7 +285,7 @@ btree_map_is_empty(PMEMobjpool *pop, TOID(struct btree_map) map)
 /*
  * btree_map_insert -- inserts a new key-value pair into the map
  */
-int
+int tx_code
 btree_map_insert(PMEMobjpool *pop, TOID(struct btree_map) map,
 	uint64_t key, PMEMoid value)
 {
@@ -521,7 +522,7 @@ btree_map_remove_item(TOID(struct btree_map) map,
 /*
  * btree_map_remove -- removes key-value pair from the map
  */
-PMEMoid
+PMEMoid tx_code
 btree_map_remove(PMEMobjpool *pop, TOID(struct btree_map) map, uint64_t key)
 {
 	PMEMoid ret = OID_NULL;
@@ -633,7 +634,7 @@ btree_map_check(PMEMobjpool *pop, TOID(struct btree_map) map)
 /*
  * btree_map_insert_new -- allocates a new object and inserts it into the tree
  */
-int
+int tx_code
 btree_map_insert_new(PMEMobjpool *pop, TOID(struct btree_map) map,
 		uint64_t key, size_t size, unsigned int type_num,
 		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
@@ -655,7 +656,7 @@ btree_map_insert_new(PMEMobjpool *pop, TOID(struct btree_map) map,
 /*
  * btree_map_remove_free -- removes and frees an object from the tree
  */
-int
+int tx_code
 btree_map_remove_free(PMEMobjpool *pop, TOID(struct btree_map) map,
 		uint64_t key)
 {

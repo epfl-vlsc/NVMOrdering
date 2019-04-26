@@ -51,7 +51,7 @@ array_contains NVML_SRCS ${TEST_NAME}
 res=$?
 if [ "$res" == "1" ] ;then
     CFLAGS="-c -std=gnu99 -ggdb -Wall -Werror -fPIC"
-    INCLUDES="-I../include -I."
+    INCLUDES="-I../include -I. -I../.."
     NVML_DIR=${BENCH_DIR}/nvml
     TEST_FILE=${TEST_NAME}.c
 

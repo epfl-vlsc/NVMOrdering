@@ -39,6 +39,7 @@
 #include <libpmemobj.h>
 #include "hashmap_tx.h"
 #include "hashmap_internal.h"
+#include "annot.h"
 
 
 /* layout definition */
@@ -178,7 +179,7 @@ hm_tx_rebuild(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, size_t new_len)
  * - 1 if value already existed,
  * - -1 if something bad happened
  */
-int
+int tx_code
 hm_tx_insert(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap,
 	uint64_t key, PMEMoid value)
 {
@@ -232,7 +233,7 @@ hm_tx_insert(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap,
  * - key's value if successful,
  * - OID_NULL if value didn't exist or if something bad happened
  */
-PMEMoid
+PMEMoid tx_code
 hm_tx_remove(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, uint64_t key)
 {
 	TOID(struct buckets) buckets = D_RO(hashmap)->buckets;
@@ -391,7 +392,7 @@ hm_tx_init(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap)
 /*
  * hm_tx_new -- allocates new hashmap
  */
-int
+int tx_code
 hm_tx_new(PMEMobjpool *pop, TOID(struct hashmap_tx) *map, void *arg)
 {
 	struct hashmap_args *args = arg;

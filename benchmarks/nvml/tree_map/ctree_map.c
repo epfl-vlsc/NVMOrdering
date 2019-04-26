@@ -39,6 +39,7 @@
 #include <stdlib.h>
 
 #include "ctree_map.h"
+#include "annot.h"
 
 #define BIT_IS_SET(n, i) (!!((n) & (1ULL << (i))))
 
@@ -70,7 +71,7 @@ find_crit_bit(uint64_t lhs, uint64_t rhs)
 /*
  * ctree_map_new -- allocates a new crit-bit tree instance
  */
-int
+int tx_code
 ctree_map_new(PMEMobjpool *pop, TOID(struct ctree_map) *map, void *arg)
 {
 	int ret = 0;
@@ -106,7 +107,7 @@ ctree_map_clear_node(PMEMoid p)
 /*
  * ctree_map_clear -- removes all elements from the map
  */
-int
+int tx_code
 ctree_map_clear(PMEMobjpool *pop, TOID(struct ctree_map) map)
 {
 	TX_BEGIN(pop) {
@@ -121,7 +122,7 @@ ctree_map_clear(PMEMobjpool *pop, TOID(struct ctree_map) map)
 /*
  * ctree_map_delete -- cleanups and frees crit-bit tree instance
  */
-int
+int tx_code
 ctree_map_delete(PMEMobjpool *pop, TOID(struct ctree_map) *map)
 {
 	int ret = 0;
@@ -175,7 +176,7 @@ ctree_map_insert_leaf(struct tree_map_entry *p,
 /*
  * ctree_map_insert_new -- allocates a new object and inserts it into the tree
  */
-int
+int tx_code
 ctree_map_insert_new(PMEMobjpool *pop, TOID(struct ctree_map) map,
 		uint64_t key, size_t size, unsigned int type_num,
 		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),
@@ -198,7 +199,7 @@ ctree_map_insert_new(PMEMobjpool *pop, TOID(struct ctree_map) map,
 /*
  * ctree_map_insert -- inserts a new key-value pair into the map
  */
-int
+int tx_code
 ctree_map_insert(PMEMobjpool *pop, TOID(struct ctree_map) map,
 	uint64_t key, PMEMoid value)
 {
@@ -263,7 +264,7 @@ ctree_map_get_leaf(TOID(struct ctree_map) map, uint64_t key,
 /*
  * ctree_map_remove_free -- removes and frees an object from the tree
  */
-int
+int tx_code
 ctree_map_remove_free(PMEMobjpool *pop, TOID(struct ctree_map) map,
 		uint64_t key)
 {
