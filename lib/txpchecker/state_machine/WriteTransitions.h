@@ -11,6 +11,7 @@ namespace clang::ento::nvm::WriteSpace {
 void writeObj(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
   if (!SI.inTx) {
+    DBG("not in tx")
     SI.reportAccessOutTxBug();
     return;
   }
@@ -29,6 +30,7 @@ void writeObj(StateInfo& SI) {
 void writeField(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
   if (!SI.inTx) {
+    DBG("not in tx")
     SI.reportAccessOutTxBug();
     return;
   }
@@ -51,6 +53,7 @@ void writeField(StateInfo& SI) {
 void logObj(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
   if (!SI.inTx) {
+    DBG("not in tx")
     SI.reportAccessOutTxBug();
     return;
   }
@@ -70,6 +73,7 @@ void logObj(StateInfo& SI) {
 void logField(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
   if (!SI.inTx) {
+    DBG("not in tx")
     SI.reportAccessOutTxBug();
     return;
   }

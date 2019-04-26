@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
+#include "annot.h"
 
 TOID_DECLARE(struct tnode, BTREE_MAP_TYPE_OFFSET + 1);
 
@@ -17,25 +18,29 @@ struct btree {
 };
 
 void analyze_tx create(PMEMobjpool* pop, TOID(struct btree) * map) {
-  TX_BEGIN(pop) {
+  TXBEG(pop) {
     pmemobj_tx_add_range_direct(map, sizeof(*map));
     *map = TX_ZNEW(struct btree);
   }
-  TX_END
+  TXEND
 }
-
+/*
 static void insert(TOID(struct tnode) node) {
   D_RW(node)->n += 1;
-  //memmove(&D_RW(node)->n, &D_RW(node)->n, sizeof(int));
   D_RW(node)->n *= 1;
   D_RW(node)->n = 1;
   int a = 5;
   int *p = &a;
+  D_RW(node)->n = *p;
 }
 
-void analyze_tx clear(TOID(struct btree) map) {
-  insert(D_RO(map)->root);
+void analyze_tx clear(PMEMobjpool* pop, TOID(struct btree) map) {
+  TX_BEGIN(pop) {
+    insert(D_RO(map)->root);
 
-  TX_ADD_FIELD(map, root);
-  D_RW(map)->root = TOID_NULL(struct tnode);
+    TX_ADD_FIELD(map, root);
+    D_RW(map)->root = TOID_NULL(struct tnode);
+  }
+  TX_END
 }
+*/

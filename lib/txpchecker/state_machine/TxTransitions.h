@@ -7,23 +7,23 @@
 namespace clang::ento::nvm::TxSpace {
 
 bool inTx(ProgramStateRef& State) {
-  DBG("inTx")
   unsigned txCount = State->get<TxCounter>();
+  DBG("inTx:" << txCount)
   return txCount > 0;
 }
 
 void begTx(StateInfo& SI) {
-  DBG("begTx txCount:" << txCount)
   ProgramStateRef& State = SI.State;
   unsigned txCount = State->get<TxCounter>();
   txCount += 1;
 
   State = State->set<TxCounter>(txCount);
   SI.stateChanged = true;
+
+  DBG("begTx txCount:" << txCount)
 }
 
 void endTx(StateInfo& SI) {
-  DBG("endTx txCount:" << txCount)
   ProgramStateRef& State = SI.State;
 
   unsigned txCount = State->get<TxCounter>();
@@ -36,6 +36,8 @@ void endTx(StateInfo& SI) {
     State = State->set<TxCounter>(txCount);
     SI.stateChanged = true;
   }
+
+  DBG("endTx txCount:" << txCount)
 }
 
 } // namespace clang::ento::nvm::TxSpace

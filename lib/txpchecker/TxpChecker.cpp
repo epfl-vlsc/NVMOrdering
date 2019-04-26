@@ -53,27 +53,18 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   aw.TraverseStmt((Stmt*)S);
   if (aw.isWriteObj()) {
     DBG("write obj")
-    auto SI =
-        StateInfo(C, State, BReporter, &Loc, S, aw.getObjND(), nullptr, inTx);
-
-    // todo transition
-
-    stateChanged |= SI.stateChanged;
+    llvm::report_fatal_error("write to obj directly");
   } else if (aw.isWriteField()) {
     DBG("write field")
     auto SI = StateInfo(C, State, BReporter, &Loc, S, aw.getObjND(),
                         aw.getFieldND(), inTx);
-
-    // todo transition
-
+    WriteSpace::writeField(SI);
     stateChanged |= SI.stateChanged;
   } else if (aw.isInitObj()) {
     DBG("alloc obj")
     auto SI =
         StateInfo(C, State, BReporter, &Loc, S, aw.getObjND(), nullptr, inTx);
-
-    // todo transition
-
+    WriteSpace::writeObj(SI);
     stateChanged |= SI.stateChanged;
   }
 
@@ -97,7 +88,6 @@ void TxpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   }
 
   DBG("checkPostCall:" << FD->getName())
-  llvm::errs() << "checkPostCall:" << FD->getName() << "\n";
 
   if (txpFunctions.isTxBeg(FD)) {
     handleTxBegin(Call, C);
@@ -124,9 +114,7 @@ void TxpChecker::handleTxRangeDirect(const CallEvent& Call,
 
     auto SI =
         StateInfo(C, State, BReporter, nullptr, nullptr, ObjVD, nullptr, inTx);
-
-    // todo transition
-
+    WriteSpace::logObj(SI);
     stateChanged |= SI.stateChanged;
     addStateTransition(State, C, stateChanged);
   }
@@ -157,17 +145,13 @@ void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
     DBG("field log")
     auto SI =
         StateInfo(C, State, BReporter, nullptr, nullptr, ObjVD, FieldVD, inTx);
-
-    // todo transition
-
+    WriteSpace::logField(SI);
     stateChanged |= SI.stateChanged;
   } else if (ObjVD) {
     DBG("obj log")
     auto SI =
         StateInfo(C, State, BReporter, nullptr, nullptr, ObjVD, nullptr, inTx);
-
-    // todo transition
-
+    WriteSpace::logObj(SI);
     stateChanged |= SI.stateChanged;
   }
 
