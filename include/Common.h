@@ -169,6 +169,28 @@ const VarDecl* getVarDecl(const MemRegion* ParentRegion) {
   return nullptr;
 }
 
+const VarDecl* getVDUsingOrigin(SVal Loc) {
+  if (const SymExpr* SE = Loc.getAsSymbolicExpression()) {
+    const MemRegion* Region = SE->getOriginRegion();
+    const VarDecl* VD = getVarDecl(Region);
+    return VD;
+  }
+  return nullptr;
+}
+
+const VarDecl* getVDUsingLazy(SVal Loc) {
+  if (!Loc.isUnknownOrUndef()) {
+    nonloc::LazyCompoundVal LCV = Loc.castAs<nonloc::LazyCompoundVal>();
+    const TypedValueRegion* CurrentRegion = LCV.getRegion();
+    if (CurrentRegion) {
+      const MemRegion* ParentRegion = CurrentRegion->getBaseRegion();
+      const VarDecl* Obj = getVarDecl(ParentRegion);
+      return Obj;
+    }
+  }
+  return nullptr;
+}
+
 const MemRegion* getTopBaseRegion(SVal Loc) {
   // todo return top, currently returns parent
   const MemRegion* CurrentRegion = Loc.getAsRegion();

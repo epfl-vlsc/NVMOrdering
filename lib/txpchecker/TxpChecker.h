@@ -2,8 +2,7 @@
 #pragma once
 #include "Common.h"
 #include "DbgState.h"
-#include "parser/AssignmentWalkers.h"
-#include "parser/TxpFunctions.h"
+#include "parser/Parser.h"
 #include "state_machine/TxTransitions.h"
 #include "state_machine/TxpBugReporter.h"
 #include "state_machine/WriteTransitions.h"

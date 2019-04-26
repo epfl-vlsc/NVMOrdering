@@ -67,33 +67,9 @@ void writeData(ReportInfos& RI) {
   }
 }
 
-void startTx(ReportInfos& RI) {
-  ProgramStateRef& State = RI.State;
-  unsigned txCount = State->get<TxCounter>();
-  txCount += 1;
 
-  DBG("startTx txCount:" << txCount)
 
-  State = State->set<TxCounter>(txCount);
-  RI.stateChanged = true;
-}
 
-void endTx(ReportInfos& RI) {
-  ProgramStateRef& State = RI.State;
-
-  unsigned txCount = State->get<TxCounter>();
-  txCount -= 1;
-
-  DBG("endTx txCount:" << txCount)
-
-  if (txCount < 0) {
-    // more tx end
-    RI.reportNotTxPairBug();
-  } else {
-    State = State->set<TxCounter>(txCount);
-    RI.stateChanged = true;
-  }
-}
 
 void pdirectAccess(ReportInfos& RI) {
   ProgramStateRef& State = RI.State;
