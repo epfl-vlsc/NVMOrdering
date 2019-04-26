@@ -127,6 +127,8 @@ git diff > patch/owriteback/pmfs1.patch
 * delete pfence
 
     ./build.sh > make.txt
+    cd src/examples/libpmemobj
+    make > libpmemobj.txt
 
 ## redis ## 
     
