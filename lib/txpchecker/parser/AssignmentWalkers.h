@@ -117,11 +117,12 @@ public:
       if (II && inAlloc(II)) {
         // obj assignment
         Kind = K::I_OBJ;
+        return false;
       }
     }
 
     // continue traversal
-    return false;
+    return true;
   }
 
   bool VisitBinaryOperator(const BinaryOperator* BO) {

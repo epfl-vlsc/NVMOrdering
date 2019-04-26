@@ -6,7 +6,7 @@ namespace clang::ento::nvm {
 
 void TxpChecker::checkBeginFunction(CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(C);
-  bool isPFnc = txpFunctions.isPFunction(FD);
+  bool isPFnc = txpFunctions.isPinit(FD);
   bool isAnalyzeFnc = txpFunctions.isAnnotatedFnc(FD);
   bool isTopFnc = isTopFunction(C);
 

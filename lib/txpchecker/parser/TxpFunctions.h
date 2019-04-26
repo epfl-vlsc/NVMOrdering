@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
-#include "identify/AnnotFunction.h"
 #include "FncNames.h"
+#include "identify/AnnotFunction.h"
 
 namespace clang::ento::nvm {
 
@@ -49,29 +49,37 @@ public:
     }
   }
 
-  bool isPFunction(const FunctionDecl* FD) {
+  bool isPfnc(const FunctionDecl* FD) const { return isPinit(FD) || isPtx(FD); }
+
+  bool isPinit(const FunctionDecl* FD) const {
     return isPalloc(FD) || isPfree(FD) || isPdirect(FD);
   }
 
-  bool isAnnotatedFnc(const FunctionDecl* FD) { return isTxFnc(FD); }
+  bool isPtx(const FunctionDecl* FD) const {
+    return isTxRange(FD) || isTxRangeDirect(FD) || isTxBeg(FD) || isTxEnd(FD);
+  }
 
-  bool isTxRangeDirect(const FunctionDecl* FD) {
+  bool isAnnotatedFnc(const FunctionDecl* FD) const { return isTxFnc(FD); }
+
+  bool isTxFnc(const FunctionDecl* FD) const { return txFnc.inFunctions(FD); }
+
+  bool isTxRange(const FunctionDecl* FD) const { return txRangeSet.count(FD); }
+
+  bool isTxRangeDirect(const FunctionDecl* FD) const {
     return txRangeDirectSet.count(FD);
   }
 
-  bool isTxFnc(const FunctionDecl* FD) { return txFnc.inFunctions(FD); }
+  bool isTxBeg(const FunctionDecl* FD) const { return txBegSet.count(FD); }
 
-  bool isTxRange(const FunctionDecl* FD) { return txRangeSet.count(FD); }
+  bool isTxEnd(const FunctionDecl* FD) const { return txEndSet.count(FD); }
 
-  bool isTxBeg(const FunctionDecl* FD) { return txBegSet.count(FD); }
+  bool isPalloc(const FunctionDecl* FD) const { return pallocFncSet.count(FD); }
 
-  bool isTxEnd(const FunctionDecl* FD) { return txEndSet.count(FD); }
+  bool isPfree(const FunctionDecl* FD) const { return pfreeFncSet.count(FD); }
 
-  bool isPalloc(const FunctionDecl* FD) { return pallocFncSet.count(FD); }
-
-  bool isPfree(const FunctionDecl* FD) { return pfreeFncSet.count(FD); }
-
-  bool isPdirect(const FunctionDecl* FD) { return pdirectFncSet.count(FD); }
+  bool isPdirect(const FunctionDecl* FD) const {
+    return pdirectFncSet.count(FD);
+  }
 
   void dump() {
     txFnc.dump();
