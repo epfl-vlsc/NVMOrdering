@@ -1,5 +1,4 @@
 #include "btree_map.h"
-#include "annot.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -17,7 +16,7 @@ struct btree {
   TOID(struct tnode) root;
 };
 
-void create(PMEMobjpool* pop, TOID(struct btree) * map) {
+void analyze_tx create(PMEMobjpool* pop, TOID(struct btree) * map) {
   TX_BEGIN(pop) {
     pmemobj_tx_add_range_direct(map, sizeof(*map));
     *map = TX_ZNEW(struct btree);
@@ -30,7 +29,7 @@ static void insert(TOID(struct tnode) node) {
   //memmove(&D_RW(node)->n, &D_RW(node)->n, sizeof(int));
 }
 
-void clear(TOID(struct btree) map) {
+void analyze_tx clear(TOID(struct btree) map) {
   insert(D_RO(map)->root);
 
   TX_ADD_FIELD(map, root);

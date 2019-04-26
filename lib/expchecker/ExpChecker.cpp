@@ -104,50 +104,41 @@ void ExpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
     }
 
     if (fncName == "pmemobj_direct") {
-      SVal Loc = Call.getArgSVal(0);
-      unsigned kind = Loc.getRawKind();
-
-      if (kind == 11) {
-        nonloc::LazyCompoundVal LCV = Loc.castAs<nonloc::LazyCompoundVal>();
-        const TypedValueRegion* TVR = LCV.getRegion();
-  
-        const MemRegion* MR = TVR->getSuperRegion();
-
-        ProgramStateRef State = C.getState();
-        const Expr* CE = Call.getOriginExpr();
-        SVal NewRetVal = State->getSVal(MR);
-        const LocationContext* LC = C.getLocationContext();
-        State = State->BindExpr(CE, LC, NewRetVal);
-        C.addTransition(State);
-      }
-
       printReturn(Call, C);
     }
   }
 }
 
-/*
 bool ExpChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
   const FunctionDecl* FD = C.getCalleeDecl(CE);
   if (!FD)
     return false;
 
   const IdentifierInfo* II = FD->getIdentifier();
-  if(!II || !II->isStr("pmemobj_direct")){
+  if (!II || !II->isStr("pmemobj_direct")) {
     return false;
   }
-
-  SValBuilder &SVB = C.getSValBuilder();
-  SVal RetVal = SVB.makeIntVal(5, true);
 
   llvm::errs() << "eval:\n";
   ProgramStateRef State = C.getState();
   const LocationContext* LC = C.getLocationContext();
-  State = State->BindExpr(CE, LC, RetVal);
-  C.addTransition(State);
+  const Expr* Arg0 = CE->getArg(0);
+  SVal Loc = State->getSVal(Arg0, LC);
+  unsigned kind = Loc.getRawKind();
+  if (kind == 11) {
+    nonloc::LazyCompoundVal LCV = Loc.castAs<nonloc::LazyCompoundVal>();
+    const TypedValueRegion* TVR = LCV.getRegion();
+
+    const MemRegion* MR = TVR->getBaseRegion();
+
+    SVal RetVal = State->getSVal(MR);
+    State = State->BindExpr(CE, LC, RetVal);
+    C.addTransition(State);
+  }
+
   return true;
 }
-*/
+
 void ExpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {}
 
 } // namespace clang::ento::nvm

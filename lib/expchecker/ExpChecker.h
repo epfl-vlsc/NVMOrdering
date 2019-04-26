@@ -9,7 +9,7 @@ class ExpChecker
     : public Checker<check::ASTDecl<TranslationUnitDecl>,
                      check::ASTDecl<RecordDecl>, check::BeginFunction,
                      check::PreCall, check::PostCall, check::Bind,
-                     check::EndFunction> {
+                     check::EndFunction, eval::Call> {
 
 public:
   ExpChecker() {}
@@ -29,6 +29,8 @@ public:
 
   void checkASTDecl(const RecordDecl* RD, AnalysisManager& Mgr,
                     BugReporter& BR) const;
+
+  bool evalCall(const CallExpr* CE, CheckerContext& C) const;
 
 private:
 };

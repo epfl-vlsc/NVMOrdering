@@ -1,10 +1,7 @@
 // transaction pmdk checker
 #pragma once
 #include "Common.h"
-#include "States.h"
-#include "TransactionInfos.h"
-#include "Transitions.h"
-#include "TxPBugReporter.h"
+#include "TxpBugReporter.h"
 #include "DbgState.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.txpchecker";
@@ -46,17 +43,11 @@ private:
 
   void handleEnd(CheckerContext& C) const;
 
-/*
-  void handlePalloc(const CallEvent& Call, CheckerContext& C) const;
-
-  void handlePfree(const CallEvent& Call, CheckerContext& C) const;
-*/
-
   template <typename SMap>
   void printStates(ProgramStateRef& State, CheckerContext& C) const;
 
   TxPBugReporter BReporter;
-  mutable NVMTransactionInfo nvmTxInfo;
+  //mutable NVMTransactionInfo nvmTxInfo;
 };
 
 } // namespace clang::ento::nvm

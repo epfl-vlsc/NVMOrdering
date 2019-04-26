@@ -1,11 +1,13 @@
 //===-- TxPChecker.cpp -----------------------------------------*
 
-#include "TxPChecker.h"
-#include "FieldWalkers.h"
+#include "TxpChecker.h"
+
 
 namespace clang::ento::nvm {
 
 void TxPChecker::checkBeginFunction(CheckerContext& C) const {
+
+/*
   bool isPFnc = nvmTxInfo.isPFunction(C);
   bool isTopFnc = isTopFunction(C);
   bool isAnalyzeFnc = nvmTxInfo.isAnnotatedFnc(C);
@@ -14,6 +16,7 @@ void TxPChecker::checkBeginFunction(CheckerContext& C) const {
   if ((isPFnc || !isAnalyzeFnc) && isTopFnc) {
     handleEnd(C);
   }
+  */
 }
 
 void TxPChecker::handleEnd(CheckerContext& C) const {
@@ -44,6 +47,9 @@ void TxPChecker::printStates(ProgramStateRef& State, CheckerContext& C) const {
 
 void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
+
+
+/*                             
   DBG("Bind")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
@@ -83,14 +89,16 @@ void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   }
 
   addStateTransition(State, C, stateChanged);
+  */
 }
 
 void TxPChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
                               BugReporter& BR) const {
-  nvmTxInfo.insertFunction(FD);
+  //nvmTxInfo.insertFunction(FD);
 }
 
 void TxPChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
+  /*
   const FunctionDecl* FD = getFuncDecl(Call);
 
   if (!FD) {
@@ -116,9 +124,11 @@ void TxPChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   } else {
     // nothing
   }
+  */
 }
 
 void TxPChecker::handlePdirect(const CallEvent& Call, CheckerContext& C) const {
+  /*
   DBG("handlePdirect")
   SVal Loc = Call.getArgSVal(0);
 
@@ -149,10 +159,12 @@ void TxPChecker::handlePdirect(const CallEvent& Call, CheckerContext& C) const {
       }
     }
   }
+  */
 }
 
 void TxPChecker::handleTxRangeDirect(const CallEvent& Call,
                                      CheckerContext& C) const {
+  /*
   DBG("handleTxRangeDirect")
   SVal Loc = Call.getArgSVal(0);
 
@@ -178,9 +190,11 @@ void TxPChecker::handleTxRangeDirect(const CallEvent& Call,
       addStateTransition(State, C, stateChanged);
     }
   }
+  */
 }
 
 void TxPChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
+  /*
   DBG("handleTxRange")
   SVal Obj = Call.getArgSVal(0);
   const Expr* Field = Call.getArgExpr(1);
@@ -216,12 +230,16 @@ void TxPChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
       }
     }
   }
+  */
 }
 
 bool TxPChecker::inTx(ProgramStateRef& State) const {
+  /*
   DBG("inTx")
   unsigned txCount = State->get<TxCounter>();
   return txCount > 0;
+  */
+ return false;
 }
 
 /*
@@ -294,6 +312,7 @@ void TxPChecker::handlePfree(const CallEvent& Call, CheckerContext& C) const {
 */
 
 void TxPChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
+  /*
   DBG("handleTxBegin")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
@@ -304,9 +323,11 @@ void TxPChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
   stateChanged |= RI.stateChanged;
 
   addStateTransition(State, C, stateChanged);
+  */
 }
 
 void TxPChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
+  /*
   DBG("handleTxEnd")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
@@ -317,6 +338,7 @@ void TxPChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
   stateChanged |= RI.stateChanged;
 
   addStateTransition(State, C, stateChanged);
+  */
 }
 
 void TxPChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,

@@ -1,5 +1,5 @@
 add_library(txpchecker MODULE
-  TxPChecker.cpp
+  TxpChecker.cpp
 )
 
 target_include_directories(txpchecker

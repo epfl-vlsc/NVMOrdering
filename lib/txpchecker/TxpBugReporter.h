@@ -1,5 +1,5 @@
 #pragma once
-#include "BaseReporter.h"
+#include "reporting/BaseReporter.h"
 #include "Common.h"
 #include "clang/StaticAnalyzer/Core/BugReporter/BugType.h"
 
