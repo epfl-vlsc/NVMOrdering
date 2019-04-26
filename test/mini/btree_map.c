@@ -27,6 +27,10 @@ void analyze_tx create(PMEMobjpool* pop, TOID(struct btree) * map) {
 static void insert(TOID(struct tnode) node) {
   D_RW(node)->n += 1;
   //memmove(&D_RW(node)->n, &D_RW(node)->n, sizeof(int));
+  D_RW(node)->n *= 1;
+  D_RW(node)->n = 1;
+  int a = 5;
+  int *p = &a;
 }
 
 void analyze_tx clear(TOID(struct btree) map) {

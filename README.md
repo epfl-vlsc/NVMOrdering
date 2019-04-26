@@ -3,12 +3,18 @@
     ./run.sh build
        
 ## How to run ##
+
     ./run.sh <report type> <checker type> <test file>
     ./run.sh scan write dcl
 
 ## Simple Masstree ##
+
     ./run.sh scan write simple_masstree
     ./run.sh scan read simple_masstree 
+
+## How to run benchmark ##
+
+    ./bench.sh run txp ctree_map
 
 * look at `output/index.html` for results
 

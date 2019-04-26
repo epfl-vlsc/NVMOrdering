@@ -7,29 +7,6 @@ namespace clang::ento::nvm {
 
 void ExpChecker::checkASTDecl(const RecordDecl* RD, AnalysisManager& Mgr,
                               BugReporter& BR) const {
-  /*
-ASTContext& ASTC = Mgr.getASTContext();
-llvm::outs() << "record: " << RD->getNameAsString() << "\n";
-
-const unsigned CACHE_LINE_SIZE = 64;
-unsigned current = 0;
-unsigned CL = 0;
-for (const FieldDecl* FD : RD->fields()) {
-llvm::outs() << "field: " << FD->getNameAsString() << "\n";
-QualType QT = FD->getType();
-QT.dump();
-const Type* type = QT.getTypePtr();
-if (type->isConstantSizeType()) {
-uint64_t fieldSize = ASTC.getTypeSizeInChars(type).getQuantity();
-llvm::outs() << "size: " << fieldSize << "\n";
-current += fieldSize;
-CL = current / CACHE_LINE_SIZE;
-llvm::outs() << "currently at CL: " << CL << "\n";
-} else {
-// fallback to dcl
-}
-}
-*/
 }
 
 void ExpChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
@@ -53,8 +30,10 @@ void ExpChecker::checkEndFunction(CheckerContext& C) const {}
 void ExpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
 
+  unsigned kind = Loc.getRawKind();
   llvm::errs() << "bind:";
   Loc.dump();
+  llvm::errs() << " " << kind;
   llvm::errs() << "\n";
 }
 
@@ -65,21 +44,6 @@ void printArg(const CallEvent& Call, CheckerContext& C) {
   Loc.dump();
   llvm::errs() << " " << kind;
   llvm::errs() << "\n";
-
-  if (kind == 11) {
-    nonloc::LazyCompoundVal LCV = Loc.castAs<nonloc::LazyCompoundVal>();
-    const TypedValueRegion* TVR = LCV.getRegion();
-    llvm::errs() << "tvr:";
-    TVR->dump();
-    llvm::errs() << "\n";
-
-    const MemRegion* MR = TVR->getSuperRegion();
-    if (MR) {
-      llvm::errs() << "mr:";
-      MR->dump();
-      llvm::errs() << "\n";
-    }
-  }
 }
 
 void printReturn(const CallEvent& Call, CheckerContext& C) {
@@ -97,46 +61,7 @@ void ExpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
     std::string fncName = FD->getNameAsString();
     llvm::errs() << "function:";
     llvm::errs() << fncName << "\n";
-
-    if (fncName == "pmemobj_tx_add_range_direct" ||
-        fncName == "pmemobj_tx_add_range" || fncName == "pmemobj_direct") {
-      printArg(Call, C);
-    }
-
-    if (fncName == "pmemobj_direct") {
-      printReturn(Call, C);
-    }
   }
-}
-
-bool ExpChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
-  const FunctionDecl* FD = C.getCalleeDecl(CE);
-  if (!FD)
-    return false;
-
-  const IdentifierInfo* II = FD->getIdentifier();
-  if (!II || !II->isStr("pmemobj_direct")) {
-    return false;
-  }
-
-  llvm::errs() << "eval:\n";
-  ProgramStateRef State = C.getState();
-  const LocationContext* LC = C.getLocationContext();
-  const Expr* Arg0 = CE->getArg(0);
-  SVal Loc = State->getSVal(Arg0, LC);
-  unsigned kind = Loc.getRawKind();
-  if (kind == 11) {
-    nonloc::LazyCompoundVal LCV = Loc.castAs<nonloc::LazyCompoundVal>();
-    const TypedValueRegion* TVR = LCV.getRegion();
-
-    const MemRegion* MR = TVR->getBaseRegion();
-
-    SVal RetVal = State->getSVal(MR);
-    State = State->BindExpr(CE, LC, RetVal);
-    C.addTransition(State);
-  }
-
-  return true;
 }
 
 void ExpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {}
