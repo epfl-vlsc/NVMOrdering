@@ -33,5 +33,7 @@ public:
 } // namespace clang::ento::nvm
 
 REGISTER_TRAIT_WITH_PROGRAMSTATE(TxCounter, unsigned)
-REGISTER_MAP_WITH_PROGRAMSTATE(PMap, const clang::NamedDecl*,
+REGISTER_MAP_WITH_PROGRAMSTATE(WriteMap, const clang::NamedDecl*,
                                clang::ento::nvm::WriteState)
+REGISTER_MAP_WITH_PROGRAMSTATE(VarMap, const clang::NamedDecl*,
+                               const clang::NamedDecl*)

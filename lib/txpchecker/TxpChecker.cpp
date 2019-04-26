@@ -48,11 +48,11 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   AssignmentWalker aw;
   aw.TraverseStmt((Stmt*)S);
   if (aw.isWriteObj()) {
-    llvm::errs() << "write obj\n";
+    DBG("write obj")
   } else if (aw.isWriteField()) {
-    llvm::errs() << "write field\n";
+    DBG("write field")
   } else if (aw.isInitObj()) {
-    llvm::errs() << "init obj\n";
+    DBG("alloc obj")
   }
 
   /*
@@ -234,15 +234,6 @@ void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
   */
 }
 
-bool TxpChecker::inTx(ProgramStateRef& State) const {
-  /*
-  DBG("inTx")
-  unsigned txCount = State->get<TxCounter>();
-  return txCount > 0;
-  */
-  return false;
-}
-
 /*
 void TxPChecker::handlePalloc(const CallEvent& Call, CheckerContext& C) const {
   ProgramStateRef State = C.getState();
@@ -313,33 +304,29 @@ void TxPChecker::handlePfree(const CallEvent& Call, CheckerContext& C) const {
 */
 
 void TxpChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
-  /*
   DBG("handleTxBegin")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
-  auto RI = ReportInfos::getRI(C, State, nullptr, nullptr, BReporter, nullptr,
-                               nullptr);
-  Transitions::startTx(RI);
-  stateChanged |= RI.stateChanged;
+  auto SI =
+      StateInfo(C, State, BReporter, nullptr, nullptr, nullptr, nullptr, false);
+  TxSpace::begTx(SI);
+  stateChanged |= SI.stateChanged;
 
   addStateTransition(State, C, stateChanged);
-  */
 }
 
 void TxpChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
-  /*
   DBG("handleTxEnd")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
-  auto RI = ReportInfos::getRI(C, State, nullptr, nullptr, BReporter, nullptr,
-                               nullptr);
-  Transitions::endTx(RI);
-  stateChanged |= RI.stateChanged;
+  auto SI =
+      StateInfo(C, State, BReporter, nullptr, nullptr, nullptr, nullptr, false);
+  TxSpace::endTx(SI);
+  stateChanged |= SI.stateChanged;
 
   addStateTransition(State, C, stateChanged);
-  */
 }
 
 void TxpChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,
