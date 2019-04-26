@@ -5,7 +5,7 @@
 
 namespace clang::ento::nvm {
 
-class TxPBugReporter : public BaseReporter {
+class TxpBugReporter : public BaseReporter {
   const std::string TxPError = "NVM Transaction PMDK Error";
 
 public:
@@ -17,7 +17,7 @@ public:
   BugPtr NotTxPairBugType;
 
 public:
-  TxPBugReporter(const CheckerBase& CB) {
+  TxpBugReporter(const CheckerBase& CB) {
     WriteOutTxBugType.reset(
         new BugType(&CB, "Writing outside transaction", TxPError));
     DoubleWriteBugType.reset(

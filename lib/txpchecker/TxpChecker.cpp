@@ -4,7 +4,7 @@
 
 namespace clang::ento::nvm {
 
-void TxPChecker::checkBeginFunction(CheckerContext& C) const {
+void TxpChecker::checkBeginFunction(CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(C);
   bool isPFnc = txpFunctions.isPFunction(FD);
   bool isAnalyzeFnc = txpFunctions.isAnnotatedFnc(FD);
@@ -16,14 +16,14 @@ void TxPChecker::checkBeginFunction(CheckerContext& C) const {
   }
 }
 
-void TxPChecker::handleEnd(CheckerContext& C) const {
+void TxpChecker::handleEnd(CheckerContext& C) const {
   DBG("handleEnd")
   ExplodedNode* ErrNode = C.generateErrorNode();
   if (!ErrNode)
     return;
 }
 
-void TxPChecker::checkEndFunction(CheckerContext& C) const {
+void TxpChecker::checkEndFunction(CheckerContext& C) const {
   /*
   ProgramStateRef State = C.getState();
   bool isTopFnc = isTopFunction(C);
@@ -35,14 +35,14 @@ void TxPChecker::checkEndFunction(CheckerContext& C) const {
   */
 }
 template <typename SMap>
-void TxPChecker::printStates(ProgramStateRef& State, CheckerContext& C) const {
+void TxpChecker::printStates(ProgramStateRef& State, CheckerContext& C) const {
   DBG("printStates")
   for (auto& [D, SS] : State->get<SMap>()) {
     llvm::outs() << (void*)D << " " << SS.getStateName() << "\n";
   }
 }
 
-void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
+void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
 
   AssignmentWalker aw;
@@ -97,13 +97,16 @@ void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
     */
 }
 
-void TxPChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
+void TxpChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
                               BugReporter& BR) const {
   txpFunctions.insertIfKnown(FD);
 }
 
-void TxPChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
-  /*
+void TxpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
+  // interprocedural assignments
+}
+
+void TxpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(Call);
 
   if (!FD) {
@@ -112,27 +115,20 @@ void TxPChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
 
   DBG("checkPostCall:" << FD->getName())
 
-  if (nvmTxInfo.isTxBeg(FD)) {
+  if (txpFunctions.isTxBeg(FD)) {
     handleTxBegin(Call, C);
-  } else if (nvmTxInfo.isTxEnd(FD)) {
+  } else if (txpFunctions.isTxEnd(FD)) {
     handleTxEnd(Call, C);
-  } else if (nvmTxInfo.isPalloc(FD)) {
-    // handlePalloc(Call, C);
-  } else if (nvmTxInfo.isPfree(FD)) {
-    // handlePfree(Call, C);
-  } else if (nvmTxInfo.isPdirect(FD)) {
-    handlePdirect(Call, C);
-  } else if (nvmTxInfo.isTxRange(FD)) {
+  } else if (txpFunctions.isTxRange(FD)) {
     handleTxRange(Call, C);
-  } else if (nvmTxInfo.isTxRangeDirect(FD)) {
+  } else if (txpFunctions.isTxRangeDirect(FD)) {
     handleTxRangeDirect(Call, C);
   } else {
     // nothing
   }
-  */
 }
 
-void TxPChecker::handlePdirect(const CallEvent& Call, CheckerContext& C) const {
+void TxpChecker::handlePdirect(const CallEvent& Call, CheckerContext& C) const {
   /*
   DBG("handlePdirect")
   SVal Loc = Call.getArgSVal(0);
@@ -167,7 +163,7 @@ void TxPChecker::handlePdirect(const CallEvent& Call, CheckerContext& C) const {
   */
 }
 
-void TxPChecker::handleTxRangeDirect(const CallEvent& Call,
+void TxpChecker::handleTxRangeDirect(const CallEvent& Call,
                                      CheckerContext& C) const {
   /*
   DBG("handleTxRangeDirect")
@@ -198,7 +194,7 @@ void TxPChecker::handleTxRangeDirect(const CallEvent& Call,
   */
 }
 
-void TxPChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
+void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
   /*
   DBG("handleTxRange")
   SVal Obj = Call.getArgSVal(0);
@@ -238,7 +234,7 @@ void TxPChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
   */
 }
 
-bool TxPChecker::inTx(ProgramStateRef& State) const {
+bool TxpChecker::inTx(ProgramStateRef& State) const {
   /*
   DBG("inTx")
   unsigned txCount = State->get<TxCounter>();
@@ -316,7 +312,7 @@ void TxPChecker::handlePfree(const CallEvent& Call, CheckerContext& C) const {
 }
 */
 
-void TxPChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
+void TxpChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
   /*
   DBG("handleTxBegin")
   ProgramStateRef State = C.getState();
@@ -331,7 +327,7 @@ void TxPChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
   */
 }
 
-void TxPChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
+void TxpChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
   /*
   DBG("handleTxEnd")
   ProgramStateRef State = C.getState();
@@ -346,7 +342,7 @@ void TxPChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
   */
 }
 
-void TxPChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,
+void TxpChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,
                                     bool stateChanged) const {
   if (stateChanged) {
     DBG("state transition")
@@ -360,6 +356,6 @@ extern "C" const char clang_analyzerAPIVersionString[] =
     CLANG_ANALYZER_API_VERSION_STRING;
 
 extern "C" void clang_registerCheckers(clang::ento::CheckerRegistry& registry) {
-  registry.addChecker<clang::ento::nvm::TxPChecker>(CHECKER_PLUGIN_NAME,
+  registry.addChecker<clang::ento::nvm::TxpChecker>(CHECKER_PLUGIN_NAME,
                                                     "Checks pmdk");
 }

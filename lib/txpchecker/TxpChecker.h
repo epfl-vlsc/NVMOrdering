@@ -1,20 +1,20 @@
 // transaction pmdk checker
 #pragma once
 #include "Common.h"
-#include "TxpBugReporter.h"
-#include "parser/TxpFunctions.h"
-#include "parser/AssignmentWalkers.h"
 #include "DbgState.h"
+#include "TxpBugReporter.h"
+#include "parser/AssignmentWalkers.h"
+#include "parser/TxpFunctions.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.txpchecker";
 
 namespace clang::ento::nvm {
 
-class TxPChecker
-    : public Checker<check::BeginFunction, check::EndFunction, check::Bind,
-                     check::ASTDecl<FunctionDecl>, check::PostCall> {
+class TxpChecker : public Checker<check::BeginFunction, check::EndFunction,
+                                  check::Bind, check::ASTDecl<FunctionDecl>,
+                                  check::PostCall, check::PreCall> {
 public:
-  TxPChecker() : BReporter(*this) {}
+  TxpChecker() : BReporter(*this) {}
 
   void checkBeginFunction(CheckerContext& C) const;
 
@@ -23,6 +23,8 @@ public:
   void checkBind(SVal Loc, SVal Val, const Stmt* S, CheckerContext& C) const;
 
   void checkPostCall(const CallEvent& Call, CheckerContext& C) const;
+
+  void checkPreCall(const CallEvent& Call, CheckerContext& C) const;
 
   void checkASTDecl(const FunctionDecl* D, AnalysisManager& Mgr,
                     BugReporter& BR) const;
@@ -48,7 +50,7 @@ private:
   template <typename SMap>
   void printStates(ProgramStateRef& State, CheckerContext& C) const;
 
-  TxPBugReporter BReporter;
+  TxpBugReporter BReporter;
   mutable TxpFunctions txpFunctions;
 };
 
