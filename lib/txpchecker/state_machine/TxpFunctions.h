@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-#include "AnnotFunction.h"
+#include "identify/AnnotFunction.h"
 
 namespace clang::ento::nvm {
 
@@ -15,35 +15,60 @@ class TxpFunctions {
   std::set<const FunctionDecl*> pfreeFncSet;
   std::set<const FunctionDecl*> pdirectFncSet;
 
-public:
-  TxpFunctions():txFnc("TxCode"){}
+  bool inAlloc(const IdentifierInfo* II) const {
+    return II->isStr("pmalloc") || II->isStr("pmemobj_tx_alloc") ||
+           II->isStr("pmemobj_tx_zalloc") || II->isStr("pmemobj_tx_xalloc") ||
+           II->isStr("pmemobj_tx_realloc") ||
+           II->isStr("pmemobj_tx_zrealloc") || II->isStr("pmemobj_tx_strdup") ||
+           II->isStr("pmemobj_tx_wcsdup");
+  }
 
-  void insertFunction(const FunctionDecl* FD) {
+  bool inFree(const IdentifierInfo* II) const {
+    return II->isStr("pfree") || II->isStr("pmemobj_tx_free");
+  }
+
+  bool inDirect(const IdentifierInfo* II) const {
+    return II->isStr("pmemobj_direct");
+  }
+
+  bool inAddRange(const IdentifierInfo* II) const {
+    return II->isStr("pmemobj_tx_add_range");
+  }
+
+  bool inAddRangeDirect(const IdentifierInfo* II) const {
+    return II->isStr("pmemobj_tx_add_range_direct");
+  }
+
+  bool inTxBeg(const IdentifierInfo* II) const {
+    return II->isStr("tx_begin") || II->isStr("pmemobj_tx_begin");
+  }
+
+  bool inTxEnd(const IdentifierInfo* II) const {
+    return II->isStr("tx_end") || II->isStr("pmemobj_tx_end");
+  }
+
+public:
+  TxpFunctions() : txFnc("TxCode") {}
+
+  void insertIfKnown(const FunctionDecl* FD) {
     txFnc.insertIfKnown(FD);
 
     const IdentifierInfo* II = FD->getIdentifier();
 
-    // todo
-    /*
-    II->isStr("pmemobj_tx_alloc") ||
-          II->isStr("pmemobj_tx_zalloc") || II->isStr("pmemobj_tx_realloc") ||
-          II->isStr("pmemobj_tx_zrealloc")
-          */
     if (II) {
-      if (II->isStr("pmalloc") || II->isStr("pmemobj_tx_zalloc")) {
+      if (inAlloc(II)) {
         pallocFncSet.insert(FD);
-      } else if (II->isStr("pfree") || II->isStr("pmemobj_tx_free")) {
+      } else if (inFree(II)) {
         pfreeFncSet.insert(FD);
-      } else if (II->isStr("pmemobj_direct")) {
+      } else if (inDirect(II)) {
         pdirectFncSet.insert(FD);
-      } else if (II->isStr("pmemobj_tx_add_range_direct")) {
-        txRangeDirectSet.insert(FD);
-      } else if (II->isStr("pmemobj_tx_add_range")) {
+      } else if (inAddRange(II)) {
         txRangeSet.insert(FD);
-      } else if (II->isStr("tx_begin") || II->isStr("pmemobj_tx_begin")) {
+      } else if (inAddRangeDirect(II)) {
+        txRangeDirectSet.insert(FD);
+      } else if (inTxBeg(II)) {
         txBegSet.insert(FD);
-      } else if (II->isStr("tx_end") || II->isStr("pmemobj_tx_end") ||
-                 II->isStr("pmemobj_tx_abort")) {
+      } else if (inTxEnd(II)) {
         txEndSet.insert(FD);
       } else {
         // different type of annotation
@@ -55,15 +80,11 @@ public:
     }
   }
 
-  bool isPFunction(CheckerContext& C) {
-    const FunctionDecl* FD = getFuncDecl(C);
+  bool isPFunction(const FunctionDecl* FD) {
     return isPalloc(FD) || isPfree(FD) || isPdirect(FD);
   }
 
-  bool isAnnotatedFnc(CheckerContext& C) {
-    const FunctionDecl* FD = getFuncDecl(C);
-    return isTxFnc(FD);
-  }
+  bool isAnnotatedFnc(const FunctionDecl* FD) { return isTxFnc(FD); }
 
   bool isTxRangeDirect(const FunctionDecl* FD) {
     return txRangeDirectSet.count(FD);
@@ -84,17 +105,15 @@ public:
   bool isPdirect(const FunctionDecl* FD) { return pdirectFncSet.count(FD); }
 
   void dump() {
-
     txFnc.dump();
-    /*
     std::set<const FunctionDecl*>* functionSets[] = {
-        &txBegSet,      &txRangeSet,   &txRangeDirectSet, &txEndSet,
-        &pdirectFncSet, &pallocFncSet, &pfreeFncSet};
+        &txBegSet, &txRangeSet,   &txRangeDirectSet,
+        &txEndSet, &pallocFncSet, &pfreeFncSet};
     for (auto* fncSet : functionSets) {
       for (const FunctionDecl* FD : *fncSet) {
         llvm::outs() << FD->getQualifiedNameAsString() << "\n";
       }
-    }*/
+    }
   }
 };
 

@@ -2,6 +2,7 @@
 #pragma once
 #include "Common.h"
 #include "TxpBugReporter.h"
+#include "state_machine/TxpFunctions.h"
 #include "DbgState.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.txpchecker";
@@ -47,7 +48,7 @@ private:
   void printStates(ProgramStateRef& State, CheckerContext& C) const;
 
   TxPBugReporter BReporter;
-  //mutable NVMTransactionInfo nvmTxInfo;
+  mutable TxpFunctions txpFunctions;
 };
 
 } // namespace clang::ento::nvm

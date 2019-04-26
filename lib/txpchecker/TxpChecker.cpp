@@ -2,21 +2,19 @@
 
 #include "TxpChecker.h"
 
-
 namespace clang::ento::nvm {
 
 void TxPChecker::checkBeginFunction(CheckerContext& C) const {
-
-/*
-  bool isPFnc = nvmTxInfo.isPFunction(C);
+  const FunctionDecl* FD = getFuncDecl(C);
+  bool isPFnc = txpFunctions.isPFunction(FD);
+  bool isAnalyzeFnc = txpFunctions.isAnnotatedFnc(FD);
   bool isTopFnc = isTopFunction(C);
-  bool isAnalyzeFnc = nvmTxInfo.isAnnotatedFnc(C);
+  
 
   // if pmalloc/pfree/paccess function, do not analyze
   if ((isPFnc || !isAnalyzeFnc) && isTopFnc) {
     handleEnd(C);
   }
-  */
 }
 
 void TxPChecker::handleEnd(CheckerContext& C) const {
@@ -48,53 +46,51 @@ void TxPChecker::printStates(ProgramStateRef& State, CheckerContext& C) const {
 void TxPChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
 
+  /*
+    DBG("Bind")
+    ProgramStateRef State = C.getState();
+    bool stateChanged = false;
 
-/*                             
-  DBG("Bind")
-  ProgramStateRef State = C.getState();
-  bool stateChanged = false;
+    AssignmentWalker aw;
+    aw.TraverseStmt((Stmt*)S);
+    if (aw.isObjWrite()) {
+      DBG("obj write")
 
-  AssignmentWalker aw;
-  aw.TraverseStmt((Stmt*)S);
-  if (aw.isObjWrite()) {
-    DBG("obj write")
+      // alloc of object
+      auto RI = ReportInfos::getRI(C, State, aw.getObjInfo(), nullptr,
+    BReporter, &Loc, S); if (!inTx(State)) {
+        // not done in transaction
+        RI.reportWriteOutTxBug();
+      } else {
+        // done in transaction
+        Transitions::pdirectAccess(RI);
+        stateChanged |= RI.stateChanged;
+      }
 
-    // alloc of object
-    auto RI = ReportInfos::getRI(C, State, aw.getObjInfo(), nullptr, BReporter,
-                                 &Loc, S);
-    if (!inTx(State)) {
-      // not done in transaction
-      RI.reportWriteOutTxBug();
-    } else {
-      // done in transaction
-      Transitions::pdirectAccess(RI);
-      stateChanged |= RI.stateChanged;
+    } else if (aw.isFieldWrite()) {
+      DBG("field write")
+
+      // write to obj field
+
+      auto RI = ReportInfos::getRI(C, State, aw.getObjInfo(), aw.getFieldInfo(),
+                                   BReporter, &Loc, S);
+      if (!inTx(State)) {
+        // not done in transaction
+        RI.reportWriteOutTxBug();
+      } else {
+        // done in transaction
+        Transitions::writeData(RI);
+        stateChanged |= RI.stateChanged;
+      }
     }
 
-  } else if (aw.isFieldWrite()) {
-    DBG("field write")
-
-    // write to obj field
-
-    auto RI = ReportInfos::getRI(C, State, aw.getObjInfo(), aw.getFieldInfo(),
-                                 BReporter, &Loc, S);
-    if (!inTx(State)) {
-      // not done in transaction
-      RI.reportWriteOutTxBug();
-    } else {
-      // done in transaction
-      Transitions::writeData(RI);
-      stateChanged |= RI.stateChanged;
-    }
-  }
-
-  addStateTransition(State, C, stateChanged);
-  */
+    addStateTransition(State, C, stateChanged);
+    */
 }
 
 void TxPChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
                               BugReporter& BR) const {
-  //nvmTxInfo.insertFunction(FD);
+  txpFunctions.insertIfKnown(FD);
 }
 
 void TxPChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
@@ -239,7 +235,7 @@ bool TxPChecker::inTx(ProgramStateRef& State) const {
   unsigned txCount = State->get<TxCounter>();
   return txCount > 0;
   */
- return false;
+  return false;
 }
 
 /*
