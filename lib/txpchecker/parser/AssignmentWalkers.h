@@ -8,18 +8,6 @@ namespace clang::ento::nvm {
 
 // todo handle write to obj
 
-bool isPersistentType(const QualType& QT, const ASTContext& ASTC) {
-  QualType PT = QT.getDesugaredType(ASTC);
-  if (const IdentifierInfo* II = PT.getBaseTypeIdentifier()) {
-    if (II->getName().contains("toid")) {
-      llvm::errs() << "persistent"
-                   << "\n";
-      return true;
-    }
-  }
-  return false;
-}
-
 class AssignmentWalker {
   enum K { W_OBJ, W_FIELD, I_OBJ, NONE } Kind;
   const ASTContext& ASTC;

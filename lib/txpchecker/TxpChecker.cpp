@@ -29,7 +29,7 @@ void TxpChecker::checkEndFunction(CheckerContext& C) const {
 
   // if pmalloc/pfree/paccess function, do not analyze
   if (isTopFnc) {
-    //printStates(State, C);
+    printStates(State, C);
   }
 }
 
@@ -49,10 +49,10 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   bool inTx = TxSpace::inTx(State);
 
   AssignmentWalker aw(S, C.getASTContext());
-  
+
   if (aw.isWriteObj()) {
     DBG("write obj")
-    
+
     llvm::report_fatal_error("write to obj directly");
   } else if (aw.isWriteField()) {
     const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
@@ -107,11 +107,11 @@ void TxpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
   int i = 0;
   for (const ParmVarDecl* Param : Call.parameters()) {
     const Expr* E = Call.getArgExpr(i);
+    ++i;
 
-    printStmt(E, C, "bind:", false);
-    IPWalker ipw(E);
+    IPWalker ipw(E, C.getASTContext());
     if (ipw.isNone()) {
-      return;
+      continue;
     }
 
     // do interprocedural storage
@@ -125,7 +125,6 @@ void TxpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
       assert(ObjArg && "obj nullptr");
       IpSpace::setIpMap(State, Param, ObjArg);
     }
-    ++i;
   }
   addStateTransition(State, C, true);
 }
@@ -153,19 +152,20 @@ void TxpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
 
 void TxpChecker::handleTxRangeDirect(const CallEvent& Call,
                                      CheckerContext& C) const {
-    DBG("handleTxRangeDirect")
-    SVal Loc = Call.getArgSVal(0);
-    if (const VarDecl* ObjVD = getVDUsingOrigin(Loc)) {
-      ProgramStateRef State = C.getState();
-      bool stateChanged = false;
-      bool inTx = TxSpace::inTx(State);
-      const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
-      DBG("obj log" << ObjND->getNameAsString())
-      auto SI =
-          StateInfo(C, State, BReporter, nullptr, nullptr, ObjND, nullptr,
-    inTx); WriteSpace::logObj(SI); stateChanged |= SI.stateChanged;
-      addStateTransition(State, C, stateChanged);
-    }
+  DBG("handleTxRangeDirect")
+  SVal Loc = Call.getArgSVal(0);
+  if (const VarDecl* ObjVD = getVDUsingOrigin(Loc)) {
+    ProgramStateRef State = C.getState();
+    bool stateChanged = false;
+    bool inTx = TxSpace::inTx(State);
+    const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
+    DBG("obj log" << ObjND->getNameAsString())
+    auto SI =
+        StateInfo(C, State, BReporter, nullptr, nullptr, ObjND, nullptr, inTx);
+    WriteSpace::logObj(SI);
+    stateChanged |= SI.stateChanged;
+    addStateTransition(State, C, stateChanged);
+  }
 }
 
 void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {

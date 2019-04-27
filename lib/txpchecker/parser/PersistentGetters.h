@@ -3,6 +3,17 @@
 
 namespace clang::ento::nvm {
 
+bool isPersistentType(const QualType& QT, const ASTContext& ASTC) {
+  QualType PT = QT.getDesugaredType(ASTC);
+  if (const IdentifierInfo* II = PT.getBaseTypeIdentifier()) {
+    if (II->getName().contains("toid")) {
+      DBG("persistent")
+      return true;
+    }
+  }
+  return false;
+}
+
 const NamedDecl* getObjFromME(const MemberExpr* ME) {
   if (!ME) {
     return nullptr;

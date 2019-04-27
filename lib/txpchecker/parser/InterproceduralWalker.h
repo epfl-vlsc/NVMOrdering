@@ -4,13 +4,15 @@
 
 namespace clang::ento::nvm {
 
-class IPWalker{
+class IPWalker {
   enum K { FIELD, OBJ, NONE } Kind;
+  const ASTContext& ASTC;
   NamedDecl* objND;
   NamedDecl* fieldND;
 
 public:
-  IPWalker(const Expr* E) : Kind(K::NONE), objND(nullptr), fieldND(nullptr) {
+  IPWalker(const Expr* E, const ASTContext& ASTC_)
+      : Kind(K::NONE), ASTC(ASTC_), objND(nullptr), fieldND(nullptr) {
     if (const ImplicitCastExpr* ICE = dyn_cast_or_null<ImplicitCastExpr>(E)) {
       analyzeICE(ICE);
     }
@@ -21,6 +23,14 @@ public:
 
   void analyzeICE(const ImplicitCastExpr* ICE) {
     if (!ICE) {
+      return;
+    }
+
+
+    QualType QT = ICE->getType();
+    QT.dump();
+    //do not track non persistent types
+    if(!isPersistentType(QT, ASTC)){
       return;
     }
 
