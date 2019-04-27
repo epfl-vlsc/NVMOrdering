@@ -29,7 +29,7 @@ void TxpChecker::checkEndFunction(CheckerContext& C) const {
 
   // if pmalloc/pfree/paccess function, do not analyze
   if (isTopFnc) {
-    printStates(State, C);
+    //printStates(State, C);
   }
 }
 
@@ -49,25 +49,20 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   bool inTx = TxSpace::inTx(State);
 
   AssignmentWalker aw(S);
-  printStmt(S, C, "bind", false);
   if (aw.isWriteObj()) {
     DBG("write obj")
     llvm::report_fatal_error("write to obj directly");
   } else if (aw.isWriteField()) {
-    const NamedDecl* ObjND = aw.getObjND();
-    const NamedDecl* FieldND = aw.getFieldND();
-    //const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
-    //const NamedDecl* FieldND = IpSpace::getRealND(State, aw.getFieldND());
-    assert(ObjND && "obj and field has to exist");
+    const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
+    const NamedDecl* FieldND = IpSpace::getRealND(State, aw.getFieldND());
+    assert(ObjND && FieldND && "obj and field has to exist");
     DBG("write field:" << FieldND->getNameAsString()
                        << "obj:" << ObjND->getNameAsString())
     auto SI = StateInfo(C, State, BReporter, &Loc, S, ObjND, FieldND, inTx);
     WriteSpace::writeField(SI);
     stateChanged |= SI.stateChanged;
   } else if (aw.isInitObj()) {
-    const NamedDecl* ObjND = aw.getObjND();
-
-    //const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
+    const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
     assert(ObjND && "obj has to exist");
     DBG("alloc obj:" << ObjND->getNameAsString())
     auto SI = StateInfo(C, State, BReporter, &Loc, S, ObjND, nullptr, inTx);
@@ -132,7 +127,6 @@ void TxpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
 }
 
 void TxpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
-  /*
   const FunctionDecl* FD = getFuncDecl(Call);
   if (!FD) {
     return;
@@ -151,12 +145,10 @@ void TxpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   } else {
     // nothing
   }
-  */
 }
 
 void TxpChecker::handleTxRangeDirect(const CallEvent& Call,
                                      CheckerContext& C) const {
-  /*
     DBG("handleTxRangeDirect")
     SVal Loc = Call.getArgSVal(0);
     if (const VarDecl* ObjVD = getVDUsingOrigin(Loc)) {
@@ -169,11 +161,10 @@ void TxpChecker::handleTxRangeDirect(const CallEvent& Call,
           StateInfo(C, State, BReporter, nullptr, nullptr, ObjND, nullptr,
     inTx); WriteSpace::logObj(SI); stateChanged |= SI.stateChanged;
       addStateTransition(State, C, stateChanged);
-    }*/
+    }
 }
 
 void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
-  /*
   DBG("handleTxRange")
   // get obj
   SVal Loc = Call.getArgSVal(0);
@@ -213,11 +204,9 @@ void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
   }
 
   addStateTransition(State, C, stateChanged);
-  */
 }
 
 void TxpChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
-  /*
   DBG("handleTxBegin")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
@@ -228,11 +217,9 @@ void TxpChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
   stateChanged |= SI.stateChanged;
 
   addStateTransition(State, C, stateChanged);
-  */
 }
 
 void TxpChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
-  /*
   DBG("handleTxEnd")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
@@ -243,7 +230,6 @@ void TxpChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
   stateChanged |= SI.stateChanged;
 
   addStateTransition(State, C, stateChanged);
-  */
 }
 
 void TxpChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,

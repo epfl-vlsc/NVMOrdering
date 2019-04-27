@@ -47,7 +47,6 @@ void analyze_tx clear(PMEMobjpool* pop, TOID(struct btree) map) {
     TX_ADD_FIELD(map, root);
     insert(pop, D_RO(map)->root, map);
 
-    TX_ADD_FIELD(map, root);
     D_RW(map)->root = TOID_NULL(struct tnode);
   }
   TX_END

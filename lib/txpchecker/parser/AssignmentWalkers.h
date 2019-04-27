@@ -18,14 +18,12 @@ class AssignmentWalker {
     if (VD && !VD->getName().equals("_type")) {
       // field name
       fieldND = (NamedDecl*)VD;
-      llvm::errs() << "field:" << fieldND << "\n";
     }
   }
 
   void setObjME(const MemberExpr* ME) {
     const NamedDecl* ND = getObjFromME(ME);
     objND = (NamedDecl*)ND;
-    llvm::errs() << "objme:" << objND << "\n";
   }
 
   void setObjUO(const UnaryOperator* UO) {
@@ -34,7 +32,6 @@ class AssignmentWalker {
     if (DRE) {
       const NamedDecl* ND = DRE->getFoundDecl();
       objND = (NamedDecl*)ND;
-      llvm::errs() << "objdre:" << objND << "\n";
     }
   }
 
