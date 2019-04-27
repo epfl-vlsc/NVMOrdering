@@ -18,29 +18,37 @@ struct btree {
 };
 
 void analyze_tx create(PMEMobjpool* pop, TOID(struct btree) * map) {
-  TXBEG(pop) {
+  int ret = 0;
+  TX_BEGIN(pop) {
     pmemobj_tx_add_range_direct(map, sizeof(*map));
     *map = TX_ZNEW(struct btree);
-  }
-  TXEND
+  }TX_ONABORT {
+		ret = 1;
+	}
+  TX_END
 }
-/*
-static void insert(TOID(struct tnode) node) {
+
+static void log(TOID(struct btree) zap) {
+  TX_ADD(zap);
+}
+
+static void insert(PMEMobjpool* pop, TOID(struct tnode) node, TOID(struct btree) map) {
   D_RW(node)->n += 1;
   D_RW(node)->n *= 1;
   D_RW(node)->n = 1;
   int a = 5;
   int *p = &a;
   D_RW(node)->n = *p;
+  log(map);
 }
 
 void analyze_tx clear(PMEMobjpool* pop, TOID(struct btree) map) {
   TX_BEGIN(pop) {
-    insert(D_RO(map)->root);
+    TX_ADD_FIELD(map, root);
+    insert(pop, D_RO(map)->root, map);
 
     TX_ADD_FIELD(map, root);
     D_RW(map)->root = TOID_NULL(struct tnode);
   }
   TX_END
 }
-*/

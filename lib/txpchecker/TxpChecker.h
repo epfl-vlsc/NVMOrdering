@@ -3,9 +3,8 @@
 #include "Common.h"
 #include "DbgState.h"
 #include "parser/Parser.h"
-#include "state_machine/TxTransitions.h"
 #include "state_machine/TxpBugReporter.h"
-#include "state_machine/WriteTransitions.h"
+#include "state_machine/Transitions.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.txpchecker";
 
@@ -48,7 +47,6 @@ private:
 
   void handleEnd(CheckerContext& C) const;
 
-  template <typename SMap>
   void printStates(ProgramStateRef& State, CheckerContext& C) const;
 
   TxpBugReporter BReporter;

@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "FncNames.h"
+#include "PersistentGetters.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang::ento::nvm {
@@ -11,44 +12,6 @@ class AssignmentWalker : public RecursiveASTVisitor<AssignmentWalker> {
   enum K { W_OBJ, W_FIELD, I_OBJ, NONE } Kind;
   NamedDecl* objND;
   NamedDecl* fieldND;
-
-  const NamedDecl* getObjFromME(const MemberExpr* ME) const {
-    if (!ME) {
-      return nullptr;
-    }
-
-    const Stmt* Child1 = getNthChild(ME, 0);
-    const Stmt* Child2 = getNthChild(Child1, 0);
-    const Stmt* Child3 = getNthChild(Child2, 3);
-    const Stmt* Child4 = getNthChild(Child3, 0);
-    const Stmt* Child5 = getNthChild(Child4, 1);
-    const Stmt* Child6 = getNthChild(Child5, 0);
-    const Stmt* Child7 = getNthChild(Child6, 0);
-    const Stmt* Child8 = getNthChild(Child7, 0);
-
-    if (const DeclRefExpr* DRE = dyn_cast_or_null<DeclRefExpr>(Child8)) {
-      if (const NamedDecl* ND = DRE->getFoundDecl()) {
-        return ND;
-      }
-    }
-
-    return nullptr;
-  }
-
-  const DeclRefExpr* getObjFromUO(const UnaryOperator* UO) const {
-    if (!UO) {
-      return nullptr;
-    }
-
-    const Stmt* Child1 = getNthChild(UO, 0);
-    const Stmt* Child2 = getNthChild(Child1, 0);
-
-    if (const DeclRefExpr* DRE = dyn_cast_or_null<DeclRefExpr>(Child2)) {
-      return DRE;
-    }
-
-    return nullptr;
-  }
 
   void setFieldME(const MemberExpr* ME) {
     const ValueDecl* VD = ME->getMemberDecl();
@@ -88,7 +51,7 @@ class AssignmentWalker : public RecursiveASTVisitor<AssignmentWalker> {
       // extract obj
       setObjUO(UO);
 
-      if(objND){
+      if (objND) {
         Kind = K::W_OBJ;
       }
     }

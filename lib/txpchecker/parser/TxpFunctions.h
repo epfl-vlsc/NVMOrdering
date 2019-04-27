@@ -49,7 +49,7 @@ public:
     }
   }
 
-  bool isPfnc(const FunctionDecl* FD) const { return isPinit(FD) || isPtx(FD); }
+  bool isAnyPfnc(const FunctionDecl* FD) const { return isPinit(FD) || isPtx(FD); }
 
   bool isPinit(const FunctionDecl* FD) const {
     return isPalloc(FD) || isPfree(FD) || isPdirect(FD);

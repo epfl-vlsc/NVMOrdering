@@ -24,21 +24,20 @@ void TxpChecker::handleEnd(CheckerContext& C) const {
 }
 
 void TxpChecker::checkEndFunction(CheckerContext& C) const {
-  /*
   ProgramStateRef State = C.getState();
   bool isTopFnc = isTopFunction(C);
 
   // if pmalloc/pfree/paccess function, do not analyze
   if (isTopFnc) {
-    printStates<PMap>(State, C);
+    // printStates(State, C);
   }
-  */
 }
-template <typename SMap>
+
 void TxpChecker::printStates(ProgramStateRef& State, CheckerContext& C) const {
   DBG("printStates")
-  for (auto& [D, SS] : State->get<SMap>()) {
-    llvm::outs() << (void*)D << " " << SS.getStateName() << "\n";
+  for (auto& [Param, Arg] : State->get<IpMap>()) {
+    llvm::errs() << Param->getNameAsString() << " " << Arg->getNameAsString()
+                 << "\n";
   }
 }
 
@@ -56,14 +55,15 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
     llvm::report_fatal_error("write to obj directly");
   } else if (aw.isWriteField()) {
     DBG("write field")
-    auto SI = StateInfo(C, State, BReporter, &Loc, S, aw.getObjND(),
-                        aw.getFieldND(), inTx);
+    const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
+    const NamedDecl* FieldND = IpSpace::getRealND(State, aw.getFieldND());
+    auto SI = StateInfo(C, State, BReporter, &Loc, S, ObjND, FieldND, inTx);
     WriteSpace::writeField(SI);
     stateChanged |= SI.stateChanged;
   } else if (aw.isInitObj()) {
     DBG("alloc obj")
-    auto SI =
-        StateInfo(C, State, BReporter, &Loc, S, aw.getObjND(), nullptr, inTx);
+    const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
+    auto SI = StateInfo(C, State, BReporter, &Loc, S, ObjND, nullptr, inTx);
     WriteSpace::writeObj(SI);
     stateChanged |= SI.stateChanged;
   }
@@ -77,12 +77,42 @@ void TxpChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
 }
 
 void TxpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
+  // todo remove mapping once the function is done
+  const FunctionDecl* FD = getFuncDecl(Call);
+  if (!FD || txpFunctions.isAnyPfnc(FD)) {
+    return;
+  }
+
+  DBG("checkPreCall:" << FD->getName())
+
   // interprocedural assignments
+  int i = 0;
+  for (const ParmVarDecl* Param : Call.parameters()) {
+    const Expr* E = Call.getArgExpr(i);
+    IPWalker ipw(E);
+    if (ipw.isNone()) {
+      return;
+    }
+
+    // do interprocedural storage
+    ProgramStateRef State = C.getState();
+
+    if (ipw.isField()) {
+      const NamedDecl* FieldArg = ipw.getFieldND();
+      assert(FieldArg && "field nullptr");
+      IpSpace::setIpMap(State, Param, FieldArg);
+    } else if (ipw.isObj()) {
+      const NamedDecl* ObjArg = ipw.getObjND();
+      assert(ObjArg && "obj nullptr");
+      IpSpace::setIpMap(State, Param, ObjArg);
+    }
+
+    addStateTransition(State, C, true);
+  }
 }
 
 void TxpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(Call);
-
   if (!FD) {
     return;
   }
@@ -104,6 +134,7 @@ void TxpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
 
 void TxpChecker::handleTxRangeDirect(const CallEvent& Call,
                                      CheckerContext& C) const {
+
   DBG("handleTxRangeDirect")
   SVal Loc = Call.getArgSVal(0);
   if (const VarDecl* ObjVD = getVDUsingOrigin(Loc)) {
@@ -111,9 +142,9 @@ void TxpChecker::handleTxRangeDirect(const CallEvent& Call,
     ProgramStateRef State = C.getState();
     bool stateChanged = false;
     bool inTx = TxSpace::inTx(State);
-
+    const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
     auto SI =
-        StateInfo(C, State, BReporter, nullptr, nullptr, ObjVD, nullptr, inTx);
+        StateInfo(C, State, BReporter, nullptr, nullptr, ObjND, nullptr, inTx);
     WriteSpace::logObj(SI);
     stateChanged |= SI.stateChanged;
     addStateTransition(State, C, stateChanged);
@@ -143,14 +174,17 @@ void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
 
   if (FieldVD) {
     DBG("field log")
+    const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
+    const NamedDecl* FieldND = IpSpace::getRealND(State, FieldVD);
     auto SI =
-        StateInfo(C, State, BReporter, nullptr, nullptr, ObjVD, FieldVD, inTx);
+        StateInfo(C, State, BReporter, nullptr, nullptr, ObjND, FieldND, inTx);
     WriteSpace::logField(SI);
     stateChanged |= SI.stateChanged;
   } else if (ObjVD) {
     DBG("obj log")
+    const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
     auto SI =
-        StateInfo(C, State, BReporter, nullptr, nullptr, ObjVD, nullptr, inTx);
+        StateInfo(C, State, BReporter, nullptr, nullptr, ObjND, nullptr, inTx);
     WriteSpace::logObj(SI);
     stateChanged |= SI.stateChanged;
   }

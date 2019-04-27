@@ -1,6 +1,6 @@
 #pragma once
 
-#define DBGSTATE
+//#define DBGSTATE
 #ifdef DBGSTATE
 #define DBG(P) llvm::errs() << P << "\n";
 #else
