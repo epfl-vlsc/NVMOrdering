@@ -43,27 +43,32 @@ void TxpChecker::printStates(ProgramStateRef& State, CheckerContext& C) const {
 
 void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
-  /*
   DBG("Bind")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
   bool inTx = TxSpace::inTx(State);
 
-  AssignmentWalker aw;
-  aw.TraverseStmt((Stmt*)S);
+  AssignmentWalker aw(S);
+  printStmt(S, C, "bind", false);
   if (aw.isWriteObj()) {
     DBG("write obj")
     llvm::report_fatal_error("write to obj directly");
   } else if (aw.isWriteField()) {
-    const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
-    const NamedDecl* FieldND = IpSpace::getRealND(State, aw.getFieldND());
+    const NamedDecl* ObjND = aw.getObjND();
+    const NamedDecl* FieldND = aw.getFieldND();
+    //const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
+    //const NamedDecl* FieldND = IpSpace::getRealND(State, aw.getFieldND());
+    assert(ObjND && "obj and field has to exist");
     DBG("write field:" << FieldND->getNameAsString()
                        << "obj:" << ObjND->getNameAsString())
     auto SI = StateInfo(C, State, BReporter, &Loc, S, ObjND, FieldND, inTx);
     WriteSpace::writeField(SI);
     stateChanged |= SI.stateChanged;
   } else if (aw.isInitObj()) {
-    const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
+    const NamedDecl* ObjND = aw.getObjND();
+
+    //const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
+    assert(ObjND && "obj has to exist");
     DBG("alloc obj:" << ObjND->getNameAsString())
     auto SI = StateInfo(C, State, BReporter, &Loc, S, ObjND, nullptr, inTx);
     WriteSpace::writeObj(SI);
@@ -71,7 +76,6 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   }
 
   addStateTransition(State, C, stateChanged);
-  */
 }
 
 void TxpChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,

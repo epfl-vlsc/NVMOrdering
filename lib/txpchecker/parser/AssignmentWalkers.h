@@ -8,7 +8,7 @@ namespace clang::ento::nvm {
 
 // todo handle write to obj
 
-class AssignmentWalker : public RecursiveASTVisitor<AssignmentWalker> {
+class AssignmentWalker {
   enum K { W_OBJ, W_FIELD, I_OBJ, NONE } Kind;
   NamedDecl* objND;
   NamedDecl* fieldND;
@@ -18,12 +18,14 @@ class AssignmentWalker : public RecursiveASTVisitor<AssignmentWalker> {
     if (VD && !VD->getName().equals("_type")) {
       // field name
       fieldND = (NamedDecl*)VD;
+      llvm::errs() << "field:" << fieldND << "\n";
     }
   }
 
   void setObjME(const MemberExpr* ME) {
     const NamedDecl* ND = getObjFromME(ME);
     objND = (NamedDecl*)ND;
+    llvm::errs() << "objme:" << objND << "\n";
   }
 
   void setObjUO(const UnaryOperator* UO) {
@@ -32,6 +34,7 @@ class AssignmentWalker : public RecursiveASTVisitor<AssignmentWalker> {
     if (DRE) {
       const NamedDecl* ND = DRE->getFoundDecl();
       objND = (NamedDecl*)ND;
+      llvm::errs() << "objdre:" << objND << "\n";
     }
   }
 
@@ -51,14 +54,32 @@ class AssignmentWalker : public RecursiveASTVisitor<AssignmentWalker> {
       // extract obj
       setObjUO(UO);
 
-      if (objND) {
+      if (objND && Kind != K::I_OBJ) {
         Kind = K::W_OBJ;
       }
     }
   }
 
+  void checkAlloca(const Expr* E) {
+    if (const ParenExpr* PE = dyn_cast_or_null<ParenExpr>(E)) {
+      if (const NamedDecl* ND = getNDFromPE(PE)) {
+        const IdentifierInfo* II = ND->getIdentifier();
+
+        if (II && inAlloc(II)) {
+          // obj assignment
+          Kind = K::I_OBJ;
+        }
+      }
+    }
+  }
+
 public:
-  AssignmentWalker() : Kind(K::NONE), objND(nullptr), fieldND(nullptr) {}
+  AssignmentWalker(const Stmt* S)
+      : Kind(K::NONE), objND(nullptr), fieldND(nullptr) {
+    if (const BinaryOperator* BO = dyn_cast_or_null<BinaryOperator>(S)) {
+      analyzeBO(BO);
+    }
+  }
 
   const NamedDecl* getObjND() { return (const NamedDecl*)objND; }
 
@@ -72,32 +93,17 @@ public:
 
   bool isUsed() { return Kind != K::NONE; }
 
-  // for capturing alloc
-  bool VisitDeclRefExpr(const DeclRefExpr* DRE) {
-    if (const NamedDecl* ND = DRE->getFoundDecl()) {
-      const IdentifierInfo* II = ND->getIdentifier();
-
-      if (II && inAlloc(II)) {
-        // obj assignment
-        Kind = K::I_OBJ;
-        return false;
-      }
-    }
-
-    // continue traversal
-    return true;
-  }
-
-  bool VisitBinaryOperator(const BinaryOperator* BO) {
+  void analyzeBO(const BinaryOperator* BO) {
     if (BO->isAssignmentOp()) {
       Expr* LHS = BO->getLHS();
+      Expr* RHS = BO->getRHS();
+
+      // for checking if it is alloca
+      checkAlloca(RHS);
 
       // for capturing obj and fields
       extractNDs(LHS);
     }
-
-    // continue traversal
-    return true;
   }
 };
 

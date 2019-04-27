@@ -1,11 +1,10 @@
 #pragma once
 #include "Common.h"
 #include "PersistentGetters.h"
-#include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang::ento::nvm {
 
-class IPWalker : public RecursiveASTVisitor<IPWalker> {
+class IPWalker{
   enum K { FIELD, OBJ, NONE } Kind;
   NamedDecl* objND;
   NamedDecl* fieldND;

@@ -19,6 +19,17 @@
 
 namespace clang::ento::nvm {
 
+void printStmt(const Stmt* S, CheckerContext& C, const char* msg,
+               bool isPretty = false) {
+  llvm::errs() << msg << ":";
+  if (isPretty) {
+    S->dumpPretty(C.getASTContext());
+  } else {
+    S->dump();
+  }
+  llvm::errs() << "\n";
+}
+
 const Stmt* getNthChild(const Stmt* S, int i) {
   if (!S) {
     return nullptr;

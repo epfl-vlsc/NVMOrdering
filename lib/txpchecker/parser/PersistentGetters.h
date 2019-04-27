@@ -26,6 +26,25 @@ const NamedDecl* getObjFromME(const MemberExpr* ME) {
   return nullptr;
 }
 
+const NamedDecl* getNDFromPE(const ParenExpr* PE) {
+  if (!PE) {
+    return nullptr;
+  }
+
+  const Stmt* Child1 = getNthChild(PE, 0);
+  const Stmt* Child2 = getNthChild(Child1, 0);
+  const Stmt* Child3 = getNthChild(Child2, 0);
+  const Stmt* Child4 = getNthChild(Child3, 0);
+
+  if (const DeclRefExpr* DRE = dyn_cast_or_null<DeclRefExpr>(Child4)) {
+    if (const NamedDecl* ND = DRE->getFoundDecl()) {
+      return ND;
+    }
+  }
+
+  return nullptr;
+}
+
 const DeclRefExpr* getObjFromUO(const UnaryOperator* UO) {
   if (!UO) {
     return nullptr;
