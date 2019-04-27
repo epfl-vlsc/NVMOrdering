@@ -285,7 +285,7 @@ btree_map_is_empty(PMEMobjpool *pop, TOID(struct btree_map) map)
 /*
  * btree_map_insert -- inserts a new key-value pair into the map
  */
-int tx_code
+int analyze_tx 
 btree_map_insert(PMEMobjpool *pop, TOID(struct btree_map) map,
 	uint64_t key, PMEMoid value)
 {

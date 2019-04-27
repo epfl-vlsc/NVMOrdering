@@ -907,7 +907,7 @@ int pmemobj_tx_errno(void);
 
 #define TX_BEGIN_LOCK(pop, ...)\
 _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
-
+/*
 #define TX_BEGIN(pop) _POBJ_TX_BEGIN(pop, TX_LOCK_NONE)
 
 #define TX_ONABORT\
@@ -938,7 +938,7 @@ _POBJ_TX_BEGIN(pop, ##__VA_ARGS__)
 	if (_pobj_errno)\
 		errno = _pobj_errno;\
 }
-
+*/
 /*
  * Takes a "snapshot" of the memory block of given size and located at given
  * offset 'off' in the object 'oid' and saves it in the undo log.

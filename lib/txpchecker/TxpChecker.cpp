@@ -48,9 +48,11 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   bool stateChanged = false;
   bool inTx = TxSpace::inTx(State);
 
-  AssignmentWalker aw(S);
+  AssignmentWalker aw(S, C.getASTContext());
+  
   if (aw.isWriteObj()) {
     DBG("write obj")
+    
     llvm::report_fatal_error("write to obj directly");
   } else if (aw.isWriteField()) {
     const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
@@ -105,6 +107,8 @@ void TxpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
   int i = 0;
   for (const ParmVarDecl* Param : Call.parameters()) {
     const Expr* E = Call.getArgExpr(i);
+
+    printStmt(E, C, "bind:", false);
     IPWalker ipw(E);
     if (ipw.isNone()) {
       return;

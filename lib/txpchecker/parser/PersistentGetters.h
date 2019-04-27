@@ -26,6 +26,25 @@ const NamedDecl* getObjFromME(const MemberExpr* ME) {
   return nullptr;
 }
 
+const VarDecl* getVDFromME(const MemberExpr* ME) {
+  if (!ME) {
+    return nullptr;
+  }
+
+  const Stmt* Child1 = getNthChild(ME, 0);
+  const Stmt* Child2 = getNthChild(Child1, 0);
+  const Stmt* Child3 = getNthChild(Child2, 0);
+
+  if (const DeclStmt* DS = dyn_cast_or_null<DeclStmt>(Child3)) {
+    const Decl* BD = DS->getSingleDecl();
+    if(const VarDecl* VD = dyn_cast_or_null<VarDecl>(BD)){
+      return VD;
+    }
+  }
+
+  return nullptr;
+}
+
 const NamedDecl* getNDFromPE(const ParenExpr* PE) {
   if (!PE) {
     return nullptr;

@@ -20,7 +20,7 @@ TEST_DIR="${BASE_DIR}/test"
 SINGLE_FILE_REPO=${TEST_DIR}/single_file
 TEST_FILE=${SINGLE_FILE_REPO}/$TEST_NAME.cpp
 
-if [ "$MODE" == "run" ] || [ "$MODE" == "mini" ] ;then
+if [ "$MODE" == "run" ] || [ "$MODE" == "mini" ] || [ "$MODE" == "pmdk" ] ;then
     SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2 -Xclang -analyzer-display-progress"
     PLUGIN="-fplugin=${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
     -Xclang -analyze -Xclang -analyzer-checker=nvm.${TOOL_NAME}checker"
@@ -73,6 +73,14 @@ run_mini(){
     cd ${BASE_DIR}
 }
 
+run_pmdk(){
+    PMDK_DIR=${TEST_DIR}/pmdk_mini
+    cd ${BUILD_DIR}
+    clang ${SBFLAGS} ${PLUGIN} -c -std=gnu99 -ggdb -Wall -Werror -fPIC \
+    -I$PMDK_DIR/include -I$PMDK_DIR $PMDK_DIR/btree_map.c
+    cd ${BASE_DIR}
+}
+
 run_scanbuild(){
     #todo -analyzer-opt-analyze-headers
     cd ${BUILD_DIR}
@@ -110,6 +118,9 @@ elif [ "$MODE" == "multi" ] ;then
 elif [ "$MODE" == "mini" ] ;then 
     run_make
     run_mini
+elif [ "$MODE" == "pmdk" ] ;then 
+    run_make
+    run_pmdk
 else
 	echo "run, build, ast"
 fi
