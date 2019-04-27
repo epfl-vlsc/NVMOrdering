@@ -32,4 +32,8 @@ bool inTxEnd(const IdentifierInfo* II) {
   return II->isStr("tx_end") || II->isStr("pmemobj_tx_end");
 }
 
+bool inMisc(const IdentifierInfo* II) {
+  return II->isStr("pmemobj_pool_by_oid");
+}
+
 } // namespace clang::ento::nvm

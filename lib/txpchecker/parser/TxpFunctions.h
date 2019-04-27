@@ -16,6 +16,8 @@ class TxpFunctions {
   std::set<const FunctionDecl*> pfreeFncSet;
   std::set<const FunctionDecl*> pdirectFncSet;
 
+  std::set<const FunctionDecl*> pmiscFncSet;
+
 public:
   TxpFunctions() : txFnc("TxCode") {}
 
@@ -39,6 +41,8 @@ public:
         txBegSet.insert(FD);
       } else if (inTxEnd(II)) {
         txEndSet.insert(FD);
+      } else if (inMisc(II)) {
+        pmiscFncSet.insert(FD);
       } else {
         // different type of annotation
         return;
@@ -49,7 +53,9 @@ public:
     }
   }
 
-  bool isAnyPfnc(const FunctionDecl* FD) const { return isPinit(FD) || isPtx(FD); }
+  bool isAnyPfnc(const FunctionDecl* FD) const {
+    return isPinit(FD) || isPtx(FD) || isPmisc(FD);
+  }
 
   bool isPinit(const FunctionDecl* FD) const {
     return isPalloc(FD) || isPfree(FD) || isPdirect(FD);
@@ -81,11 +87,15 @@ public:
     return pdirectFncSet.count(FD);
   }
 
+  bool isPmisc(const FunctionDecl* FD) const {
+    return pmiscFncSet.count(FD);
+  }
+
   void dump() {
     txFnc.dump();
     std::set<const FunctionDecl*>* functionSets[] = {
         &txBegSet, &txRangeSet,   &txRangeDirectSet,
-        &txEndSet, &pallocFncSet, &pfreeFncSet};
+        &txEndSet, &pallocFncSet, &pfreeFncSet, &pmiscFncSet};
     for (auto* fncSet : functionSets) {
       for (const FunctionDecl* FD : *fncSet) {
         llvm::outs() << FD->getQualifiedNameAsString() << "\n";

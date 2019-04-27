@@ -32,14 +32,14 @@ static void log(TOID(struct btree) zap) {
   TX_ADD(zap);
 }
 
-static void insert(PMEMobjpool* pop, TOID(struct tnode) node, TOID(struct btree) map) {
+static void insert(PMEMobjpool* pop, TOID(struct tnode) node, TOID(struct btree) zmap) {
   D_RW(node)->n += 1;
   D_RW(node)->n *= 1;
   D_RW(node)->n = 1;
   int a = 5;
   int *p = &a;
   D_RW(node)->n = *p;
-  log(map);
+  log(zmap);
 }
 
 void analyze_tx clear(PMEMobjpool* pop, TOID(struct btree) map) {

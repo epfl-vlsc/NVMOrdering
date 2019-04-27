@@ -3,8 +3,8 @@
 #include "Common.h"
 #include "DbgState.h"
 #include "parser/Parser.h"
-#include "state_machine/TxpBugReporter.h"
 #include "state_machine/Transitions.h"
+#include "state_machine/TxpBugReporter.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.txpchecker";
 
@@ -12,7 +12,7 @@ namespace clang::ento::nvm {
 
 class TxpChecker : public Checker<check::BeginFunction, check::EndFunction,
                                   check::Bind, check::ASTDecl<FunctionDecl>,
-                                  check::PostCall, check::PreCall> {
+                                  check::PostCall, check::PreCall, eval::Call> {
 public:
   TxpChecker() : BReporter(*this) {}
 
@@ -28,6 +28,8 @@ public:
 
   void checkASTDecl(const FunctionDecl* D, AnalysisManager& Mgr,
                     BugReporter& BR) const;
+
+  bool evalCall(const CallExpr* CE, CheckerContext& C) const;
 
 private:
   void addStateTransition(ProgramStateRef& State, CheckerContext& C,
