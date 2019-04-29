@@ -26,9 +26,7 @@ public:
       return;
     }
 
-
     QualType QT = ICE->getType();
-    QT.dump();
     //do not track non persistent types
     if(!isPersistentType(QT, ASTC)){
       return;

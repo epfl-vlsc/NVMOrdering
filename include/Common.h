@@ -19,6 +19,24 @@
 
 namespace clang::ento::nvm {
 
+unsigned getSrcLineNo(const SourceManager& SM, const SourceLocation& SL) {
+  auto [FID, Pos] = SM.getDecomposedLoc(SL);
+  unsigned lineNo = SM.getLineNumber(FID, Pos);
+  return lineNo;
+}
+
+void printND(const NamedDecl* ND, const char* msg) {
+  llvm::errs() << msg << ":";
+  llvm::errs() << ND->getNameAsString();
+  llvm::errs() << "\n";
+}
+
+void printLoc(const SVal& Loc, const char* msg) {
+  llvm::errs() << msg << ":";
+  Loc.dump();
+  llvm::errs() << "\n";
+}
+
 void printStmt(const Stmt* S, CheckerContext& C, const char* msg,
                bool isPretty = false) {
   llvm::errs() << msg << ":";

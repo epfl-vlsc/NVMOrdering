@@ -10,9 +10,10 @@ constexpr const char* CHECKER_PLUGIN_NAME = "nvm.txpchecker";
 
 namespace clang::ento::nvm {
 
-class TxpChecker : public Checker<check::BeginFunction, check::EndFunction,
-                                  check::Bind, check::ASTDecl<FunctionDecl>,
-                                  check::PostCall, check::PreCall, eval::Call> {
+class TxpChecker
+    : public Checker<check::BeginFunction, check::EndFunction, check::Bind,
+                     check::ASTDecl<FunctionDecl>, check::PostCall,
+                     check::PreCall, check::BranchCondition, eval::Call> {
 public:
   TxpChecker() : BReporter(*this) {}
 
@@ -30,6 +31,8 @@ public:
                     BugReporter& BR) const;
 
   bool evalCall(const CallExpr* CE, CheckerContext& C) const;
+
+  void checkBranchCondition(const Stmt* Cond, CheckerContext& C) const;
 
 private:
   void addStateTransition(ProgramStateRef& State, CheckerContext& C,

@@ -225,6 +225,7 @@ btree_map_find_dest_node(TOID(struct btree_map) map,
 		} else { /* replacing root node, the tree grows in height */
 			TOID(struct tree_map_node) up =
 				TX_ZNEW(struct tree_map_node);
+			TX_ADD(up);
 			D_RW(up)->n = 1;
 			D_RW(up)->items[0] = m;
 			D_RW(up)->slots[0] = n;

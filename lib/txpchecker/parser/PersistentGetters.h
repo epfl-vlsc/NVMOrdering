@@ -48,7 +48,7 @@ const VarDecl* getVDFromME(const MemberExpr* ME) {
 
   if (const DeclStmt* DS = dyn_cast_or_null<DeclStmt>(Child3)) {
     const Decl* BD = DS->getSingleDecl();
-    if(const VarDecl* VD = dyn_cast_or_null<VarDecl>(BD)){
+    if (const VarDecl* VD = dyn_cast_or_null<VarDecl>(BD)) {
       return VD;
     }
   }
@@ -85,6 +85,22 @@ const DeclRefExpr* getObjFromUO(const UnaryOperator* UO) {
 
   if (const DeclRefExpr* DRE = dyn_cast_or_null<DeclRefExpr>(Child2)) {
     return DRE;
+  }
+
+  return nullptr;
+}
+
+const NamedDecl* getAliasFromICE(const ImplicitCastExpr* ICE) {
+  if (!ICE) {
+    return nullptr;
+  }
+
+  const Stmt* Child1 = getNthChild(ICE, 0);
+
+  if (const DeclRefExpr* DRE = dyn_cast_or_null<DeclRefExpr>(Child1)) {
+    if (const NamedDecl* ND = DRE->getFoundDecl()) {
+      return ND;
+    }
   }
 
   return nullptr;

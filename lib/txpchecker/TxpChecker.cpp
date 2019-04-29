@@ -52,8 +52,10 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
 
   if (aw.isWriteObj()) {
     DBG("write obj")
+    const NamedDecl* ObjND = aw.getObjND();
+    const NamedDecl* AliasND = aw.getRHSFromAss(S);
 
-    llvm::report_fatal_error("write to obj directly");
+    IpSpace::setIpMap(State, ObjND, AliasND);
   } else if (aw.isWriteField()) {
     const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
     const NamedDecl* FieldND = IpSpace::getRealND(State, aw.getFieldND());
@@ -234,6 +236,28 @@ void TxpChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
   stateChanged |= SI.stateChanged;
 
   addStateTransition(State, C, stateChanged);
+}
+
+void TxpChecker::checkBranchCondition(const Stmt* Cond,
+                                      CheckerContext& C) const {
+  // for avoiding within loop bugs
+  const SourceManager& SM = C.getSourceManager();
+  const Stmt* PS = getParentStmt(Cond, C);
+  unsigned lineNo = 0; // invalid value
+  if (const WhileStmt* WS = dyn_cast<WhileStmt>(PS)) {
+    SourceLocation SL = WS->getLocEnd();
+    unsigned lineNo = getSrcLineNo(SM, SL);
+  } else if (const ForStmt* FS = dyn_cast<ForStmt>(PS)) {
+    SourceLocation SL = FS->getLocEnd();
+    unsigned lineNo = getSrcLineNo(SM, SL);
+  } else if (const DoStmt* DS = dyn_cast<DoStmt>(PS)) {
+    SourceLocation SL = DS->getLocEnd();
+    unsigned lineNo = getSrcLineNo(SM, SL);
+  }
+
+  // register loop
+  if (lineNo) {
+  }
 }
 
 void TxpChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,

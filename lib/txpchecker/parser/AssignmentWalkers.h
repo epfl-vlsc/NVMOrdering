@@ -46,9 +46,7 @@ class AssignmentWalker {
   }
 
   void setObjWrite(const UnaryOperator* UO) {
-    UO->dump();
     QualType QT = UO->getType();
-    QT.dump();
     if (isPersistentType(QT, ASTC) && objND) {
       if (Kind == K::NONE) {
         // if it is a write
@@ -124,6 +122,21 @@ public:
       // for capturing obj and fields
       extractNDs(LHS);
     }
+  }
+
+  const NamedDecl* getRHSFromAss(const Stmt* S) {
+    if (const BinaryOperator* BO = dyn_cast_or_null<BinaryOperator>(S)) {
+      if (BO->isAssignmentOp()) {
+        Expr* RHS = BO->getRHS();
+        if (const ImplicitCastExpr* ICE =
+                dyn_cast_or_null<ImplicitCastExpr>(RHS)) {
+          return getAliasFromICE(ICE);
+        }
+      }
+    }
+
+    llvm::report_fatal_error("could not parse assignment");
+    return nullptr;
   }
 };
 
