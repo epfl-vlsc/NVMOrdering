@@ -241,6 +241,7 @@ void TxpChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
 void TxpChecker::checkBranchCondition(const Stmt* Cond,
                                       CheckerContext& C) const {
   // for avoiding within loop bugs
+  /*
   const SourceManager& SM = C.getSourceManager();
   const Stmt* PS = getParentStmt(Cond, C);
   unsigned lineNo = 0; // invalid value
@@ -248,7 +249,7 @@ void TxpChecker::checkBranchCondition(const Stmt* Cond,
     SourceLocation SL = WS->getLocEnd();
     unsigned lineNo = getSrcLineNo(SM, SL);
   } else if (const ForStmt* FS = dyn_cast<ForStmt>(PS)) {
-    SourceLocation SL = FS->getLocEnd();
+    //SourceLocation SL = FS->getLocEnd();
     unsigned lineNo = getSrcLineNo(SM, SL);
   } else if (const DoStmt* DS = dyn_cast<DoStmt>(PS)) {
     SourceLocation SL = DS->getLocEnd();
@@ -258,6 +259,7 @@ void TxpChecker::checkBranchCondition(const Stmt* Cond,
   // register loop
   if (lineNo) {
   }
+  */
 }
 
 void TxpChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,
