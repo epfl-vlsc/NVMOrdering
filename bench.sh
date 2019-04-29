@@ -1,7 +1,7 @@
-MODE=$1 #run or scan
+MODE=$1 #run, scan, ast, multi
 TOOL_NAME=$2 #low level(write, read), high level(txm, txp, log)
-TEST_NAME=$3 #btree ctree rbtree hashmaptx
-PATCH_NO=$3 #patch no
+TEST_NAME=$3 #any *.cpp file under test directory
+PATCH_NO=$4 #pmdk patch
 
 #initialize info---------------------------------------------
 if [ -z "$TOOL_NAME" ] ; then
@@ -9,14 +9,14 @@ if [ -z "$TOOL_NAME" ] ; then
 fi
 
 if [ -z "$TEST_NAME" ] ; then
-	TEST_NAME=btree
+	TEST_NAME=btree_map
 fi
 
 BASE_DIR=$(dirname $(realpath "$0"))
 OUT_DIR="${BASE_DIR}/output"
 BUILD_DIR="${BASE_DIR}/build"
 PLUGIN_DIR="${BUILD_DIR}/lib"
-BENCH_DIR="${BASE_DIR}/benchmark"
+TEST_DIR="${BASE_DIR}/test"
 
 if [ "$MODE" == "run" ] ;then
     SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2 -Xclang -analyzer-display-progress"
@@ -50,41 +50,71 @@ NVML_SRCS=(btree_map ctree_map rbtree_map hashmap_tx)
 array_contains NVML_SRCS ${TEST_NAME}
 res=$?
 if [ "$res" == "1" ] ;then
+    CC="clang"
     CFLAGS="-c -std=gnu99 -ggdb -Wall -Werror -fPIC"
-    INCLUDES="-I../include -I. -I../.."
-    NVML_DIR=${BENCH_DIR}/nvml
-    TEST_FILE=${TEST_NAME}.c
-
-    if [ "${TEST_NAME}" == "btree_map" ] \
-        || [ "${TEST_NAME}" == "ctree_map" ] \
-        || [ "${TEST_NAME}" == "rbtree_map" ];then
-        COMP_DIR=${NVML_DIR}/tree_map
-    elif [ "${TEST_NAME}" == "hashmap_tx" ] ;then
-        COMP_DIR=${NVML_DIR}/hashmap
-    fi
+    BENCH_DIR="${TEST_DIR}/pmdk"
+    TEST_FILE=${BENCH_DIR}/${TEST_NAME}.c
+    INCLUDES="-I${BENCH_DIR}/include -I${BENCH_DIR} -I${BENCH_DIR}/.."
 fi
 
 #nvml--------------------------------------------------------
 
+#atlas-------------------------------------------------------
+
+#atlas-------------------------------------------------------
+
+#kvecho------------------------------------------------------
+
+#kvecho------------------------------------------------------
+
+#mnemosyne---------------------------------------------------
+
+#mnemosyne---------------------------------------------------
+
+
+PATCH_DIR="${BENCH_DIR}/patches"
+PATCH_FILE="${PATCH_DIR}/${TOOL_NAME}_${PATCH_NO}_${TEST_NAME}.txt"
 #initialize info---------------------------------------------
 
 #functions---------------------------------------------------
+
+create_patch(){
+    git diff > ${PATCH_FILE}
+    git --reset hard
+}
+
+add_patch(){
+    if [ "$PATCH_NO" ] ; then
+	    git apply ${PATCH_FILE}
+    fi
+}
+
+rem_patch(){
+    if [ "$PATCH_NO" ] ; then
+	    git apply -R ${PATCH_FILE}
+    fi
+}
+
 run_make(){
 	cd ${BUILD_DIR}
 	make -j$(nproc)
 	cd ${BASE_DIR}
 }
 
-run_bench(){
-    cd ${COMP_DIR}
+run_run(){
+    add_patch
+
+    cd ${BENCH_DIR}
     echo "clang ${SBFLAGS} ${PLUGIN} ${CFLAGS} ${INCLUDES} ${TEST_FILE}"
     clang ${SBFLAGS} ${PLUGIN} ${CFLAGS} ${INCLUDES} ${TEST_FILE}
     cd ${BASE_DIR}
+
+    rem_patch
 }
 
-scan_bench(){
+run_scan(){
     clang ${SBFLAGS} ${PLUGIN} ${CFLAGS} ${INCLUDES} ${TEST_FILE}
-    cd ${BASE_DIR}
+    cd ${BENCH_DIR}
 
     #todo -analyzer-opt-analyze-headers
     cd ${BUILD_DIR}
@@ -97,13 +127,15 @@ scan_bench(){
 #commands----------------------------------------------------
 if [ "$MODE" == "run" ] ;then
 	run_make
-	run_bench
+	run_run
 elif [ "$MODE" == "scan" ] ;then
 	run_make
-	scan_bench
+	run_scan
 elif [ "$MODE" == "build" ] ;then
     ./run.sh build
+elif [ "$MODE" == "patch" ] ;then
+    ./run.sh build
 else
-	echo "run, scan, build"
+	echo "run, scan, build, patch"
 fi
 #commands----------------------------------------------------
