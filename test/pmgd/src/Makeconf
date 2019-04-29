@@ -1,0 +1,65 @@
+# List of sources for this directory.
+SRC_SRCS := $(addprefix src/, \
+                        graph.cc GraphConfig.cc \
+                        node.cc edge.cc property.cc \
+                        stringid.cc StringTable.cc \
+                        PropertyList.cc \
+                        TransactionManager.cc transaction.cc \
+                        Index.cc IndexManager.cc \
+                        EdgeIndex.cc IndexString.cc \
+                        AvlTree.cc AvlTreeIndex.cc \
+                        FixedAllocator.cc VariableAllocator.cc FlexFixedAllocator.cc \
+                        FixSizeAllocator.cc ChunkAllocator.cc AllocatorUnit.cc Allocator.cc \
+                        linux.cc)
+
+# Derive a list of objects.
+SRC_OBJS := $(patsubst %.cc,%.o, $(SRC_SRCS))
+
+# Add to the global list of objects.
+OBJS += $(SRC_OBJS)
+
+# Add to the global list of libraries (with path to final destination).
+LIBS += lib/pmgd.lib lib/libpmgd.so
+
+# Add the library to the global list of files to clean.
+CLEANFILES += src/pmgd.lib src/libpmgd.so
+
+# Add lib to the global list of directories to clean.
+CLEANDIRS += lib
+
+# Override the global defaults.
+SRC_CFLAGS := --std=c++11 $(INCLUDES) $(OPT) $(FFLAGS) -fPIC $(WFLAGS) \
+                -D$(PMOPT) -DPMFLUSH=$(PMFLUSH) -MP -MMD -DCOMMIT_ID="\"$(COMMIT_ID)\""
+
+# Override the global rule for building an object file from a C++ file.
+src/%.o: src/%.cc $(MAKEFILE_LIST)
+	$(if $(PMOPT),,$(error "PMOPT must be defined as PM or MSYNC"))
+	$(call print,CC,$@)
+	$(CC) $(SRC_CFLAGS) -o $@ -c $<
+
+# A rule to build the library.
+src/pmgd.lib: $(SRC_OBJS)
+	$(call print,AR,$@)
+	$(AR) cr $@ $(SRC_OBJS)
+
+# How to install said library.
+lib/pmgd.lib: src/pmgd.lib
+	$(call print,INSTALL,$@)
+	$(INSTALL) -D $< $@
+
+# A rule to build a shared library.
+src/libpmgd.so: $(SRC_OBJS)
+	$(call print,LD,$@)
+	$(CC) -shared -o $@ $(SRC_OBJS)
+
+# How to install said library.
+lib/libpmgd.so: src/libpmgd.so
+	$(call print,INSTALL,$@)
+	$(INSTALL) -D $< $@
+
+# What to build in this directory.
+PHONY += src
+src: src/pmgd.lib src/libpmgd.so
+
+# Don't attempt to rebuild this Makeconf.
+src/Makeconf : ;
