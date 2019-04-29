@@ -107,7 +107,7 @@ dump_ast(){
 }
 
 create_patch(){
-    git diff > ${PMDK_DIR}/patch/${TOOL_NAME}_{PATCH_NO}_{TEST_FILE}.txt
+    git diff > ${PMDK_DIR}/patch/${TOOL_NAME}_${PATCH_NO}_${TEST_FILE}.txt
     git --reset hard
 }
 #functions---------------------------------------------------
