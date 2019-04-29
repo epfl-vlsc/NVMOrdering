@@ -1,7 +1,7 @@
 MODE=$1 #run, scan, ast, multi
 TOOL_NAME=$2 #low level(write, read), high level(txm, txp, log)
 TEST_NAME=$3 #any *.cpp file under test directory
-PATCH_NO=$3 #pmdk patch
+PATCH_NO=$4 #pmdk patch
 
 #initialize info---------------------------------------------
 if [ -z "$TEST_NAME" ] ; then
@@ -20,6 +20,8 @@ PLUGIN_DIR="${BUILD_DIR}/lib"
 TEST_DIR="${BASE_DIR}/test"
 SINGLE_FILE_REPO=${TEST_DIR}/single_file
 TEST_FILE=${SINGLE_FILE_REPO}/$TEST_NAME.cpp
+
+PATCH_DIR=${TEST_DIR}
 
 if [ "$MODE" == "run" ] || [ "$MODE" == "mini" ] || [ "$MODE" == "pmdk" ] ;then
     SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2 -Xclang -analyzer-display-progress"
@@ -79,12 +81,11 @@ run_pmdk(){
 	    git apply test/pmdk_mini/patch/txp${PATCH_NO}_btree.txt
     fi
 
-    PMDK_DIR=${TEST_DIR}/pmdk_mini
+    
     cd ${BUILD_DIR}
     clang ${SBFLAGS} ${PLUGIN} -c -std=gnu99 -ggdb -Wall -Werror -fPIC \
-    -I$PMDK_DIR/include -I$PMDK_DIR $PMDK_DIR/btree_map.c
+    -I$PMDK_DIR/include -I$PMDK_DIR $PMDK_DIR/${TEST_NAME}.c
     cd ${BASE_DIR}
-
 
     if [ "$PATCH_NO" ] ; then
 	    git apply -R test/pmdk_mini/patch/txp${PATCH_NO}_btree.txt
@@ -103,6 +104,11 @@ dump_ast(){
     cd ${BUILD_DIR}
     clang++ ${SBFLAGS} ${TEST_FILE} > ../test/ast.txt
     cd ${BASE_DIR}
+}
+
+create_patch(){
+    git diff > ${PMDK_DIR}/patch/${TOOL_NAME}_{PATCH_NO}_{TEST_FILE}.txt
+    git --reset hard
 }
 #functions---------------------------------------------------
 
@@ -126,11 +132,15 @@ elif [ "$MODE" == "multi" ] ;then
     run_make
     run_multi
 elif [ "$MODE" == "mini" ] ;then 
+    PMDK_DIR=${TEST_DIR}/mini
     run_make
     run_mini
 elif [ "$MODE" == "pmdk" ] ;then 
+    PMDK_DIR=${TEST_DIR}/pmdk_mini
     run_make
     run_pmdk
+elif ["$MODE" == "patch"] ; then
+    create_patch
 else
 	echo "run, build, ast"
 fi
