@@ -1,0 +1,12 @@
+diff --git a/test/pmdk_mini/btree_map.c b/test/pmdk_mini/btree_map.c
+index 070f01c..ba85fd1 100644
+--- a/test/pmdk_mini/btree_map.c
++++ b/test/pmdk_mini/btree_map.c
+@@ -171,6 +171,7 @@ btree_map_insert_node(TOID(struct tree_map_node) node, int p,
+ 		memmove(&D_RW(node)->slots[p + 1], &D_RW(node)->slots[p],
+ 		sizeof(TOID(struct tree_map_node)) * ((BTREE_ORDER - 1 - p)));
+ 	}
++	TX_ADD(node);
+ 	D_RW(node)->slots[p] = left;
+ 	D_RW(node)->slots[p + 1] = right;
+ 	btree_map_insert_item_at(node, p, item);

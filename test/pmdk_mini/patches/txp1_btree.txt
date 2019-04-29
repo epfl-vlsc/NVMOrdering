@@ -1,0 +1,22 @@
+diff --git a/test/pmdk_mini/btree_map.c b/test/pmdk_mini/btree_map.c
+index 070f01c..7796e3f 100644
+--- a/test/pmdk_mini/btree_map.c
++++ b/test/pmdk_mini/btree_map.c
+@@ -291,7 +291,7 @@ btree_map_insert(PMEMobjpool *pop, TOID(struct btree_map) map,
+ 	uint64_t key, PMEMoid value)
+ {
+ 	struct tree_map_node_item item = {key, value};
+-	TX_BEGIN(pop) {
++	//TX_BEGIN(pop) {
+ 		if (btree_map_is_empty(pop, map)) {
+ 			btree_map_insert_empty(map, item);
+ 		} else {
+@@ -304,7 +304,7 @@ btree_map_insert(PMEMobjpool *pop, TOID(struct btree_map) map,
+ 
+ 			btree_map_insert_item(dest, p, item);
+ 		}
+-	} TX_END
++	//} TX_END
+ 
+ 	return 0;
+ }

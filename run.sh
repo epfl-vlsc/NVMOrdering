@@ -1,6 +1,7 @@
 MODE=$1 #run, scan, ast, multi
 TOOL_NAME=$2 #low level(write, read), high level(txm, txp, log)
 TEST_NAME=$3 #any *.cpp file under test directory
+PATCH_NO=$3 #pmdk patch
 
 #initialize info---------------------------------------------
 if [ -z "$TEST_NAME" ] ; then
@@ -74,11 +75,20 @@ run_mini(){
 }
 
 run_pmdk(){
+    if [ "$PATCH_NO" ] ; then
+	    git apply test/pmdk_mini/patch/txp${PATCH_NO}_btree.txt
+    fi
+
     PMDK_DIR=${TEST_DIR}/pmdk_mini
     cd ${BUILD_DIR}
     clang ${SBFLAGS} ${PLUGIN} -c -std=gnu99 -ggdb -Wall -Werror -fPIC \
     -I$PMDK_DIR/include -I$PMDK_DIR $PMDK_DIR/btree_map.c
     cd ${BASE_DIR}
+
+
+    if [ "$PATCH_NO" ] ; then
+	    git apply -R test/pmdk_mini/patch/txp${PATCH_NO}_btree.txt
+    fi
 }
 
 run_scanbuild(){

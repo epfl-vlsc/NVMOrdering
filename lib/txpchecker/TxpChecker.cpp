@@ -29,7 +29,7 @@ void TxpChecker::checkEndFunction(CheckerContext& C) const {
 
   // if pmalloc/pfree/paccess function, do not analyze
   if (isTopFnc) {
-    printStates(State, C);
+    //printStates(State, C);
   }
 }
 

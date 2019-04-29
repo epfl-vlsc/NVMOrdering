@@ -1,0 +1,13 @@
+diff --git a/test/pmdk_mini/btree_map.c b/test/pmdk_mini/btree_map.c
+index 070f01c..26add4a 100644
+--- a/test/pmdk_mini/btree_map.c
++++ b/test/pmdk_mini/btree_map.c
+@@ -231,7 +231,7 @@ btree_map_find_dest_node(TOID(struct btree_map) map,
+ 			D_RW(up)->slots[0] = n;
+ 			D_RW(up)->slots[1] = right;
+ 
+-			TX_ADD_FIELD(map, root);
++			//TX_ADD_FIELD(map, root);
+ 			D_RW(map)->root = up;
+ 			n = up;
+ 		}
