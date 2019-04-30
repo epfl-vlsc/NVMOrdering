@@ -156,6 +156,24 @@ const ValueDecl* getValueDecl(const MemRegion* Region) {
   return nullptr;
 }
 
+const ValueDecl* getValueDecl(const SVal& Loc) {
+  const MemRegion* Region = Loc.getAsRegion();
+  return getValueDecl(Region);
+}
+
+const ValueDecl* getValueDecl(const char* D) {
+  const Decl* BD = (const Decl*)D;
+  return getValueDecl(BD);
+}
+
+const VarDecl* getVarDecl(const MemRegion* ParentRegion) {
+  if (const VarRegion* VarReg = ParentRegion->getAs<VarRegion>()) {
+    const VarDecl* VD = VarReg->getDecl();
+    return VD;
+  }
+  return nullptr;
+}
+
 bool isPtrRegion(const VarRegion* VarReg) {
   if(!VarReg){
     return false;
@@ -169,15 +187,24 @@ const VarDecl* getVDFromVarReg(const VarRegion* VarReg) {
   return VarReg->getDecl();
 }
 
-const NamedDecl* getRHSField(const SVal& Val) {
-  const MemRegion* VMR = Val.getAsRegion();
-  if (const SymbolicRegion* SymReg = VMR->getAs<SymbolicRegion>()) {
+const NamedDecl* getSymLayeredField(const MemRegion* MR) {
+  if (const SymbolicRegion* SymReg = MR->getAs<SymbolicRegion>()) {
     SymbolRef SR = SymReg->getSymbol();
     const MemRegion* FMR = SR->getOriginRegion();
     if (const NamedDecl* ND = getValueDecl(FMR); ND) {
       return ND;
     }
   }
+  return nullptr;
+}
+
+const NamedDecl* getLoggedField(const MemRegion* MR){
+  if (const NamedDecl* ND = getValueDecl(MR); ND) {
+    return ND;
+  } else if(const NamedDecl* ND = getSymLayeredField(MR); ND){
+    return ND;
+  }
+
   return nullptr;
 }
 
@@ -202,24 +229,6 @@ const NamedDecl* getNamedDecl(const MemRegion* Region) {
     return RD;
   }
 
-  return nullptr;
-}
-
-const ValueDecl* getValueDecl(const SVal& Loc) {
-  const MemRegion* Region = Loc.getAsRegion();
-  return getValueDecl(Region);
-}
-
-const ValueDecl* getValueDecl(const char* D) {
-  const Decl* BD = (const Decl*)D;
-  return getValueDecl(BD);
-}
-
-const VarDecl* getVarDecl(const MemRegion* ParentRegion) {
-  if (const VarRegion* VarReg = ParentRegion->getAs<VarRegion>()) {
-    const VarDecl* VD = VarReg->getDecl();
-    return VD;
-  }
   return nullptr;
 }
 
