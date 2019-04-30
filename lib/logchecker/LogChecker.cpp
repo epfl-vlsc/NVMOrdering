@@ -77,6 +77,10 @@ void LogChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   DBG("checkBind")
 
   const MemRegion* Region = Loc.getAsRegion();
+  if(!Region){
+    return;
+  }
+
   if (const NamedDecl* ND = getValueDecl(Region); ND) {
     if (logVars.isUsedVar(ND)) {
       DBG("write " << ND->getNameAsString())

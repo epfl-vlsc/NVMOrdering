@@ -61,7 +61,8 @@ fi
 
 #pmgd--------------------------------------------------------
 
-PMGD_SRCS=(FixedAllocator FixSizeAllocator PropertyList VariableAllocator)
+PMGD_SRCS=(FixedAllocator FixSizeAllocator AvlTree \
+            PropertyList VariableAllocator)
 array_contains PMGD_SRCS ${TEST_NAME}
 res=$?
 if [ "$res" == "1" ] ;then

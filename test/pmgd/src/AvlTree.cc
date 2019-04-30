@@ -39,6 +39,7 @@ using namespace PMGD;
 // The return value of this function gets assigned to
 // the parent of hinge that will call this function
 // Also called rotate_with_right
+namespace PMGD{
 template <typename K, typename V>
 typename AvlTree<K,V>::TreeNode *AvlTree<K,V>::left_rotate(
                                        AvlTree<K,V>::TreeNode *hinge,
@@ -751,16 +752,7 @@ size_t AvlTree<K,V>::treenode_size(TreeNode *node)
 {
     return sizeof(*node);
 }
-
-namespace PMGD {
-    // Specialization for the IndexString case
-    template <>
-    size_t AvlTree<IndexString, List<void *> >::treenode_size(TreeNode *node)
-    {
-        return sizeof(*node) + node->key.get_remainder_size();
-    }
-}
-
+    
 // Explicitly instantiate any types that might be required
 template class AvlTree<int, int>;
 template class AvlTree<long long, List<void *>>;
@@ -768,3 +760,4 @@ template class AvlTree<bool, List<void *>>;
 template class AvlTree<double, List<void *>>;
 template class AvlTree<Time, List<void *>>;
 template class AvlTree<IndexString, List<void *>>;
+}

@@ -147,7 +147,9 @@ const ValueDecl* getValueDecl(const Decl* BD) {
 }
 
 const ValueDecl* getValueDecl(const MemRegion* Region) {
-  if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
+  if (!Region) {
+    return nullptr;
+  } else if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
     const Decl* BD = FieldReg->getDecl();
     const ValueDecl* VD = getValueDecl(BD);
     return VD;
@@ -162,12 +164,17 @@ const ValueDecl* getValueDecl(const SVal& Loc) {
 }
 
 const ValueDecl* getValueDecl(const char* D) {
+  if (!D) {
+    return nullptr;
+  }
   const Decl* BD = (const Decl*)D;
   return getValueDecl(BD);
 }
 
 const VarDecl* getVarDecl(const MemRegion* ParentRegion) {
-  if (const VarRegion* VarReg = ParentRegion->getAs<VarRegion>()) {
+  if (!ParentRegion) {
+    return nullptr;
+  } else if (const VarRegion* VarReg = ParentRegion->getAs<VarRegion>()) {
     const VarDecl* VD = VarReg->getDecl();
     return VD;
   }
@@ -175,7 +182,7 @@ const VarDecl* getVarDecl(const MemRegion* ParentRegion) {
 }
 
 bool isPtrRegion(const VarRegion* VarReg) {
-  if(!VarReg){
+  if (!VarReg) {
     return false;
   }
   QualType QT = VarReg->getValueType();
@@ -198,10 +205,12 @@ const NamedDecl* getSymLayeredField(const MemRegion* MR) {
   return nullptr;
 }
 
-const NamedDecl* getLoggedField(const MemRegion* MR){
-  if (const NamedDecl* ND = getValueDecl(MR); ND) {
+const NamedDecl* getLoggedField(const MemRegion* MR) {
+  if (!MR) {
+    return nullptr;
+  } else if (const NamedDecl* ND = getValueDecl(MR); ND) {
     return ND;
-  } else if(const NamedDecl* ND = getSymLayeredField(MR); ND){
+  } else if (const NamedDecl* ND = getSymLayeredField(MR); ND) {
     return ND;
   }
 
