@@ -80,7 +80,7 @@ struct hashmap_tx {
 /*
  * create_hashmap -- hashmap initializer
  */
-static void
+static void analyze_tx
 create_hashmap(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, uint32_t seed)
 {
 	size_t len = INIT_BUCKETS_NUM;
