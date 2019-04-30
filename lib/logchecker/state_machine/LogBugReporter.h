@@ -9,16 +9,14 @@ const std::string LogError = "NVM Log Error";
 
 class LogBugs {
 public:
-  BugPtr WriteWithoutLogging;
-  BugPtr AlreadyWritten;
-  BugPtr AlreadyLogged;
+  BugPtr DoubleLogBugType;
+  BugPtr NotLogBeforeWriteBugType;
 
 protected:
   LogBugs(const CheckerBase& CB) {
-    WriteWithoutLogging.reset(
-        new BugType(&CB, "Writing without logging", LogError));
-    AlreadyWritten.reset(new BugType(&CB, "Already written", LogError));
-    AlreadyLogged.reset(new BugType(&CB, "Already logged", LogError));
+    DoubleLogBugType.reset(
+        new BugType(&CB, "Already logged", LogError));
+    NotLogBeforeWriteBugType.reset(new BugType(&CB, "Not logged", LogError));
   }
 };
 

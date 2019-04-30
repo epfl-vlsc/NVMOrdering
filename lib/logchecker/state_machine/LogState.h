@@ -23,5 +23,5 @@ public:
 
 } // namespace clang::ento::nvm
 
-REGISTER_MAP_WITH_PROGRAMSTATE(LogMap, const clang::FunctionDecl*,
+REGISTER_MAP_WITH_PROGRAMSTATE(LogMap, const clang::NamedDecl*,
                                clang::ento::nvm::LogState)
