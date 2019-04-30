@@ -6,7 +6,7 @@
 namespace clang::ento::nvm {
 
 class AnnotVar {
-  using ValueSet = std::set<const ValueDecl*>;
+  using ValueSet = std::set<const NamedDecl*>;
   ValueSet valueSet;
   const char* specialAnnot;
 
@@ -14,25 +14,25 @@ public:
   AnnotVar(const char* specialAnnot_) : specialAnnot(specialAnnot_) {}
   virtual ~AnnotVar() {}
 
-  void addBasedOnAnnot(const ValueDecl* VD, const AnnotateAttr* AA) {
+  void addBasedOnAnnot(const NamedDecl* ND, const AnnotateAttr* AA) {
     StringRef annotation = AA->getAnnotation();
     if (annotation.contains(specialAnnot)) {
-      valueSet.insert(VD);
+      valueSet.insert(ND);
     }
   }
 
-  void insertIfKnown(const ValueDecl* VD) {
-    for (const auto* AA : VD->specific_attrs<AnnotateAttr>()) {
+  void insertIfKnown(const NamedDecl* ND) {
+    for (const auto* AA : ND->specific_attrs<AnnotateAttr>()) {
       // add to annotated vars
-      addBasedOnAnnot(VD, AA);
+      addBasedOnAnnot(ND, AA);
     }
   }
 
-  bool inValues(const ValueDecl* VD) const { return valueSet.count(VD); }
+  bool inValues(const NamedDecl* ND) const { return valueSet.count(ND); }
 
   void dump() {
-    for (const ValueDecl* VD : valueSet) {
-      llvm::outs() << VD->getQualifiedNameAsString() << "\n";
+    for (const NamedDecl* ND : valueSet) {
+      llvm::outs() << ND->getQualifiedNameAsString() << "\n";
     }
   }
 };

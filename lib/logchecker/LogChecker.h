@@ -3,6 +3,7 @@
 #include "Common.h"
 #include "DbgState.h"
 #include "parser/LogFncs.h"
+#include "parser/LogVars.h"
 #include "state_machine/LogBugReporter.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.logchecker";
@@ -38,6 +39,7 @@ private:
 
   const LogBugReporter BReporter;
   mutable LogFncs logFncs;
+  mutable LogVars logVars;
 };
 
 } // namespace clang::ento::nvm

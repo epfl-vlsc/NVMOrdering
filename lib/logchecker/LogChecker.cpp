@@ -10,7 +10,9 @@ void LogChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
 }
 
 void LogChecker::checkASTDecl(const FieldDecl* FD, AnalysisManager& Mgr,
-                              BugReporter& BR) const {}
+                              BugReporter& BR) const {
+  logVars.insertIfKnown(FD);
+}
 
 void LogChecker::checkBeginFunction(CheckerContext& C) const {
   DBG("checkBeginFunction")
@@ -36,24 +38,31 @@ void LogChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
 }
 
 void LogChecker::handleLog(const CallEvent& Call, CheckerContext& C) const {
+  DBG("handleLog")
+
+  if (Call.getNumArgs() > 2) {
+    llvm::report_fatal_error("check log function");
+    return;
+  }
+
   SVal Loc = Call.getArgSVal(0);
-  printLoc(Loc, "log:");
+  if (const NamedDecl* ND = getValueDecl(Loc); ND) {
+    if (logVars.isUsedVar(ND)) {
+      DBG("log " << ND->getNameAsString())
+      printND(ND, "log");
+    }
+  }
 }
 
 void LogChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
   DBG("checkBind")
-  // printStmt(S, C, "binds1", true);
-  // printStmt(S, C, "binds2", false);
-  printLoc(Loc, "bindl");
 
   if (const NamedDecl* ND = getValueDecl(Loc); ND) {
-    /*
     if (logVars.isUsedVar(ND)) {
       DBG("write " << ND->getNameAsString())
       printND(ND, "bind");
     }
-    */
   }
 }
 
