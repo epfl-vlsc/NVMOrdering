@@ -118,14 +118,15 @@ run_run(){
 }
 
 run_scan(){
-    clang ${SBFLAGS} ${PLUGIN} ${CFLAGS} ${INCLUDES} ${TEST_FILE}
-    cd ${BENCH_DIR}
+    add_patch
 
     #todo -analyzer-opt-analyze-headers
-    cd ${BUILD_DIR}
+    cd ${BENCH_DIR}
     scan-build ${SBFLAGS} ${DISPLUGIN} ${PLUGIN} \
-        clang++ -fsyntax-only ${TEST_FILE}
+        clang++ -fsyntax-only ${CFLAGS} ${INCLUDES} ${TEST_FILE}
     cd ${BASE_DIR}
+
+    rem_patch
 }
 #functions---------------------------------------------------
 
