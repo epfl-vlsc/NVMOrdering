@@ -76,7 +76,7 @@ fi
 
 #pmgd--------------------------------------------------------
 
-PATCH_DIR="${BENCH_DIR}/patch"
+PATCH_DIR="${TEST_DIR}/patch"
 PATCH_FILE="${PATCH_DIR}/${TOOL_NAME}_${PATCH_NO}_${TEST_NAME}.txt"
 #initialize info---------------------------------------------
 
@@ -84,7 +84,7 @@ PATCH_FILE="${PATCH_DIR}/${TOOL_NAME}_${PATCH_NO}_${TEST_NAME}.txt"
 
 create_patch(){
     git diff > ${PATCH_FILE}
-    git --reset hard
+    git reset --hard
 }
 
 add_patch(){
