@@ -5,6 +5,7 @@
 #include "parser/LogFncs.h"
 #include "parser/LogVars.h"
 #include "state_machine/LogBugReporter.h"
+#include "state_machine/StateInfo.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.logchecker";
 

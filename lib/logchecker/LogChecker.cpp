@@ -50,6 +50,8 @@ void LogChecker::handleLog(const CallEvent& Call, CheckerContext& C) const {
     if (logVars.isUsedVar(ND)) {
       DBG("log " << ND->getNameAsString())
       printND(ND, "log");
+      ProgramStateRef State = C.getState();
+      auto SI = StateInfo(C, State, BReporter, &Loc, nullptr, ND);
     }
   }
 }
@@ -62,6 +64,8 @@ void LogChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
     if (logVars.isUsedVar(ND)) {
       DBG("write " << ND->getNameAsString())
       printND(ND, "bind");
+      ProgramStateRef State = C.getState();
+      auto SI = StateInfo(C, State, BReporter, &Loc, S, ND);
     }
   }
 }
