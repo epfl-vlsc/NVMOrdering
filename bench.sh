@@ -76,7 +76,7 @@ fi
 
 #pmgd--------------------------------------------------------
 
-PATCH_DIR="${BENCH_DIR}/patches"
+PATCH_DIR="${BENCH_DIR}/patch"
 PATCH_FILE="${PATCH_DIR}/${TOOL_NAME}_${PATCH_NO}_${TEST_NAME}.txt"
 #initialize info---------------------------------------------
 
