@@ -25,3 +25,5 @@ public:
 
 REGISTER_MAP_WITH_PROGRAMSTATE(LogMap, const clang::NamedDecl*,
                                clang::ento::nvm::LogState)
+REGISTER_MAP_WITH_PROGRAMSTATE(VarMap, const clang::NamedDecl*,
+                               const clang::NamedDecl*)

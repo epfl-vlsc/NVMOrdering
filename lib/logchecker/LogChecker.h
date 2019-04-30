@@ -2,10 +2,8 @@
 #pragma once
 #include "Common.h"
 #include "DbgState.h"
-#include "parser/LogFncs.h"
-#include "parser/LogVars.h"
-#include "state_machine/LogBugReporter.h"
-#include "state_machine/StateInfo.h"
+#include "parser/Parser.h"
+#include "state_machine/Transitions.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.logchecker";
 
@@ -33,7 +31,6 @@ public:
   void checkBranchCondition(const Stmt* S, CheckerContext& C) const;
 
 private:
-
   void handleLog(const CallEvent& Call, CheckerContext& C) const;
 
   void handleEnd(CheckerContext& C) const;

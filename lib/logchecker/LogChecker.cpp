@@ -52,6 +52,7 @@ void LogChecker::handleLog(const CallEvent& Call, CheckerContext& C) const {
       printND(ND, "log");
       ProgramStateRef State = C.getState();
       auto SI = StateInfo(C, State, BReporter, &Loc, nullptr, ND);
+      LogSpace::logData(SI);
     }
   }
 }
@@ -60,12 +61,21 @@ void LogChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
   DBG("checkBind")
 
-  if (const NamedDecl* ND = getValueDecl(Loc); ND) {
+  const MemRegion* Region = Loc.getAsRegion();
+  if (const NamedDecl* ND = getValueDecl(Region); ND) {
     if (logVars.isUsedVar(ND)) {
       DBG("write " << ND->getNameAsString())
-      printND(ND, "bind");
       ProgramStateRef State = C.getState();
       auto SI = StateInfo(C, State, BReporter, &Loc, S, ND);
+      LogSpace::writeData(SI);
+    }
+  } else if (const VarRegion* VarReg = Region->getAs<VarRegion>();
+             isPtrRegion(VarReg)) {
+    const NamedDecl* Alias = getVDFromVarReg(VarReg);
+    if (const NamedDecl* Target = getRHSField(Val); Alias && Target) {
+      if (logVars.isUsedVar(Target)) {
+        VarSpace::writeTarget(C, Alias, Target);
+      }
     }
   }
 }

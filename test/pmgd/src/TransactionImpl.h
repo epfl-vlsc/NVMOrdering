@@ -233,7 +233,7 @@ namespace PMGD {
 
             // log data; base to base+end
             template <typename T>
-            void logger log_range(void *base, T *end)
+            void log_range(void *base, T *end)
                 { log(base, (char *)(end + 1) - (char *)base); }
 
             // log old_val and write new_val

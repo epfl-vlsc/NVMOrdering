@@ -156,6 +156,31 @@ const ValueDecl* getValueDecl(const MemRegion* Region) {
   return nullptr;
 }
 
+bool isPtrRegion(const VarRegion* VarReg) {
+  if(!VarReg){
+    return false;
+  }
+  QualType QT = VarReg->getValueType();
+  const Type* T = QT.getTypePtr();
+  return T->isPointerType();
+}
+
+const VarDecl* getVDFromVarReg(const VarRegion* VarReg) {
+  return VarReg->getDecl();
+}
+
+const NamedDecl* getRHSField(const SVal& Val) {
+  const MemRegion* VMR = Val.getAsRegion();
+  if (const SymbolicRegion* SymReg = VMR->getAs<SymbolicRegion>()) {
+    SymbolRef SR = SymReg->getSymbol();
+    const MemRegion* FMR = SR->getOriginRegion();
+    if (const NamedDecl* ND = getValueDecl(FMR); ND) {
+      return ND;
+    }
+  }
+  return nullptr;
+}
+
 const RecordDecl* getRecordDecl(QualType& QT) {
   const Type* type = QT.getTypePtr();
   if (const RecordDecl* RD =
