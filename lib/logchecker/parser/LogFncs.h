@@ -5,20 +5,32 @@
 namespace clang::ento::nvm {
 
 class LogFncs {
-  static constexpr const char* LOG = "LogCode";
+  static constexpr const char* ANALYZE = "LogCode";
+  static constexpr const char* LOGFNC = "LogFnc";
 
+  AnnotFunction analysisFnc;
   AnnotFunction logFnc;
 
 public:
-  LogFncs() : logFnc(LOG) {}
+  LogFncs() : analysisFnc(ANALYZE), logFnc(LOGFNC) {}
+
+  bool isAnalysisFunction(const FunctionDecl* FD) const {
+    return analysisFnc.inFunctions(FD);
+  }
 
   bool isLogFunction(const FunctionDecl* FD) const {
     return logFnc.inFunctions(FD);
   }
 
-  void insertIfKnown(const FunctionDecl* FD) { logFnc.insertIfKnown(FD); }
+  void insertIfKnown(const FunctionDecl* FD) {
+    analysisFnc.insertIfKnown(FD);
+    logFnc.insertIfKnown(FD);
+  }
 
-  void dump() { logFnc.dump(); }
+  void dump() {
+    analysisFnc.dump();
+    logFnc.dump();
+  }
 };
 
 } // namespace clang::ento::nvm

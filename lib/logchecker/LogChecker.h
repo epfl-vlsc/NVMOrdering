@@ -1,6 +1,7 @@
 // transaction pmdk checker
 #pragma once
 #include "Common.h"
+#include "DbgState.h"
 #include "parser/LogFncs.h"
 #include "state_machine/LogBugReporter.h"
 
@@ -32,6 +33,8 @@ public:
 private:
 
   void handleLog(const CallEvent& Call, CheckerContext& C) const;
+
+  void handleEnd(CheckerContext& C) const;
 
   const LogBugReporter BReporter;
   mutable LogFncs logFncs;

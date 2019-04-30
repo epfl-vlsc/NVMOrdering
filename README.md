@@ -46,13 +46,15 @@ nvml commit: 54871035ad2a8a59f26dd00f02287aecf19d5b01
 pmfs commit: 94323d525a10980fc6b9371234c26195acf0fc9f
 
 # assumptions
-* use types of variables to recognize pm
+* txp
+    * use types of variables to recognize pm
 
-# todo
+# txp
 * pmdk
     * handle loops
     * handle obj->field->field access
-
+* log
+    * handle obj
 
 Tests:
 write
