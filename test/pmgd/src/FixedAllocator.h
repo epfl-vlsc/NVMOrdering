@@ -60,7 +60,7 @@ namespace PMGD {
         */
         struct RegionHeader {
             // Keep following fields together for easy logging
-            uint64_t *tail_ptr;
+            persist uint64_t *tail_ptr;
             persist uint64_t *free_ptr;              ///< Beginning of free list
             int64_t num_allocated;
             uint64_t max_addr;               ///< tail_ptr < max_addr (always)

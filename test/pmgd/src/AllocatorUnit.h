@@ -306,13 +306,13 @@ namespace PMGD {
         class FixSizeAllocator
         {
             struct FixedChunk {
-                FixedChunk *next_chunk;  // Pointer to next chunk of same size slots
+                persist FixedChunk *next_chunk;  // Pointer to next chunk of same size slots
                 // Allocator id to find which free list a free request goes to.
                 uint32_t my_id;
-                uint32_t free_spots;     // Total free spots in the chunk
+                persist uint32_t free_spots;     // Total free spots in the chunk
                 // Avoid bitmap search when possible.
                 uint32_t next_index;     // Next free index within bitmask
-                uint32_t occupants[];    // Bitmask to indicate filled spots
+                persist uint32_t occupants[];    // Bitmask to indicate filled spots
                 // No need to store the size of chunk or object size
                 // since the access allocator structure takes care of accessing
                 // the correct sized entities.
