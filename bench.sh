@@ -138,7 +138,7 @@ elif [ "$MODE" == "scan" ] ;then
 elif [ "$MODE" == "build" ] ;then
     ./run.sh build
 elif [ "$MODE" == "patch" ] ;then
-    ./run.sh build
+    create_patch
 else
 	echo "run, scan, build, patch"
 fi
