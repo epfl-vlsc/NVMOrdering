@@ -18,8 +18,9 @@ BUILD_DIR="${BASE_DIR}/build"
 PLUGIN_DIR="${BUILD_DIR}/lib"
 TEST_DIR="${BASE_DIR}/test"
 
+# -Xclang -analyzer-display-progress"
 if [ "$MODE" == "run" ] ;then
-    SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2 -Xclang -analyzer-display-progress"
+    SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2"
     PLUGIN="-fplugin=${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
 -Xclang -analyze -Xclang -analyzer-checker=nvm.${TOOL_NAME}checker"
 elif [ "$MODE" == "scan" ] ;then
@@ -45,7 +46,6 @@ array_contains () {
 
 #nvml--------------------------------------------------------
 
-
 NVML_SRCS=(btree_map ctree_map rbtree_map hashmap_tx)
 array_contains NVML_SRCS ${TEST_NAME}
 res=$?
@@ -59,18 +59,22 @@ fi
 
 #nvml--------------------------------------------------------
 
-#atlas-------------------------------------------------------
+#pmgd--------------------------------------------------------
 
-#atlas-------------------------------------------------------
+PMGD_SRCS=(FixedAllocator FixSizeAllocator PropertyList VariableAllocator)
+array_contains PMGD_SRCS ${TEST_NAME}
+res=$?
+if [ "$res" == "1" ] ;then
+    CC="clang++"
+    CFLAGS="--std=c++11  -O3 -fomit-frame-pointer -funit-at-a-time -fno-strict-aliasing \
+-fno-threadsafe-statics -fnon-call-exceptions -fPIC -Wall -Wno-parentheses -Wno-conversion \
+-Wno-sign-compare -DPM -DPMFLUSH=clflushopt -MP -MMD"
+    BENCH_DIR="${TEST_DIR}/pmgd"
+    TEST_FILE=${BENCH_DIR}/src/${TEST_NAME}.cc
+    INCLUDES="-I${BENCH_DIR}/include -I${BENCH_DIR}/.."
+fi
 
-#kvecho------------------------------------------------------
-
-#kvecho------------------------------------------------------
-
-#mnemosyne---------------------------------------------------
-
-#mnemosyne---------------------------------------------------
-
+#pmgd--------------------------------------------------------
 
 PATCH_DIR="${BENCH_DIR}/patches"
 PATCH_FILE="${PATCH_DIR}/${TOOL_NAME}_${PATCH_NO}_${TEST_NAME}.txt"
@@ -105,7 +109,7 @@ run_run(){
     add_patch
 
     cd ${BENCH_DIR}
-    echo "clang ${SBFLAGS} ${PLUGIN} ${CFLAGS} ${INCLUDES} ${TEST_FILE}"
+    #echo "clang ${SBFLAGS} ${PLUGIN} ${CFLAGS} ${INCLUDES} ${TEST_FILE}"
     clang ${SBFLAGS} ${PLUGIN} ${CFLAGS} ${INCLUDES} ${TEST_FILE}
     cd ${BASE_DIR}
 

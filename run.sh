@@ -23,7 +23,7 @@ TEST_FILE=${SINGLE_FILE_REPO}/$TEST_NAME.cpp
 
 PATCH_DIR=${TEST_DIR}
 
-if [ "$MODE" == "run" ] || [ "$MODE" == "mini" ] ] ;then
+if [ "$MODE" == "run" ] || [ "$MODE" == "mini" ] ;then
     SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2 -Xclang -analyzer-display-progress"
     PLUGIN="-fplugin=${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
     -Xclang -analyze -Xclang -analyzer-checker=nvm.${TOOL_NAME}checker"
