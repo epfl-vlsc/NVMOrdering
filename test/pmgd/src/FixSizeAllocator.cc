@@ -80,7 +80,7 @@ AllocatorUnit::FixSizeAllocator::FixedChunk::FixedChunk(unsigned alloc_id,
     occupants[main_idx] |= mask;
 }
 
-void *AllocatorUnit::FixSizeAllocator::FixedChunk::alloc(unsigned obj_size,
+void analyze_logging *AllocatorUnit::FixSizeAllocator::FixedChunk::alloc(unsigned obj_size,
                                                         unsigned bitmap_ints)
 {
     // Next index may point to a free spot in a chunk where there
@@ -227,7 +227,7 @@ void *AllocatorUnit::FixSizeAllocator::alloc()
     return addr;
 }
 
-void AllocatorUnit::FixSizeAllocator::FixedChunk::free(void *addr, unsigned obj_size, unsigned bitmap_ints)
+void analyze_logging AllocatorUnit::FixSizeAllocator::FixedChunk::free(void *addr, unsigned obj_size, unsigned bitmap_ints)
 {
     uint64_t chunk_base = reinterpret_cast<uint64_t>(addr) & PAGE_MASK;
     uint64_t alloc_base = chunk_base + ALLOC_OFFSET(bitmap_ints, obj_size);
@@ -254,7 +254,7 @@ void AllocatorUnit::FixSizeAllocator::FixedChunk::free(void *addr, unsigned obj_
     ++free_spots;
 }
 
-void AllocatorUnit::FixSizeAllocator::free(void *addr)
+void analyze_logging AllocatorUnit::FixSizeAllocator::free(void *addr)
 {
     uint64_t chunk_base = reinterpret_cast<uint64_t>(addr) & PAGE_MASK;
     FixedChunk *dst_chunk = reinterpret_cast<FixedChunk *>(chunk_base);

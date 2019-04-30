@@ -496,7 +496,7 @@ unsigned PropertyList::get_space(const Property &p)
 // Store the property in the space referred to by _pos.
 // The caller should have found suitable space.
 // The asserts verify that this was done correctly.
-void PropertyList::PropertySpace::set_property(StringID id, const Property &p,
+void analyze_logging PropertyList::PropertySpace::set_property(StringID id, const Property &p,
                                                TransactionImpl *tx,
                                                Allocator &allocator)
 {
@@ -582,7 +582,7 @@ bool PropertyRef::skip_to_next()
 // Store a link to the next chunk in the space referred to.
 // If there is more space than required,
 // put the excess prior to the link, marked as unused.
-void PropertyRef::set_link(PropertyList *p_chunk, TransactionImpl *tx)
+void analyze_logging PropertyRef::set_link(PropertyList *p_chunk, TransactionImpl *tx)
 {
     unsigned remaining_size = chunk_size() - _offset;
     unsigned req = sizeof p_chunk + 1;

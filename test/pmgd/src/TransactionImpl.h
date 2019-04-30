@@ -42,6 +42,8 @@
 #include "RangeSet.h"
 #include "lock.h"
 
+#include "annot.h"
+
 namespace PMGD {
     class GraphImpl;
 
@@ -227,11 +229,11 @@ namespace PMGD {
               { return _iter_callbacks; }
 
             // log data; user performs the writes
-            void log(void *ptr, size_t len);
+            void logger log(void *ptr, size_t len);
 
             // log data; base to base+end
             template <typename T>
-            void log_range(void *base, T *end)
+            void logger log_range(void *base, T *end)
                 { log(base, (char *)(end + 1) - (char *)base); }
 
             // log old_val and write new_val

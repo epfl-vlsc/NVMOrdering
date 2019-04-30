@@ -35,6 +35,8 @@
 #include "stringid.h"
 #include "property.h"
 
+#include "annot.h"
+
 #ifdef _MSC_VER
 // Disable the multiple copy constructor warning.
 #pragma warning(disable : 4521)

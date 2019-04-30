@@ -39,6 +39,8 @@
 #include "compiler.h"
 #include "GraphConfig.h"
 
+#include "annot.h"
+
 namespace PMGD {
     class Allocator;
 

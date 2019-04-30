@@ -71,7 +71,7 @@ void AllocatorUnit::VariableAllocator::FreeFormChunk::find_max_cont_space()
     }
 }
 
-void *AllocatorUnit::VariableAllocator::FreeFormChunk::alloc(size_t sz)
+void analyze_logging *AllocatorUnit::VariableAllocator::FreeFormChunk::alloc(size_t sz)
 {
     if (sz > max_cont_space)
         return NULL;
@@ -301,7 +301,7 @@ void *AllocatorUnit::VariableAllocator::alloc(size_t sz)
     return addr;
 }
 
-void AllocatorUnit::VariableAllocator::FreeFormChunk::free(void *addr, size_t sz)
+void analyze_logging AllocatorUnit::VariableAllocator::FreeFormChunk::free(void *addr, size_t sz)
 {
     TransactionImpl *tx = TransactionImpl::get_tx();
 
@@ -341,7 +341,7 @@ void AllocatorUnit::VariableAllocator::FreeFormChunk::free(void *addr, size_t sz
     free_space += sz;
 }
 
-void AllocatorUnit::VariableAllocator::free(void *addr, size_t sz)
+void analyze_logging AllocatorUnit::VariableAllocator::free(void *addr, size_t sz)
 {
     static const uint64_t PAGE_MASK = ~(CHUNK_SIZE - 1);
     uint64_t chunk_base = reinterpret_cast<uint64_t>(addr) & PAGE_MASK;

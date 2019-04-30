@@ -81,7 +81,7 @@ FixedAllocator::FixedAllocator(uint64_t pool_addr,
                      params)
 { }
 
-void *FixedAllocator::alloc()
+void analyze_logging *FixedAllocator::alloc()
 {
     TransactionImpl *tx = TransactionImpl::get_tx();
 
@@ -160,7 +160,7 @@ void FixedAllocator::free(void *p)
     AllocatorCallback::delayed_free(tx, this, p);
 }
 
-void FixedAllocator::clean_free_list
+void analyze_logging FixedAllocator::clean_free_list
     (TransactionImpl *tx, const std::list<void *> &list)
 {
     tx->log_range(&_pm->free_ptr, &_pm->num_allocated);
@@ -178,7 +178,7 @@ void FixedAllocator::clean_free_list
 }
 
 // This should only be called at commit time by Allocator::clean_free_list()
-void FixedAllocator::free(void *p, unsigned num)
+void analyze_logging FixedAllocator::free(void *p, unsigned num)
 {
     // Check to make sure given address was allocated from this allocator.
     assert(p >= (void *)((uint64_t)_pool_addr + _alloc_offset));
