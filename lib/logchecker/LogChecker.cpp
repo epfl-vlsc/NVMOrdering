@@ -57,6 +57,19 @@ void LogChecker::handleLog(const CallEvent& Call, CheckerContext& C) const {
   } 
 }
 
+bool LogChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
+  // skip evaluation of all log functions
+  const FunctionDecl* FD = C.getCalleeDecl(CE);
+  if (!FD) {
+    return false;
+  }
+
+  if (logFncs.isLogFunction(FD)) {
+    return true;
+  }
+
+  return false;
+}
 
 
 void LogChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,

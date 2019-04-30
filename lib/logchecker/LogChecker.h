@@ -12,7 +12,7 @@ namespace clang::ento::nvm {
 class LogChecker
     : public Checker<check::ASTDecl<FunctionDecl>, check::ASTDecl<FieldDecl>,
                      check::Bind, check::PostCall, check::BeginFunction,
-                     check::BranchCondition> {
+                     check::BranchCondition, eval::Call> {
 public:
   LogChecker() : BReporter(*this) {}
 
@@ -29,6 +29,8 @@ public:
   void checkBeginFunction(CheckerContext& Ctx) const;
 
   void checkBranchCondition(const Stmt* S, CheckerContext& C) const;
+
+  bool evalCall(const CallExpr* CE, CheckerContext& C) const;
 
 private:
   void handleLog(const CallEvent& Call, CheckerContext& C) const;
