@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "Allocator.h"
+#include "annot.h"
 
 // AVL Trees are very good for search which will hopefully be the
 // primary function when used for indexing. The balancing condition
@@ -47,14 +48,14 @@ namespace PMGD {
     protected:
         struct TreeNode {
             // Weird ordering to avoid compiler rounding and easier logging
-            TreeNode *left;
-            TreeNode *right;
-            int height;
+            persist TreeNode *left;
+            persist TreeNode *right;
+            persist int height;
             K key;
             V value;
         };
 
-        TreeNode *_tree;
+        persist TreeNode *_tree;
 
     private:
         // Structure for maintaining information when identifying
