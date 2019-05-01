@@ -1,126 +1,100 @@
 #pragma once
 #include "Common.h"
-#include "identify/OrderFncs.h"
-#include "identify/OrderVars.h"
-#include "state_machine/AnnotInfo.h"
+#include "MainFncs.h"
+#include "MainVars.h"
+#include "PairInfo.h"
 #include "walkers/OrderWalker.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang::ento::nvm {
 
-using OrderVarsBI = OrderVars<BaseInfo>;
+class MainWalker : public RecursiveASTVisitor<MainWalker> {
+  using PairStrInfo = std::pair<std::string, std::string>;
+  using PSIList = std::vector<PairStrInfo>;
+  using StrToND = std::map<std::string, const NamedDecl*>;
 
-class WriteWalker
-    : public TUDWalker<WriteWalker, BaseInfo, OrderVarsBI, OrderFncs> {
+  static constexpr const char* PAIR = "pair";
+  static constexpr const char* KEY_SEP = "-";
 
-  void addCheck(const ValueDecl* dataVD) {
-    orderVars.addUsedVar(dataVD, new CheckInfo(dataVD));
-  }
-  BaseInfo* addClMaskToValidInfo(const ValueDecl* dataVD,
-                                 const ValueDecl* checkVD,
-                                 const AnnotateAttr* dataAA,
-                                 const AnnotVarInfo* dataAVI) {
-    BaseInfo* BI = nullptr;
-    StringRef maskName = dataAVI->getMask();
-    if (dataAVI->getClType() == AnnotVarInfo::Dcl) {
-      BI = new DclMaskToValidInfo(dataVD, checkVD, dataAA, maskName);
-    } else if (dataAVI->getClType() == AnnotVarInfo::Scl) {
-      BI = new SclMaskToValidInfo(dataVD, checkVD, dataAA, maskName);
-    } else {
-      llvm::report_fatal_error("mask to valid info error");
-    }
+  MainVars& mainVars;
+  MainFncs& mainFncs;
 
-    orderVars.addUsedVar(dataVD, BI);
-    if (dataAA) {
-      orderVars.addUsedVar(dataAA, BI);
-    }
-    return BI;
-  }
+  PSIList psiList;
+  StrToND strToND;
 
-  BaseInfo* addClInfo(const ValueDecl* dataVD, const ValueDecl* checkVD,
-                      const AnnotVarInfo* dataAVI) {
-    BaseInfo* BI = nullptr;
-    if (dataAVI->getClType() == AnnotVarInfo::Dcl) {
-      BI = new DclInfo(dataVD, checkVD);
-    } else if (dataAVI->getClType() == AnnotVarInfo::Scl) {
-      BI = new SclInfo(dataVD, checkVD);
-    } else {
-      llvm::report_fatal_error("mask to valid info error");
-    }
+  void addAnnotated(const NamedDecl* ND) {
+    std::string data = ND->getQualifiedNameAsString();
+    strToND[data] = ND;
 
-    orderVars.addUsedVar(dataVD, BI);
-    return BI;
-  }
+    for (const auto* Ann : ND->specific_attrs<AnnotateAttr>()) {
+      StringRef annotation = Ann->getAnnotation();
+      if (annotation.contains(PAIR)) {
+        auto [pairStrRef, checkNameRef] = annotation.split(KEY_SEP);
+        if (checkNameRef.empty()) {
+          llvm::report_fatal_error("check cannot be empty");
+        }
 
-  BaseInfo* addClDataToMaskInfo(const ValueDecl* dataVD,
-                                const ValueDecl* checkVD,
-                                const AnnotVarInfo* dataAVI,
-                                const StringRef& maskName) {
-    BaseInfo* BI = nullptr;
-    if (dataAVI->getClType() == AnnotVarInfo::Dcl) {
-      BI = new DclDataToMaskInfo(dataVD, checkVD, maskName);
-    } else if (dataAVI->getClType() == AnnotVarInfo::Scl) {
-      BI = new SclDataToMaskInfo(dataVD, checkVD, maskName);
-    } else {
-      llvm::report_fatal_error("mask to valid info error");
-    }
-
-    orderVars.addUsedVar(dataVD, BI);
-    return BI;
-  }
-
-  void addPair(const ValueDecl* dataVD, const AnnotateAttr* dataAA,
-               const AnnotVarInfo* dataAVI) {
-    auto checkName = dataAVI->getCheckName();
-    const ValueDecl* checkVD = getCheckVD(checkName);
-    AnnotVarInfo* checkAVI = getAVI(checkVD);
-    BaseInfo* BI = nullptr;
-
-    if (!dataAVI) {
-      llvm::report_fatal_error("data must be tracked for AVI");
-    }
-
-    if (dataAVI->isMask()) {
-      // if data is masked
-      if (dataVD == checkVD) {
-        // pure masked
-        BI = addClMaskToValidInfo(dataVD, nullptr, nullptr, dataAVI);
-      } else {
-        // masked with validator
-        BI = addClMaskToValidInfo(dataVD, checkVD, dataAA, dataAVI);
-      }
-    } else {
-      // data is not masked
-      if (checkAVI && checkAVI->isMask()) {
-        StringRef maskName = checkAVI->getMask();
-        // check uses mask
-        BI = addClDataToMaskInfo(dataVD, checkVD, dataAVI, maskName);
-      } else {
-        // check is not masked
-        BI = addClInfo(dataVD, checkVD, dataAVI);
+        std::string check = checkNameRef.str();
+        auto pairStrInfo = std::pair(data, check);
+        psiList.push_back(pairStrInfo);
       }
     }
-
-    // also subscribe valids
-    if (checkVD && BI) {
-      orderVars.addUsedVar(checkVD, BI);
-    }
   }
 
-  void addAnnotation(const ValueDecl* dataVD, const AnnotateAttr* dataAA,
-                     const AnnotVarInfo* AVI) {
+  const NamedDecl* getNDFromStr(const std::string& str) {
+    // ensures valid ND
+    if (!strToND.count(str)) {
+      llvm::errs() << str << "\n";
+      llvm::report_fatal_error("not tracked correctly");
+    }
 
-    if (AVI->getClType() == AnnotVarInfo::Check) {
-      addCheck(dataVD);
-    } else {
-      addPair(dataVD, dataAA, AVI);
+    const NamedDecl* ND = strToND[str];
+
+    if (!ND) {
+      llvm::report_fatal_error("ND not found");
+    }
+
+    return ND;
+  }
+
+  void fillMainVars() {
+    for (auto& [data, check] : psiList) {
+      const NamedDecl* dataND = getNDFromStr(data);
+      const NamedDecl* checkND = getNDFromStr(check);
+
+      //todo fix leak later
+      PairInfo* pi = new PairInfo(dataND, checkND);
+      mainVars.addUsedVar(dataND, pi);
+      mainVars.addUsedVar(checkND, pi);
     }
   }
 
 public:
-  WriteWalker(OrderVarsBI& orderVars_, OrderFncs& orderFncs_,
-              const ASTContext& ASTC_)
-      : TUDWalker(orderVars_, orderFncs_, ASTC_) {}
+  MainWalker(MainVars& mainVars_, MainFncs& mainFncs_)
+      : mainVars(mainVars_), mainFncs(mainFncs_) {}
+
+  bool VisitFunctionDecl(const FunctionDecl* FD) {
+    mainFncs.insertIfKnown(FD);
+
+    // continue traversal
+    return true;
+  }
+
+  bool VisitFieldDecl(const FieldDecl* FD) {
+    addAnnotated(FD);
+
+    // continue traversal
+    return true;
+  }
+
+  bool VisitRecordDecl(const RecordDecl* RD) {
+    addAnnotated(RD);
+
+    // continue traversal
+    return true;
+  }
+
+  void finalize() { fillMainVars(); }
 };
 
 } // namespace clang::ento::nvm

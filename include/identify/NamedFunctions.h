@@ -58,7 +58,7 @@ public:
 class FlushFenceFunction : public NamedFunction {
 public:
   bool checkName(const IdentifierInfo* II) const {
-    return II && II->isStr("kp_flush_range");
+    return II && II->isStr("flush_range");
   }
 };
 

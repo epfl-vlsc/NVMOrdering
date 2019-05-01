@@ -1,3 +1,2 @@
 #pragma once
-#include "MainFncs.h"
-#include "MainVars.h"
+#include "MainWalkers.h"

@@ -7,17 +7,16 @@ namespace clang::ento::nvm {
 
 void MainChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
                                 AnalysisManager& Mgr, BugReporter& BR) const {
-  /*
+  
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
   // fill data structures
-  const ASTContext& ASTC = Mgr.getASTContext();
-  WriteWalker tudWalker(orderVars, orderFncs, ASTC);
-  tudWalker.TraverseDecl(TUD);
-  tudWalker.createUsedVars();
+  
+  MainWalker mainWalker(mainVars, mainFncs);
+  mainWalker.TraverseDecl(TUD);
+  mainWalker.finalize();
 
-  orderVars.dump();
-  orderFncs.dump();
-  */
+  mainVars.dump();
+  mainFncs.dump();
 }
 
 void MainChecker::checkBeginFunction(CheckerContext& C) const {
@@ -81,6 +80,9 @@ void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
 void MainChecker::checkPreCall(const CallEvent& Call,
                                 CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(Call);
+
+  printND(FD, "func");
+  
   if (mainFncs.isFlushFenceFunction(FD)) {
     handleFenceFlush(Call, C);
   } 
