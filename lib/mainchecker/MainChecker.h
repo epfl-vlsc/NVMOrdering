@@ -2,8 +2,7 @@
 #include "Common.h"
 #include "DbgState.h"
 #include "parser/Parser.h"
-#include "state_machine/MainBugReporter.h"
-#include "state_machine/WriteState.h"
+#include "state_machine/StateMachine.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.mainchecker";
 
@@ -37,6 +36,9 @@ private:
                           bool stateChanged) const;
 
   void handleFenceFlush(const CallEvent& Call, CheckerContext& C) const;
+
+  void handleWrite(const NamedDecl* ND, const SVal& Loc, const Stmt* S,
+                   CheckerContext& C) const;
 
   void handleEnd(CheckerContext& C) const;
 

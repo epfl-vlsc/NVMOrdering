@@ -107,6 +107,15 @@ const FunctionDecl* getTopFunction(CheckerContext& C) {
   }
 }
 
+const NamedDecl* getRDFromFD(const NamedDecl* ND) {
+  if (const FieldDecl* FD = dyn_cast<FieldDecl>(ND)) {
+    const RecordDecl* RD = FD->getParent();
+    return RD;
+  }
+
+  return nullptr;
+}
+
 const FunctionDecl* getFuncDecl(const Decl* BD) {
   if (const FunctionDecl* D = dyn_cast_or_null<FunctionDecl>(BD)) {
     return D;
@@ -155,6 +164,35 @@ const ValueDecl* getValueDecl(const MemRegion* Region) {
     return VD;
   }
 
+  return nullptr;
+}
+
+const NamedDecl* getValueDeclFromRecord(const MemRegion* Region) {
+  if (!Region) {
+    return nullptr;
+  } else if (const SymbolicRegion* ObjReg = Region->getAs<SymbolicRegion>()) {
+    SymbolRef SR = ObjReg->getSymbol();
+    QualType QT = SR->getType();
+    const Type* T = QT.getTypePtr();
+    if (T->isPointerType()) {
+      QualType RQT = T->getPointeeType();
+      const Type* RT = RQT.getTypePtr();
+      if (const RecordType* CRT = RT->getAs<RecordType>()) {
+        const RecordDecl* RD = CRT->getDecl();
+        return RD;
+      }
+    }
+  }
+
+  return nullptr;
+}
+
+const NamedDecl* getFlushND(const MemRegion* Region) {
+  if (const NamedDecl* ND = getValueDecl(Region); ND) {
+    return ND;
+  } else if (const NamedDecl* ND = getValueDeclFromRecord(Region); ND) {
+    return ND;
+  }
   return nullptr;
 }
 

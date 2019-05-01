@@ -20,9 +20,13 @@ public:
                  << check->getNameAsString() << ">\n";
   }
 
-  bool isData(const NamedDecl* ND) { return data == ND; }
+  bool isData(const NamedDecl* ND) const { return data == ND; }
 
-  bool isCheck(const NamedDecl* ND) { return check == ND; }
+  bool isCheck(const NamedDecl* ND) const { return check == ND; }
+
+  const NamedDecl* getDataND() const { return data; }
+
+  const NamedDecl* getCheckND() const { return check; }
 };
 
 } // namespace clang::ento::nvm

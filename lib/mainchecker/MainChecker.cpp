@@ -6,11 +6,11 @@
 namespace clang::ento::nvm {
 
 void MainChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
-                                AnalysisManager& Mgr, BugReporter& BR) const {
-  
+                               AnalysisManager& Mgr, BugReporter& BR) const {
+
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
   // fill data structures
-  
+
   MainWalker mainWalker(mainVars, mainFncs);
   mainWalker.TraverseDecl(TUD);
   mainWalker.finalize();
@@ -54,38 +54,52 @@ void MainChecker::checkEndFunction(CheckerContext& C) const {
 }
 
 void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
-                             CheckerContext& C) const {
+                            CheckerContext& C) const {
   DBG("checkBind")
-  // S->dump();
-  /*
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
-  if (const ValueDecl* VD = getValueDecl(Loc); VD) {
-    if (orderVars.isUsedVar(VD)) {
-      DBG("write " << VD->getNameAsString())
-      auto& infoList = orderVars.getInfoList(VD);
-      for (auto& BI : infoList) {
-        auto SI = StateInfo(C, State, BReporter, &Loc, S, (const char*)VD);
-        BI->write(SI);
+  if (const NamedDecl* ND = getValueDecl(Loc); ND) {
+    const NamedDecl* RD = getRDFromFD(ND);
+
+    if (mainVars.isUsedVar(ND)) {
+      DBG("write " << ND->getNameAsString())
+      auto& pairList = mainVars.getPairList(ND);
+      for (auto& PI : pairList) {
+        auto SI = StateInfo(C, State, BReporter, &Loc, S, PI);
+        if(PI->isData(ND)){
+
+        }else{
+
+        }
+        stateChanged |= SI.stateChanged;
+      }
+    }
+
+    if (mainVars.isUsedVar(RD)) {
+      DBG("write " << RD->getNameAsString())
+      auto& pairList = mainVars.getPairList(RD);
+      for (auto& PI : pairList) {
+        auto SI = StateInfo(C, State, BReporter, &Loc, S, PI);
+        if(PI->isData(RD)){
+
+        }else{
+
+        }
         stateChanged |= SI.stateChanged;
       }
     }
   }
 
   addStateTransition(State, C, stateChanged);
-  */
 }
 
-void MainChecker::checkPreCall(const CallEvent& Call,
-                                CheckerContext& C) const {
+void MainChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(Call);
 
-  printND(FD, "func");
-  
   if (mainFncs.isFlushFenceFunction(FD)) {
     handleFenceFlush(Call, C);
-  } 
+  }
 }
 
 bool MainChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
@@ -102,10 +116,9 @@ bool MainChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
   return false;
 }
 
-void MainChecker::handleFenceFlush(const CallEvent& Call, CheckerContext& C) const {
+void MainChecker::handleFenceFlush(const CallEvent& Call,
+                                   CheckerContext& C) const {
   DBG("handleFlush")
-
-  /*
   if (Call.getNumArgs() > 2) {
     llvm::report_fatal_error("check flush function");
     return;
@@ -115,30 +128,33 @@ void MainChecker::handleFenceFlush(const CallEvent& Call, CheckerContext& C) con
   bool stateChanged = false;
 
   SVal Loc = Call.getArgSVal(0);
-  if (const ValueDecl* VD = getValueDecl(Loc); VD) {
-    if (orderVars.isUsedVar(VD)) {
-      DBG("flush " << VD->getNameAsString())
-      auto& infoList = orderVars.getInfoList(VD);
-      for (auto& BI : infoList) {
-        auto SI =
-            StateInfo(C, State, BReporter, &Loc, nullptr, (const char*)VD);
-        BI->flush(SI);
+  const MemRegion* Region = Loc.getAsRegion();
+
+  if (const NamedDecl* ND = getFlushND(Region); ND) {
+    if (mainVars.isUsedVar(ND)) {
+      DBG("flush " << ND->getNameAsString())
+      auto& pairList = mainVars.getPairList(ND);
+      for (auto& PI : pairList) {
+        auto SI = StateInfo(C, State, BReporter, &Loc, nullptr, PI);
+        if(PI->isData(ND)){
+
+        }else{
+
+        }
         stateChanged |= SI.stateChanged;
       }
     }
-  }
+  } 
 
   addStateTransition(State, C, stateChanged);
-  */
 }
 
-void MainChecker::checkBranchCondition(const Stmt* S,
-                                        CheckerContext& C) const {
-  
+void MainChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
+
 }
 
 void MainChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,
-                                      bool stateChanged) const {
+                                     bool stateChanged) const {
   if (stateChanged) {
     DBG("state transition")
     C.addTransition(State);

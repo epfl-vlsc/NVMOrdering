@@ -5,7 +5,7 @@
 #include "StateInfo.h"
 
 namespace clang::ento::nvm::WriteSpace {
-
+/*
 void writeData(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
   const NamedDecl* ND = SI.dataND;
@@ -106,5 +106,5 @@ void writeCheck(StateInfo& SI) {
     llvm::report_fatal_error("not possible");
   }
 }
-
+*/
 } // namespace clang::ento::nvm::WriteSpace
