@@ -77,6 +77,23 @@ fi
 
 #pmgd--------------------------------------------------------
 
+#echo--------------------------------------------------------
+
+ECHO_SRCS=(kp_kv_master)
+array_contains ECHO_SRCS ${TEST_NAME}
+res=$?
+if [ "$res" == "1" ] ;then
+    CC="clang"
+    CFLAGS="-ggdb -O0 -std=c99 -D_ENABLE_FTRACE -D_GNU_SOURCE -Wall -fPIC -c"
+    BENCH_DIR="${TEST_DIR}/echo"
+    SRC_DIR="${BENCH_DIR}/src"
+    TEST_FILE=${SRC_DIR}/${TEST_NAME}.c
+    INCLUDES="-I${BENCH_DIR}/.. -I${SRC_DIR}/vector-cdds/ \
+-I${SRC_DIR}/hash_table/ -I${SRC_DIR}/threadpool/ -I${BENCH_DIR}/include"
+fi
+
+#echo--------------------------------------------------------
+
 PATCH_DIR="${TEST_DIR}/patch"
 PATCH_FILE="${PATCH_DIR}/${TOOL_NAME}_${PATCH_NO}_${TEST_NAME}.txt"
 #initialize info---------------------------------------------
