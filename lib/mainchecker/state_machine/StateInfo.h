@@ -15,10 +15,10 @@ struct StateInfo : public StateOut, public StateIn<MainBugReporter> {
   StateInfo(CheckerContext& C_, ProgramStateRef& State_,
             const MainBugReporter& BR_, SVal* Loc_, const Stmt* S_,
             const PairInfo* PI_)
-      : StateIn(C_, State_, BR_, Loc_, S_), PI(PI_) {
-  }
+      : StateIn(C_, State_, BR_, Loc_, S_), PI(PI_) {}
 
-  void report(const BugPtr& bugPtr, const char* msg, const NamedDecl* ND) const {
+  void report(const BugPtr& bugPtr, const char* msg,
+              const NamedDecl* ND) const {
     DBG("report")
     if (ExplodedNode* EN = this->C.generateErrorNode()) {
       DBG("generate error node")
@@ -26,29 +26,35 @@ struct StateInfo : public StateOut, public StateIn<MainBugReporter> {
     }
   }
 
-  void reportDataAlreadyWritten() const {
-    auto& bugPtr = BR.DataAlreadyWritten;
-    report(bugPtr, "already written", this->PI->getDataND());
+  void reportNotPossible(bool isData) const {
+    auto& bugPtr = BR.NotPossible;
+    const NamedDecl* ND =
+        (isData) ? this->PI->getDataND() : this->PI->getCheckND();
+    report(bugPtr, "already committed", ND);
+  }
+  void reportDataAlreadyCommitted() const {
+    auto& bugPtr = BR.DataAlreadyCommitted;
+    report(bugPtr, "already committed", this->PI->getDataND());
+  }
+  void reportDataNotCommitted() const {
+    auto& bugPtr = BR.DataNotCommitted;
+    report(bugPtr, "not committed", this->PI->getDataND());
   }
   void reportDataNotWritten() const {
     auto& bugPtr = BR.DataNotWritten;
     report(bugPtr, "not written", this->PI->getDataND());
   }
-  void reportCheckAlreadyWritten() const {
-    auto& bugPtr = BR.CheckAlreadyWritten;
-    report(bugPtr, "already written", this->PI->getCheckND());
+  void reportCheckAlreadyCommitted() const {
+    auto& bugPtr = BR.CheckAlreadyCommitted;
+    report(bugPtr, "already committed", this->PI->getCheckND());
+  }
+  void reportCheckNotCommitted() const {
+    auto& bugPtr = BR.CheckNotCommitted;
+    report(bugPtr, "not committed", this->PI->getCheckND());
   }
   void reportCheckNotWritten() const {
     auto& bugPtr = BR.CheckNotWritten;
     report(bugPtr, "not written", this->PI->getCheckND());
-  }
-  void reportDataNotPersisted() const {
-    auto& bugPtr = BR.DataNotPersisted;
-    report(bugPtr, "not persisted", this->PI->getDataND());
-  }
-  void reportDataAlreadyPersisted() const {
-    auto& bugPtr = BR.DataAlreadyPersisted;
-    report(bugPtr, "already persisted", this->PI->getDataND());
   }
   void reportModelBug(const std::string& msg) const {
     auto& bugPtr = BR.WrongModel;

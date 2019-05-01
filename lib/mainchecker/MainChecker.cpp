@@ -58,6 +58,7 @@ void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   DBG("checkBind")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
+  bool isCheck = false;
 
   if (const NamedDecl* ND = getValueDecl(Loc); ND) {
     const NamedDecl* RD = getRDFromFD(ND);
@@ -67,24 +68,25 @@ void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
       auto& pairList = mainVars.getPairList(ND);
       for (auto& PI : pairList) {
         auto SI = StateInfo(C, State, BReporter, &Loc, S, PI);
-        if(PI->isData(ND)){
-
-        }else{
-
+        if (PI->isData(ND)) {
+          WriteSpace::writeData(SI);
+        } else {
+          isCheck = true;
+          WriteSpace::writeCheck(SI);
         }
         stateChanged |= SI.stateChanged;
       }
     }
 
-    if (mainVars.isUsedVar(RD)) {
+    if (mainVars.isUsedVar(RD) && !isCheck) {
       DBG("write " << RD->getNameAsString())
       auto& pairList = mainVars.getPairList(RD);
       for (auto& PI : pairList) {
         auto SI = StateInfo(C, State, BReporter, &Loc, S, PI);
-        if(PI->isData(RD)){
-
-        }else{
-
+        if (PI->isData(RD)) {
+          WriteSpace::writeData(SI);
+        } else {
+          WriteSpace::writeCheck(SI);
         }
         stateChanged |= SI.stateChanged;
       }
@@ -136,15 +138,15 @@ void MainChecker::handleFenceFlush(const CallEvent& Call,
       auto& pairList = mainVars.getPairList(ND);
       for (auto& PI : pairList) {
         auto SI = StateInfo(C, State, BReporter, &Loc, nullptr, PI);
-        if(PI->isData(ND)){
-
-        }else{
-
+        if (PI->isData(ND)) {
+          WriteSpace::flushFenceData(SI);
+        } else {
+          WriteSpace::flushFenceCheck(SI);
         }
         stateChanged |= SI.stateChanged;
       }
     }
-  } 
+  }
 
   addStateTransition(State, C, stateChanged);
 }

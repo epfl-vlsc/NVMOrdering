@@ -1,41 +1,42 @@
 #pragma once
 #include "Common.h"
 #include "DbgState.h"
-#include "WriteState.h"
 #include "StateInfo.h"
+#include "WriteState.h"
 
 namespace clang::ento::nvm::WriteSpace {
-/*
+
 void writeData(StateInfo& SI) {
+  DBG("writeData")
   ProgramStateRef& State = SI.State;
-  const NamedDecl* ND = SI.dataND;
+  const PairInfo* PI = SI.PI;
 
-  const WriteState* WS = State->get<WriteMap>(ND);
-
-  DBG("writeData " << ND << " " << WS)
-
+  const WriteState* WS = State->get<WriteMap>(PI);
+  
   if (!WS) {
-    DBG("!WS bug")
+    DBG("!WS")
     // write data
-    State = State->set<WriteMap>(ND, WriteState::getWriteData());
+    State = State->set<WriteMap>(PI, WriteState::getWriteData());
     SI.stateChanged = true;
   } else if (WS->isWriteData()) {
-    DBG("isWriteDatabug ")
-    // bug:already written data
-    SI.reportDataAlreadyWritten();
+    DBG("isWriteData")
+    // correct to write multiple times
   } else if (WS->isFlushData()) {
     DBG("isFlushData bug")
-    // bug:already written data
-    SI.reportDataAlreadyWritten();
+    SI.reportCheckNotCommitted();
   } else if (WS->isPfenceData()) {
     DBG("isPfenceData bug")
-    // bug:already written data
-    SI.reportDataAlreadyWritten();
+    SI.reportCheckNotCommitted();
   } else if (WS->isWriteCheck()) {
-    DBG("isWriteCheck")
+    DBG("isWriteCheck bug")
+    SI.reportCheckNotCommitted();
+  } else if (WS->isFlushCheck()) {
+    DBG("isFlushCheck bug")
+    SI.reportCheckNotCommitted();
+  } else if (WS->isPfenceCheck()) {
+    DBG("isPfenceCheck")
     // write data
-    llvm::outs() << "lol\n";
-    State = State->set<WriteMap>(ND, WriteState::getWriteData());
+    State = State->set<WriteMap>(PI, WriteState::getWriteData());
     SI.stateChanged = true;
   } else {
     llvm::report_fatal_error("not possible");
@@ -43,68 +44,108 @@ void writeData(StateInfo& SI) {
 }
 
 void flushFenceData(StateInfo& SI) {
+  DBG("flushFenceData")
   ProgramStateRef& State = SI.State;
-  const NamedDecl* ND = SI.dataND;
+  const PairInfo* PI = SI.PI;
 
-  const WriteState* WS = State->get<WriteMap>(ND);
-
-  DBG("flushData " << ND << " " << WS)
+  const WriteState* WS = State->get<WriteMap>(PI);
 
   if (!WS) {
     DBG("!WS bug")
-    // bug:not written data
     SI.reportDataNotWritten();
   } else if (WS->isWriteData()) {
     DBG("isWriteData")
-    // flush data
-    State = State->set<WriteMap>(ND, WriteState::getFlushData());
+    // flush fence data
+    State = State->set<WriteMap>(PI, WriteState::getPfenceData());
     SI.stateChanged = true;
   } else if (WS->isFlushData()) {
     DBG("isFlushData bug")
-    // bug:already flushed data
+    SI.reportNotPossible(true);
   } else if (WS->isPfenceData()) {
     DBG("isPfenceData bug")
-    // bug: already flushed data
+    SI.reportDataAlreadyCommitted();
   } else if (WS->isWriteCheck()) {
     DBG("isWriteCheck bug")
-    // bug: already flushed data
-
+    SI.reportCheckNotCommitted();
+  } else if (WS->isFlushCheck()) {
+    DBG("isFlushCheck bug")
+    SI.reportCheckNotCommitted();
+  } else if (WS->isPfenceCheck()) {
+    DBG("isPfenceCheck bug")
+    SI.reportDataNotWritten();
   } else {
     llvm::report_fatal_error("not possible");
   }
 }
 
 void writeCheck(StateInfo& SI) {
+  DBG("writeCheck")
   ProgramStateRef& State = SI.State;
-  const NamedDecl* ND = SI.checkND;
+  const PairInfo* PI = SI.PI;
 
-  const WriteState* WS = State->get<WriteMap>(ND);
-
-  DBG("writeCheck " << ND << " " << WS)
+  const WriteState* WS = State->get<WriteMap>(PI);
 
   if (!WS) {
     DBG("!WS bug")
-    // bug:not written data
     SI.reportDataNotWritten();
   } else if (WS->isWriteData()) {
     DBG("isWriteData bug")
-    // bug:not persisted data
-    SI.reportDataNotPersisted();
+    SI.reportDataNotCommitted();
   } else if (WS->isFlushData()) {
     DBG("isFlushData bug")
-    // bug:not persisted data
-    SI.reportDataNotPersisted();
+    SI.reportDataNotCommitted();
   } else if (WS->isPfenceData()) {
     DBG("isPfenceData")
-    State = State->set<WriteMap>(ND, WriteState::getWriteCheck());
+    // write check
+    State = State->set<WriteMap>(PI, WriteState::getWriteCheck());
     SI.stateChanged = true;
   } else if (WS->isWriteCheck()) {
-    DBG("isWriteCheck bug")
-    // bug:already written check
-    SI.reportCheckAlreadyWritten();
+    DBG("isWriteCheck")
+    // correct to write multiple times
+  } else if (WS->isFlushCheck()) {
+    DBG("isFlushCheck bug")
+    SI.reportCheckNotCommitted();
+  } else if (WS->isPfenceCheck()) {
+    DBG("isPfenceCheck bug")
+    SI.reportDataNotWritten();
   } else {
     llvm::report_fatal_error("not possible");
   }
 }
-*/
+
+void flushFenceCheck(StateInfo& SI) {
+  DBG("flushFenceCheck")
+  ProgramStateRef& State = SI.State;
+  const PairInfo* PI = SI.PI;
+
+  const WriteState* WS = State->get<WriteMap>(PI);
+
+  if (!WS) {
+    DBG("!WS bug")
+    SI.reportDataNotWritten();
+  } else if (WS->isWriteData()) {
+    DBG("isWriteData bug")
+    SI.reportDataNotCommitted();
+  } else if (WS->isFlushData()) {
+    DBG("isFlushData bug")
+    SI.reportDataNotCommitted();
+  } else if (WS->isPfenceData()) {
+    DBG("isPfenceData bug")
+    SI.reportCheckNotWritten();
+  } else if (WS->isWriteCheck()) {
+    DBG("isWriteCheck")
+    // write check
+    State = State->set<WriteMap>(PI, WriteState::getPfenceCheck());
+    SI.stateChanged = true;
+  } else if (WS->isFlushCheck()) {
+    DBG("isFlushCheck bug")
+    SI.reportNotPossible(false);
+  } else if (WS->isPfenceCheck()) {
+    DBG("isPfenceCheck bug")
+    SI.reportCheckAlreadyCommitted();
+  } else {
+    llvm::report_fatal_error("not possible");
+  }
+}
+
 } // namespace clang::ento::nvm::WriteSpace

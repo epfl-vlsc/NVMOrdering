@@ -9,41 +9,43 @@ const std::string WriteError = "NVM Write Error";
 
 class WDBugs {
 public:
-  BugPtr DataAlreadyWritten;
+  BugPtr DataAlreadyCommitted;
+  BugPtr DataNotCommitted;
   BugPtr DataNotWritten;
 
 protected:
   WDBugs(const CheckerBase& CB) {
-    DataAlreadyWritten.reset(
-        new BugType(&CB, "Data is already written", WriteError));
+    DataAlreadyCommitted.reset(
+        new BugType(&CB, "Data is already committed", WriteError));
+    DataNotCommitted.reset(
+        new BugType(&CB, "Data is not committed", WriteError));
     DataNotWritten.reset(new BugType(&CB, "Data is not written", WriteError));
   }
 };
 
 class WCBugs {
 public:
-  BugPtr CheckAlreadyWritten;
+  BugPtr CheckAlreadyCommitted;
+  BugPtr CheckNotCommitted;
   BugPtr CheckNotWritten;
 
 protected:
   WCBugs(const CheckerBase& CB) {
-    CheckAlreadyWritten.reset(
-        new BugType(&CB, "Check is already written", WriteError));
+    CheckAlreadyCommitted.reset(
+        new BugType(&CB, "Check is already committed", WriteError));
+    CheckNotCommitted.reset(
+        new BugType(&CB, "Check is not committed", WriteError));
     CheckNotWritten.reset(new BugType(&CB, "Check is not written", WriteError));
   }
 };
 
 class FFBugs {
 public:
-  BugPtr DataAlreadyPersisted;
-  BugPtr DataNotPersisted;
+  BugPtr NotPossible;
 
 protected:
   FFBugs(const CheckerBase& CB) {
-    DataAlreadyPersisted.reset(
-        new BugType(&CB, "Data is already persisted", WriteError));
-    DataNotPersisted.reset(
-        new BugType(&CB, "Data is not persisted", WriteError));
+    NotPossible.reset(new BugType(&CB, "Not possible", WriteError));
   }
 };
 
