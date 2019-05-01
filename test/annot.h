@@ -1,8 +1,8 @@
 #pragma once
 
 //helpers
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
+#define MACRO_PARAM_STRINGIFY(x) #x
+#define TOSTRING(x) MACRO_PARAM_STRINGIFY(x)
 
 //transactional checker
 #define analyze_tx __attribute((annotate("TxCode")))

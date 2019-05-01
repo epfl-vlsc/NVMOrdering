@@ -128,7 +128,7 @@ run_run(){
 
     cd ${BENCH_DIR}
     #echo "clang ${SBFLAGS} ${PLUGIN} ${CFLAGS} ${INCLUDES} ${TEST_FILE}"
-    clang ${SBFLAGS} ${PLUGIN} ${CFLAGS} ${INCLUDES} ${TEST_FILE}
+    ${CC} ${SBFLAGS} ${PLUGIN} ${CFLAGS} ${INCLUDES} ${TEST_FILE}
     cd ${BASE_DIR}
 
     rem_patch
@@ -140,7 +140,7 @@ run_scan(){
     #todo -analyzer-opt-analyze-headers
     cd ${BENCH_DIR}
     scan-build ${SBFLAGS} ${DISPLUGIN} ${PLUGIN} \
-        clang++ -fsyntax-only ${CFLAGS} ${INCLUDES} ${TEST_FILE}
+        ${CC} -fsyntax-only ${CFLAGS} ${INCLUDES} ${TEST_FILE}
     cd ${BASE_DIR}
 
     rem_patch
