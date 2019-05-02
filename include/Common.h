@@ -25,9 +25,14 @@ unsigned getSrcLineNo(const SourceManager& SM, const SourceLocation& SL) {
   return lineNo;
 }
 
-void printND(const NamedDecl* ND, const char* msg) {
+void printND(const NamedDecl* ND, const char* msg, bool isQualified=false) {
   llvm::errs() << msg << ":";
-  llvm::errs() << ND->getNameAsString();
+  if(!isQualified){
+    llvm::errs() << ND->getNameAsString();
+  }else{
+    llvm::errs() << ND->getQualifiedNameAsString();
+  }
+  
   llvm::errs() << "\n";
 }
 

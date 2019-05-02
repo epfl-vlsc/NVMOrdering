@@ -1,3 +1,7 @@
+#todo
+* break circular dependency
+
+
 ## How to build for the first time ##
 
     ./run.sh build

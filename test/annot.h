@@ -20,3 +20,6 @@
 //main checker
 #define analyze_writes __attribute((annotate("PersistentCode")))
 #define sentinelp(CHECKER) __attribute((annotate("pair-" TOSTRING(CHECKER))))
+
+//rec checker
+#define analyze_recovery __attribute((annotate("RecoveryCode")))

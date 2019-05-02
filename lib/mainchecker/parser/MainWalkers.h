@@ -94,6 +94,13 @@ public:
     return true;
   }
 
+  bool VisitVarDecl(const VarDecl* VD) {
+    printND(VD, "vd");
+
+    // continue traversal
+    return true;
+  }
+
   void finalize() { fillMainVars(); }
 };
 

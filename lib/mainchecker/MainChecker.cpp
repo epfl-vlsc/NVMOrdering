@@ -55,6 +55,8 @@ void MainChecker::checkEndFunction(CheckerContext& C) const {
 
 void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                             CheckerContext& C) const {
+  
+  /*
   DBG("checkBind")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
@@ -94,6 +96,7 @@ void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   }
 
   addStateTransition(State, C, stateChanged);
+  */
 }
 
 void MainChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
@@ -120,6 +123,8 @@ bool MainChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
 
 void MainChecker::handleFenceFlush(const CallEvent& Call,
                                    CheckerContext& C) const {
+  
+  /*
   DBG("handleFlush")
   if (Call.getNumArgs() > 2) {
     llvm::report_fatal_error("check flush function");
@@ -149,6 +154,7 @@ void MainChecker::handleFenceFlush(const CallEvent& Call,
   }
 
   addStateTransition(State, C, stateChanged);
+  */
 }
 
 void MainChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
