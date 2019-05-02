@@ -8,6 +8,7 @@
 #include <array>
 #include <map>
 #include <set>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -19,20 +20,42 @@
 
 namespace clang::ento::nvm {
 
+bool isFieldOrObj(const NamedDecl* ND) {
+  if (const FieldDecl* FD = dyn_cast_or_null<FieldDecl>(ND)) {
+    return true;
+  } else if (const RecordDecl* FD = dyn_cast_or_null<RecordDecl>(ND)) {
+    return true;
+  }
+  return false;
+}
+
+const FieldDecl* getFieldFromNDs(const NamedDecl* ND1, const NamedDecl* ND2) {
+  if (const FieldDecl* FD = dyn_cast_or_null<FieldDecl>(ND1)) {
+    return FD;
+  } else if (const FieldDecl* FD = dyn_cast_or_null<FieldDecl>(ND2)) {
+    return FD;
+  }
+  llvm::report_fatal_error("must be field");
+  return nullptr;
+}
+
+
+const RecordDecl* getRecordDeclFromND(const NamedDecl* ND) { return nullptr; }
+
 unsigned getSrcLineNo(const SourceManager& SM, const SourceLocation& SL) {
   auto [FID, Pos] = SM.getDecomposedLoc(SL);
   unsigned lineNo = SM.getLineNumber(FID, Pos);
   return lineNo;
 }
 
-void printND(const NamedDecl* ND, const char* msg, bool isQualified=false) {
+void printND(const NamedDecl* ND, const char* msg, bool isQualified = false) {
   llvm::errs() << msg << ":";
-  if(!isQualified){
+  if (!isQualified) {
     llvm::errs() << ND->getNameAsString();
-  }else{
+  } else {
     llvm::errs() << ND->getQualifiedNameAsString();
   }
-  
+
   llvm::errs() << "\n";
 }
 

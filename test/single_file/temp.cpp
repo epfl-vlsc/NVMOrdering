@@ -1,6 +1,6 @@
 #include "annot.h"
 
-void analyze_writes correct(){
-  sentinelp(scl-FieldScl::valid) int data;
-  int valid;
-}
+struct BitField {
+  sentinelp(BitField::valid) int data : 30;
+  int valid : 2;
+};

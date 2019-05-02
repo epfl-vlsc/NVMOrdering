@@ -1,3 +1,9 @@
+#pragma once
+
+#include <atomic>
+#include <stdio.h>
+#include <xmmintrin.h>
+
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
@@ -14,6 +20,11 @@
 void tx_begin(){}
 void tx_end(){}
 void tx_add(void* ptr){}
+
+void vfence() { std::atomic_thread_fence(std::memory_order_release); }
+void pfence() { _mm_sfence(); }
+void clflushopt(void const* p) { }
+void clflush(void const* p) { }
 
 #define tx_beg tx_begin();
 #define tx_end tx_end();
