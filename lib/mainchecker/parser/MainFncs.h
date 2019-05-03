@@ -8,6 +8,9 @@ class MainFncs {
   static constexpr const char* PERSISTENT = "PersistentCode";
 
   AnnotFunction persistentFnc;
+  PfenceFunction pfenceFnc;
+  VfenceFunction vfenceFnc;
+  FlushOptFunction flushOptFnc;
   FlushFenceFunction flushFenceFnc;
 
 public:
@@ -27,9 +30,24 @@ public:
     return flushFenceFnc.inFunctions(FD);
   }
 
+  bool isFlushOptFnc(const FunctionDecl* FD) const { 
+    return flushOptFnc.inFunctions(FD);
+  }
+
+  bool isVfenceFnc(const FunctionDecl* FD) const { 
+    return vfenceFnc.inFunctions(FD);
+  }
+
+  bool isPfenceFnc(const FunctionDecl* FD) const { 
+    return pfenceFnc.inFunctions(FD);
+  }
+
   void dump() {
     persistentFnc.dump();
     flushFenceFnc.dump();
+    flushOptFnc.dump();
+    pfenceFnc.dump();
+    vfenceFnc.dump();
   }
 };
 

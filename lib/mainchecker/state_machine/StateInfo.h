@@ -4,19 +4,15 @@
 #include "DbgState.h"
 #include "MainBugReporter.h"
 #include "states/StateInOut.h"
-
+#include "../parser/PairInfo.h"
 namespace clang::ento::nvm {
 
-class PairInfo;
-
 struct StateInfo : public StateOut, public StateIn<MainBugReporter> {
+public:
   const PairInfo* PI;
+  const NamedDecl* ND;
 
-  StateInfo(CheckerContext& C_, ProgramStateRef& State_,
-            const MainBugReporter& BR_, SVal* Loc_, const Stmt* S_,
-            const PairInfo* PI_)
-      : StateIn(C_, State_, BR_, Loc_, S_), PI(PI_) {}
-
+private:
   void report(const BugPtr& bugPtr, const char* msg,
               const NamedDecl* ND) const {
     DBG("report")
@@ -26,40 +22,38 @@ struct StateInfo : public StateOut, public StateIn<MainBugReporter> {
     }
   }
 
-  void reportNotPossible(bool isData) const {
-    auto& bugPtr = BR.NotPossible;
-    const NamedDecl* ND =
-        (isData) ? this->PI->getDataND() : this->PI->getCheckND();
-    report(bugPtr, "already committed", ND);
+  const NamedDecl* getReportND(bool isData) const {
+    if (isData) {
+      return this->PI->getDataND();
+    } else {
+      return this->PI->getCheckND();
+    }
   }
-  void reportDataAlreadyCommitted() const {
-    auto& bugPtr = BR.DataAlreadyCommitted;
-    report(bugPtr, "already committed", this->PI->getDataND());
+
+public:
+  StateInfo(CheckerContext& C_, ProgramStateRef& State_,
+            const MainBugReporter& BR_, SVal* Loc_, const Stmt* S_,
+            const PairInfo* PI_, const NamedDecl* ND_)
+      : StateIn(C_, State_, BR_, Loc_, S_), PI(PI_), ND(ND_) {}
+
+  bool isScl() const { return this->PI->isSameCl(); }
+
+  bool isData() const { return this->PI->isData(this->ND); }
+
+  void reportCommitBug(bool isData) const {
+    auto& bugPtr = BR.CommitBug;
+    const NamedDecl* RND = getReportND(isData);
+    report(bugPtr, "already committed", RND);
   }
-  void reportDataNotCommitted() const {
-    auto& bugPtr = BR.DataNotCommitted;
-    report(bugPtr, "not committed", this->PI->getDataND());
+  void DoubleFlushBug() const {
+    auto& bugPtr = BR.DoubleFlushBug;
+    const NamedDecl* RND = getReportND(isData);
+    report(bugPtr, "already committed", RND);
   }
-  void reportDataNotWritten() const {
-    auto& bugPtr = BR.DataNotWritten;
-    report(bugPtr, "not written", this->PI->getDataND());
-  }
-  void reportCheckAlreadyCommitted() const {
-    auto& bugPtr = BR.CheckAlreadyCommitted;
-    report(bugPtr, "already committed", this->PI->getCheckND());
-  }
-  void reportCheckNotCommitted() const {
-    auto& bugPtr = BR.CheckNotCommitted;
-    report(bugPtr, "not committed", this->PI->getCheckND());
-  }
-  void reportCheckNotWritten() const {
-    auto& bugPtr = BR.CheckNotWritten;
-    report(bugPtr, "not written", this->PI->getCheckND());
-  }
-  void reportModelBug(const std::string& msg) const {
-    auto& bugPtr = BR.WrongModel;
-    std::string errMsg = "model bug: " + msg + " state";
-    report(bugPtr, errMsg.c_str(), this->PI->getDataND());
+  void FlushBug() const {
+    auto& bugPtr = BR.FlushBug;
+    const NamedDecl* RND = getReportND(isData);
+    report(bugPtr, "flush", RND);
   }
 };
 

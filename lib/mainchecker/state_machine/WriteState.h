@@ -8,11 +8,12 @@ class PairInfo;
 struct WriteState {
 private:
   enum Kind { WD, FD, PD, WC, FC, PC } K;
-  static constexpr const char* Str[] = {"WriteData", "FlushData", "PfenceData",
-                                        "WriteCheck", "FlushCheck", "PfenceCheck"};
-  static constexpr const char* Exp[] = {"data is written", "data is flushed",
-                                        "data is pfenced", "check is written",
-                                        "check is flushed", "check if pfenced"};
+  static constexpr const char* Str[] = {"WriteData",  "FlushData",
+                                        "PfenceData", "WriteCheck",
+                                        "FlushCheck", "PfenceCheck"};
+  static constexpr const char* Exp[] = {"data is written",  "data is flushed",
+                                        "data is fenced",   "check is written",
+                                        "check is flushed", "check if fenced"};
 
   WriteState(Kind K_) : K(K_) {}
 
@@ -34,7 +35,14 @@ public:
   static WriteState getFlushCheck() { return WriteState(FC); }
   static WriteState getPfenceCheck() { return WriteState(PC); }
 
-  int getState() const { return static_cast<int>(K); }
+  Kind getState() const { return K; }
+  int getStateNo() const { return static_cast<int>(K); }
+  static constexpr Kind KindWD() { return WD; }
+  static constexpr Kind KindFD() { return FD; }
+  static constexpr Kind KindPD() { return PD; }
+  static constexpr Kind KindWC() { return WC; }
+  static constexpr Kind KindFC() { return FC; }
+  static constexpr Kind KindPC() { return PC; }
 
   bool operator==(const WriteState& X) const { return K == X.K; }
 

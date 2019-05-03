@@ -41,14 +41,14 @@ public:
   }
 };
 
-class PFenceFunction : public NamedFunction {
+class PfenceFunction : public NamedFunction {
 public:
   bool checkName(const IdentifierInfo* II) const {
     return II && II->isStr("pfence");
   }
 };
 
-class VFenceFunction : public NamedFunction {
+class VfenceFunction : public NamedFunction {
 public:
   bool checkName(const IdentifierInfo* II) const {
     return II && II->isStr("vfence");
