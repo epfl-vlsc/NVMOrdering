@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
-
+#include "DbgState.h"
+#include "StateInfo.h"
 namespace clang::ento::nvm::SclSpace {
 
 void writeData(StateInfo& SI) {
@@ -12,25 +13,19 @@ void writeData(StateInfo& SI) {
 
   if (!WS) {
     DBG("!WS")
-
+    SI.doTransition(WriteState::KindWD());
   } else if (WS->isWriteData()) {
     DBG("isWriteData")
 
-  } else if (WS->isFlushData()) {
-    DBG("isFlushData")
-
   } else if (WS->isPfenceData()) {
     DBG("isPfenceData")
-
+    SI.doTransition(WriteState::KindWD());
   } else if (WS->isWriteCheck()) {
     DBG("isWriteCheck")
-
-  } else if (WS->isFlushCheck()) {
-    DBG("isFlushCheck")
-
+    SI.reportCommitBug(false);
   } else if (WS->isPfenceCheck()) {
     DBG("isPfenceCheck")
-
+    SI.doTransition(WriteState::KindWD());
   } else {
     llvm::report_fatal_error("not possible");
   }
@@ -45,25 +40,19 @@ void writeCheck(StateInfo& SI) {
 
   if (!WS) {
     DBG("!WS")
-
+    SI.doTransition(WriteState::KindWC());
   } else if (WS->isWriteData()) {
     DBG("isWriteData")
-
-  } else if (WS->isFlushData()) {
-    DBG("isFlushData")
-
+    SI.reportCommitBug(true);
   } else if (WS->isPfenceData()) {
     DBG("isPfenceData")
-
+    SI.doTransition(WriteState::KindWC());
   } else if (WS->isWriteCheck()) {
     DBG("isWriteCheck")
 
-  } else if (WS->isFlushCheck()) {
-    DBG("isFlushCheck")
-
   } else if (WS->isPfenceCheck()) {
     DBG("isPfenceCheck")
-
+    SI.doTransition(WriteState::KindWC());
   } else {
     llvm::report_fatal_error("not possible");
   }
@@ -78,25 +67,19 @@ void flushFenceData(StateInfo& SI) {
 
   if (!WS) {
     DBG("!WS")
-
+    SI.reportWriteBug(true);
   } else if (WS->isWriteData()) {
     DBG("isWriteData")
-
-  } else if (WS->isFlushData()) {
-    DBG("isFlushData")
-
+    SI.doTransition(WriteState::KindPD());
   } else if (WS->isPfenceData()) {
     DBG("isPfenceData")
-
+    SI.reportDoubleFlushBug(true);
   } else if (WS->isWriteCheck()) {
     DBG("isWriteCheck")
-
-  } else if (WS->isFlushCheck()) {
-    DBG("isFlushCheck")
-
+    SI.reportCommitBug(false);
   } else if (WS->isPfenceCheck()) {
     DBG("isPfenceCheck")
-
+    SI.reportWriteBug(true);
   } else {
     llvm::report_fatal_error("not possible");
   }
@@ -111,25 +94,19 @@ void flushFenceCheck(StateInfo& SI) {
 
   if (!WS) {
     DBG("!WS")
-
+    SI.reportWriteBug(false);
   } else if (WS->isWriteData()) {
     DBG("isWriteData")
-
-  } else if (WS->isFlushData()) {
-    DBG("isFlushData")
-
+    SI.reportCommitBug(true);
   } else if (WS->isPfenceData()) {
     DBG("isPfenceData")
-
+    SI.reportWriteBug(false);
   } else if (WS->isWriteCheck()) {
     DBG("isWriteCheck")
-
-  } else if (WS->isFlushCheck()) {
-    DBG("isFlushCheck")
-
+    SI.doTransition(WriteState::KindPC());
   } else if (WS->isPfenceCheck()) {
     DBG("isPfenceCheck")
-
+    SI.reportDoubleFlushBug(false);
   } else {
     llvm::report_fatal_error("not possible");
   }
@@ -147,19 +124,13 @@ void fence(StateInfo& SI) {
 
   } else if (WS->isWriteData()) {
     DBG("isWriteData")
-
-  } else if (WS->isFlushData()) {
-    DBG("isFlushData")
-
+    SI.doTransition(WriteState::KindPD());
   } else if (WS->isPfenceData()) {
     DBG("isPfenceData")
 
   } else if (WS->isWriteCheck()) {
     DBG("isWriteCheck")
-
-  } else if (WS->isFlushCheck()) {
-    DBG("isFlushCheck")
-
+    SI.doTransition(WriteState::KindPC());
   } else if (WS->isPfenceCheck()) {
     DBG("isPfenceCheck")
 

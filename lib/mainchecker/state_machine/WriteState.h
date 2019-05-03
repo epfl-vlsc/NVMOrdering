@@ -6,8 +6,11 @@ namespace clang::ento::nvm {
 class PairInfo;
 
 struct WriteState {
+public:
+  enum Kind { WD, FD, PD, WC, FC, PC };
+
 private:
-  enum Kind { WD, FD, PD, WC, FC, PC } K;
+  Kind K;
   static constexpr const char* Str[] = {"WriteData",  "FlushData",
                                         "PfenceData", "WriteCheck",
                                         "FlushCheck", "PfenceCheck"};
@@ -34,6 +37,8 @@ public:
   static WriteState getWriteCheck() { return WriteState(WC); }
   static WriteState getFlushCheck() { return WriteState(FC); }
   static WriteState getPfenceCheck() { return WriteState(PC); }
+
+  static WriteState getNewState(Kind K_) { return WriteState(K_); }
 
   Kind getState() const { return K; }
   int getStateNo() const { return static_cast<int>(K); }

@@ -1,10 +1,11 @@
 #pragma once
 
+#include "../parser/PairInfo.h"
 #include "Common.h"
 #include "DbgState.h"
 #include "MainBugReporter.h"
+#include "WriteState.h"
 #include "states/StateInOut.h"
-#include "../parser/PairInfo.h"
 namespace clang::ento::nvm {
 
 struct StateInfo : public StateOut, public StateIn<MainBugReporter> {
@@ -40,20 +41,31 @@ public:
 
   bool isData() const { return this->PI->isData(this->ND); }
 
+  void reportWriteBug(bool isData) const {
+    auto& bugPtr = BR.WriteBug;
+    const NamedDecl* RND = getReportND(isData);
+    report(bugPtr, "write", RND);
+  }
   void reportCommitBug(bool isData) const {
     auto& bugPtr = BR.CommitBug;
     const NamedDecl* RND = getReportND(isData);
-    report(bugPtr, "already committed", RND);
+    report(bugPtr, "commit", RND);
   }
-  void DoubleFlushBug() const {
+  void reportDoubleFlushBug(bool isData) const {
     auto& bugPtr = BR.DoubleFlushBug;
     const NamedDecl* RND = getReportND(isData);
-    report(bugPtr, "already committed", RND);
+    report(bugPtr, "double flush", RND);
   }
-  void FlushBug() const {
+  void reportFlushBug(bool isData) const {
     auto& bugPtr = BR.FlushBug;
     const NamedDecl* RND = getReportND(isData);
     report(bugPtr, "flush", RND);
+  }
+
+  void doTransition(WriteState::Kind K) const {
+    ProgramStateRef& NewState = this->State;
+    NewState = NewState->set<WriteMap>(PI, WriteState::getNewState(K));
+    this->stateChanged = true;
   }
 };
 

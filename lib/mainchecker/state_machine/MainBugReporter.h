@@ -12,12 +12,14 @@ public:
   BugPtr CommitBug;
   BugPtr DoubleFlushBug;
   BugPtr FlushBug;
+  BugPtr WriteBug;
 
 protected:
   MainBugs(const CheckerBase& CB) {
     CommitBug.reset(new BugType(&CB, "commit", MainError));
-    DoubleFlushBug.reset(new BugType(&CB, "flush", MainError));
-    FlushBug.reset(new BugType(&CB, "doubleflush", MainError));
+    DoubleFlushBug.reset(new BugType(&CB, "doubleflush", MainError));
+    FlushBug.reset(new BugType(&CB, "flush", MainError));
+    WriteBug.reset(new BugType(&CB, "write", MainError));
   }
 };
 
