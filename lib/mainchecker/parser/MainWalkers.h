@@ -103,7 +103,7 @@ class MainWalker : public RecursiveASTVisitor<MainWalker> {
 
       bool isScl = usesScl(dataND, checkND, clType);
 
-      // todo fix leak later
+      // create Pair info
       PairInfo* pi = new PairInfo(dataND, checkND, isScl);
       mainVars.addUsedVar(dataND, pi);
       mainVars.addUsedVar(checkND, pi);

@@ -6,8 +6,7 @@ namespace clang::ento::nvm {
 
 class MainVars {
   using PairList = std::set<PairInfo*>;
-  using ValueMap = std::map<const NamedDecl*, PairList>;
-  ValueMap usedVars;
+  std::map<const NamedDecl*, PairList> usedVars;
 
 public:
   PairList& getPairList(const NamedDecl* ND) {
@@ -26,15 +25,8 @@ public:
   }
 
   void dump() {
-    for (auto& [ND, PIV] : usedVars) {
-      printND(ND, "ND");
-
-      for (auto& PI : PIV) {
-        llvm::errs() << "pair:";
-        PI->dump();
-        llvm::errs() << "\n";
-      }
-    }
+    llvm::errs() << "vars------------------------\n";
+    printMapSet(usedVars, "nd", "\tpair");
   }
 };
 

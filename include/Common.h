@@ -9,6 +9,7 @@
 #include <map>
 #include <set>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -23,7 +24,7 @@ namespace clang::ento::nvm {
 bool isFieldOrObj(const NamedDecl* ND) {
   if (const FieldDecl* FD = dyn_cast_or_null<FieldDecl>(ND)) {
     return true;
-  } else if (const RecordDecl* FD = dyn_cast_or_null<RecordDecl>(ND)) {
+  } else if (const RecordDecl* RD = dyn_cast_or_null<RecordDecl>(ND)) {
     return true;
   }
   return false;
@@ -39,8 +40,13 @@ const FieldDecl* getFieldFromNDs(const NamedDecl* ND1, const NamedDecl* ND2) {
   return nullptr;
 }
 
+const RecordDecl* getRecordDeclFromND(const NamedDecl* ND) {
+  if (const RecordDecl* RD = dyn_cast_or_null<RecordDecl>(ND)) {
+    return RD;
+  }
 
-const RecordDecl* getRecordDeclFromND(const NamedDecl* ND) { return nullptr; }
+  return nullptr;
+}
 
 unsigned getSrcLineNo(const SourceManager& SM, const SourceLocation& SL) {
   auto [FID, Pos] = SM.getDecomposedLoc(SL);
@@ -74,6 +80,16 @@ void printStmt(const Stmt* S, CheckerContext& C, const char* msg,
     S->dump();
   }
   llvm::errs() << "\n";
+}
+
+template <typename MapSet>
+void printMapSet(const MapSet& ms, const char* msgPtr, const char* msgElement) {
+  for (auto& [ptr, list] : ms) {
+    printND(ptr, msgPtr);
+    for (auto& element : list) {
+      llvm::errs() << msgElement << " " << element->getNameAsString() << "\n";
+    }
+  }
 }
 
 const Stmt* getNthChild(const Stmt* S, int i) {
@@ -135,13 +151,21 @@ const FunctionDecl* getTopFunction(CheckerContext& C) {
   }
 }
 
-const NamedDecl* getRDFromFD(const NamedDecl* ND) {
+const RecordDecl* getRDFromAny(const NamedDecl* ND) {
   if (const FieldDecl* FD = dyn_cast<FieldDecl>(ND)) {
     const RecordDecl* RD = FD->getParent();
+    return RD;
+  } else if (const RecordDecl* RD = dyn_cast<RecordDecl>(ND)) {
     return RD;
   }
 
   return nullptr;
+}
+
+bool isRDAligned(const RecordDecl* RD) {
+  assert(RD);
+
+  return RD->hasAttr<AlignedAttr>();
 }
 
 const FunctionDecl* getFuncDecl(const Decl* BD) {
@@ -195,7 +219,22 @@ const ValueDecl* getValueDecl(const MemRegion* Region) {
   return nullptr;
 }
 
-const NamedDecl* getValueDeclFromRecord(const MemRegion* Region) {
+const FieldDecl* getFDFromLoc(const SVal& Loc) {
+  const MemRegion* Region = Loc.getAsRegion();
+  if (!Region) {
+    return nullptr;
+  } else if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
+    const Decl* BD = FieldReg->getDecl();
+    if (const FieldDecl* FD = dyn_cast_or_null<FieldDecl>(BD)) {
+      return FD;
+    }
+  }
+
+  return nullptr;
+}
+
+const RecordDecl* getRDFromRecordLoc(const SVal& Loc) {
+  const MemRegion* Region = Loc.getAsRegion();
   if (!Region) {
     return nullptr;
   } else if (const SymbolicRegion* ObjReg = Region->getAs<SymbolicRegion>()) {
@@ -212,15 +251,6 @@ const NamedDecl* getValueDeclFromRecord(const MemRegion* Region) {
     }
   }
 
-  return nullptr;
-}
-
-const NamedDecl* getFlushND(const MemRegion* Region) {
-  if (const NamedDecl* ND = getValueDecl(Region); ND) {
-    return ND;
-  } else if (const NamedDecl* ND = getValueDeclFromRecord(Region); ND) {
-    return ND;
-  }
   return nullptr;
 }
 
@@ -347,7 +377,6 @@ class FieldWalker : public ConstStmtVisitor<FieldWalker> {
 
 public:
   void VisitStmt(const Stmt* S) { VisitChildren(S); }
-
   void VisitChildren(const Stmt* S) {
     for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
          I != E; ++I) {

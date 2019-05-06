@@ -1,22 +1,29 @@
 #include "annot.h"
+#include <atomic>
+#include <stdio.h>
+#include <xmmintrin.h>
 
-struct Dcl {
-  sentinelp(dcl-Dcl::valid) int data;
+// different cache line placement analysis
+
+void vfence() { std::atomic_thread_fence(std::memory_order_release); }
+void pfence() { _mm_sfence(); }
+void clflush(void const* p) { _mm_clflush(p); }
+
+struct SimpleDcl {
+  sentinelp(SimpleDcl::valid+dcl) int data;
   int valid;
 
   void analyze_writes correct() {
     data = 1;
-    clflushopt(&data);
+    clflush(&data);
     pfence();
     valid = 1;
   }
 
-  void analyze_writes correctCircular() {
-    valid = 1;
-    clflushopt(&valid);
-    pfence();
+  void analyze_writes initWriteDataTwice() {
     data = 1;
-    clflushopt(&data);
+    data = 1;
+    clflush(&data);
     pfence();
     valid = 1;
   }
@@ -29,7 +36,7 @@ struct Dcl {
 
   void analyze_writes writeFlushedData() {
     data = 1;
-    clflushopt(&data);
+    clflush(&data);
     data = 1;
     pfence();
     valid = 1;
@@ -37,36 +44,17 @@ struct Dcl {
 
   void analyze_writes doubleFlushData() {
     data = 1;
-    clflushopt(&data);
-    clflushopt(&data);
+    clflush(&data);
+    clflush(&data);
     pfence();
     valid = 1;
   }
 
-  void analyze_writes correctBranch(bool useNvm) {
+  void analyze_writes branch(bool useNvm) {
     data = 1;
     if (useNvm) {
-      clflushopt(&data);
+      clflush(&data);
       pfence();
-      valid = 1;
-    }
-  }
-
-  void analyze_writes loop(bool useNvm) {
-    data = 1;
-    while (true) {
-      clflushopt(&data);
-      pfence();
-      valid = 1;
-      clflushopt(&valid);
-      pfence();
-    }
-  }
-
-  void analyze_writes branchNoFence(bool useNvm) {
-    data = 1;
-    if (useNvm) {
-      clflushopt(&data);
       valid = 1;
     }
   }
@@ -74,7 +62,7 @@ struct Dcl {
   void analyze_writes writeInitValid() {
     valid = 1;
     data = 1;
-    clflushopt(&data);
+    clflush(&data);
     pfence();
     valid = 1;
   }
@@ -82,14 +70,14 @@ struct Dcl {
   void analyze_writes writeDataValid() {
     data = 1;
     valid = 1;
-    clflushopt(&data);
+    clflush(&data);
     pfence();
     valid = 1;
   }
-
+  
   void analyze_writes writeFlushValid() {
     data = 1;
-    clflushopt(&data);
+    clflush(&data);
     valid = 1;
     pfence();
     valid = 1;

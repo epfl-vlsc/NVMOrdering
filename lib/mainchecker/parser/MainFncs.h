@@ -21,28 +21,37 @@ public:
     return persistentFnc.inFunctions(FD);
   }
 
-   void insertIfKnown(const FunctionDecl* FD) {
+  void insertIfKnown(const FunctionDecl* FD) {
     persistentFnc.insertIfKnown(FD);
+    pfenceFnc.insertIfKnown(FD);
+    vfenceFnc.insertIfKnown(FD);
+    flushOptFnc.insertIfKnown(FD);
     flushFenceFnc.insertIfKnown(FD);
   }
 
-  bool isFlushFenceFunction(const FunctionDecl* FD) const { 
+  bool isFlushFenceFnc(const FunctionDecl* FD) const {
     return flushFenceFnc.inFunctions(FD);
   }
 
-  bool isFlushOptFnc(const FunctionDecl* FD) const { 
+  bool isFlushOptFnc(const FunctionDecl* FD) const {
     return flushOptFnc.inFunctions(FD);
   }
 
-  bool isVfenceFnc(const FunctionDecl* FD) const { 
+  bool isVfenceFnc(const FunctionDecl* FD) const {
     return vfenceFnc.inFunctions(FD);
   }
 
-  bool isPfenceFnc(const FunctionDecl* FD) const { 
+  bool isPfenceFnc(const FunctionDecl* FD) const {
     return pfenceFnc.inFunctions(FD);
   }
 
+  bool isUsedFnc(const FunctionDecl* FD) const {
+    return isFlushFenceFnc(FD) || isFlushOptFnc(FD) || isVfenceFnc(FD) ||
+           isPfenceFnc(FD);
+  }
+
   void dump() {
+    llvm::errs() << "functions-------------------\n";
     persistentFnc.dump();
     flushFenceFnc.dump();
     flushOptFnc.dump();

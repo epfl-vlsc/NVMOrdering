@@ -7,7 +7,7 @@ namespace clang::ento::nvm {
 
 class Transitions {
 public:
-  static void fenceFlush(StateInfo& SI) {
+  static void flushFence(StateInfo& SI) {
     if (SI.isScl()) {
       if (SI.isData()) {
         SclSpace::flushFenceData(SI);

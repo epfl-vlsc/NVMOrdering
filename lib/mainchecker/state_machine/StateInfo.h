@@ -39,7 +39,11 @@ public:
 
   bool isScl() const { return this->PI->isSameCl(); }
 
+  bool isDcl() const { return !this->PI->isSameCl(); }
+
   bool isData() const { return this->PI->isData(this->ND); }
+
+  bool isCheck() const { return this->PI->isCheck(this->ND); }
 
   void reportWriteBug(bool isData) const {
     auto& bugPtr = BR.WriteBug;

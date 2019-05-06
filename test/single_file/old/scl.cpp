@@ -1,7 +1,16 @@
 #include "annot.h"
+#include <atomic>
+#include <stdio.h>
+#include <xmmintrin.h>
 
-struct Scl {
-  sentinelp(scl-Scl::valid) int data;
+// different cache line placement analysis
+
+void vfence() { std::atomic_thread_fence(std::memory_order_release); }
+void pfence() { _mm_sfence(); }
+void clflush(void const* p) { _mm_clflush(p); }
+
+struct SimpleScl {
+  sentinelp(SimpleScl::valid+scl) int data;
   int valid;
 
   void analyze_writes correct() {
@@ -10,17 +19,16 @@ struct Scl {
     valid = 1;
   }
 
-  void analyze_writes correctCircular() {
-    valid = 1;
-    vfence();
-    data = 1;
-    vfence();
-    valid = 1;
-  }
-
   void analyze_writes correctPfence() {
     data = 1;
     pfence();
+    valid = 1;
+  }
+
+  void analyze_writes initWriteDataTwice() {
+    data = 1;
+    data = 1;
+    vfence();
     valid = 1;
   }
 
@@ -43,7 +51,7 @@ struct Scl {
     valid = 1;
   }
 
-  void analyze_writes correctBranch(bool useNvm) {
+  void analyze_writes branch(bool useNvm) {
     data = 1;
     if (useNvm) {
       vfence();

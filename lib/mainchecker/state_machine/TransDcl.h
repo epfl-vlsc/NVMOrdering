@@ -214,7 +214,7 @@ void pfence(StateInfo& SI) {
 
   } else if (WS->isWriteData()) {
     DBG("isWriteData")
-    SI.reportFlushBug(true);
+    
   } else if (WS->isFlushData()) {
     DBG("isFlushData")
     SI.doTransition(WriteState::KindPD());
@@ -223,7 +223,7 @@ void pfence(StateInfo& SI) {
 
   } else if (WS->isWriteCheck()) {
     DBG("isWriteCheck")
-    SI.reportFlushBug(false);
+    
   } else if (WS->isFlushCheck()) {
     DBG("isFlushCheck")
     SI.doTransition(WriteState::KindPC());

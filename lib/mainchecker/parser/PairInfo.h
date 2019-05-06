@@ -21,12 +21,18 @@ public:
     assert(data && check);
   }
 
-  void dump() const {
+  std::string getNameAsString() const {
     assert(data && check);
+    std::string sbuf;
+    llvm::raw_string_ostream PairNameOs(sbuf);
     const char* clStr = (isScl) ? "scl" : "dcl";
-    llvm::errs() << "<" << clStr << ":" << data->getNameAsString() << ","
-                 << check->getNameAsString() << ">\n";
+    PairNameOs << "<" << clStr << ":" << data->getQualifiedNameAsString() << ","
+               << check->getQualifiedNameAsString() << ">";
+
+    return PairNameOs.str();
   }
+
+  void dump() const { llvm::errs() << getNameAsString(); }
 
   bool isData(const NamedDecl* ND) const { return data == ND; }
 

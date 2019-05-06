@@ -41,6 +41,10 @@ class AutoCl {
   }
 
   void createRD(const RecordDecl* RD) {
+    if (!RD) {
+      return;
+    }
+
     int current = 0;
 
     int begCl = 0;
@@ -92,17 +96,22 @@ public:
       return false;
     }
 
-    const FieldDecl* FD = getFieldFromNDs(ND1, ND2);
-    const RecordDecl* RD = FD->getParent();
-    createRD(RD);
+    const RecordDecl* RD1 = getRDFromAny(ND1);
+    const RecordDecl* RD2 = getRDFromAny(ND2);
+    createRD(RD1);
+    createRD(RD2);
 
-    if (isRecordValid(RD)) {
-      ClNos clND1 = getClNos(RD, ND1);
-      ClNos clND2 = getClNos(RD, ND2);
+    bool isValid = (isRecordValid(RD1) && isRecordValid(RD2));
+    bool isAligned = (isRDAligned(RD1) && isRDAligned(RD2));
+    bool sameRD = (RD1 == RD2);
+
+    if (isValid && isAligned && sameRD) {
+      ClNos clND1 = getClNos(RD1, ND1);
+      ClNos clND2 = getClNos(RD2, ND2);
       return clND1 == clND2;
     }
     return false;
   }
-}; // namespace clang::ento::nvm
+};
 
 } // namespace clang::ento::nvm
