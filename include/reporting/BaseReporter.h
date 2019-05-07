@@ -1,10 +1,19 @@
 #pragma once
 #include "Common.h"
+#include "SourceLineStorage.h"
 #include "clang/StaticAnalyzer/Core/BugReporter/BugType.h"
-
 namespace clang::ento::nvm {
 
 using BugPtr = std::unique_ptr<BugType>;
+
+struct BugReportData {
+  const NamedDecl* ND;
+  ProgramStateRef& State;
+  CheckerContext& C;
+  const ExplodedNode* const EN;
+  const char* msg;
+  const BugPtr& bugPtr;
+};
 
 class BaseReporter {
 protected:
@@ -22,32 +31,21 @@ protected:
     return ErrorOs.str();
   }
 
-  void reportDirect(SVal* Loc, const std::string& ErrMsg,
-                    const ExplodedNode* const EN, const BugPtr& bugPtr,
-                    BugReporter& BReporter) const {
-    auto Report = llvm::make_unique<BugReport>(*bugPtr, ErrMsg, EN);
-    if (Loc) {
-      Report->markInteresting(*Loc);
-    }
-    BReporter.emitReport(std::move(Report));
-  }
-
 public:
-  void report(CheckerContext& C, const NamedDecl* ND, const char* msg,
-              SVal* Loc, const ExplodedNode* const EN,
-              const BugPtr& bugPtr) const {
+  void report(BugReportData& BRData) const {
+    auto& [ND, State, C, EN, msg, bugPtr] = BRData;
     BugReporter& BReporter = C.getBugReporter();
     std::string ErrMsg = getErrorMessage(C, ND, msg);
-    reportDirect(Loc, ErrMsg, EN, bugPtr, BReporter);
-  }
+    auto Report = llvm::make_unique<BugReport>(*bugPtr, ErrMsg, EN);
 
-  void report(CheckerContext& C, const NamedDecl* ND1, const NamedDecl* ND2,
-              const char* msg, SVal* Loc, const ExplodedNode* const EN,
-              const BugPtr& bugPtr) const {
-    const NamedDecl* ND = (ND1) ? ND1 : ND2;
-    BugReporter& BReporter = C.getBugReporter();
-    std::string ErrMsg = getErrorMessage(C, ND, msg);
-    reportDirect(Loc, ErrMsg, EN, bugPtr, BReporter);
+    TransitionStoreTy LineStore = SlSpace::getSRStore(State);
+    if (!LineStore.isEmpty()) {
+      for (auto slRange : LineStore) {
+        Report->addRange(slRange.getSR());
+      }
+    }
+
+    BReporter.emitReport(std::move(Report));
   }
 };
 

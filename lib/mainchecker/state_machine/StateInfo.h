@@ -19,7 +19,8 @@ private:
     DBG("report")
     if (ExplodedNode* EN = this->C.generateErrorNode()) {
       DBG("generate error node")
-      this->BR.report(this->C, ND, msg, this->Loc, EN, bugPtr);
+      BugReportData BRData{ND, this->State, this->C, EN, msg, bugPtr};
+      this->BR.report(BRData);
     }
   }
 
@@ -33,9 +34,9 @@ private:
 
 public:
   StateInfo(CheckerContext& C_, ProgramStateRef& State_,
-            const MainBugReporter& BR_, SVal* Loc_, const Stmt* S_,
-            const PairInfo* PI_, const NamedDecl* ND_)
-      : StateIn(C_, State_, BR_, Loc_, S_), PI(PI_), ND(ND_) {}
+            const MainBugReporter& BR_, const Stmt* S_, const PairInfo* PI_,
+            const NamedDecl* ND_)
+      : StateIn(C_, State_, BR_, S_), PI(PI_), ND(ND_) {}
 
   bool isScl() const { return this->PI->isSameCl(); }
 

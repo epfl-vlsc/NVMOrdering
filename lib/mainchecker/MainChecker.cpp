@@ -62,7 +62,7 @@ void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   bool isCheck = false;
 
   if (const FieldDecl* FD = getFDFromLoc(Loc); FD) {
-    HandleInfo HI{State, &Loc, S, C, stateChanged, isCheck};
+    HandleInfo HI{State, C, S, stateChanged, isCheck};
     handleWrite(FD, HI);
     if (!isCheck) {
       const RecordDecl* RD = FD->getParent();
@@ -70,16 +70,16 @@ void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
     }
   }
 
-  addStateTransition(State, C, stateChanged);
+  addStateTransition(State, S, C, stateChanged);
 }
 
 void MainChecker::handleWrite(const NamedDecl* ND, HandleInfo& HI) const {
-  auto& [State, Loc, S, C, stateChanged, isCheck] = HI;
+  auto& [State, C, S, stateChanged, isCheck] = HI;
   if (mainVars.isUsedVar(ND)) {
     DBG("write " << ND->getNameAsString())
     auto& pairList = mainVars.getPairList(ND);
     for (auto& PI : pairList) {
-      auto SI = StateInfo(C, State, BReporter, Loc, S, PI, ND);
+      auto SI = StateInfo(C, State, BReporter, S, PI, ND);
       Transitions::write(SI);
       stateChanged |= SI.stateChanged;
       isCheck |= SI.isCheck();
@@ -121,8 +121,10 @@ void MainChecker::handleFence(const CallEvent& Call, CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
+  const Expr* E = Call.getOriginExpr();
+
   for (auto& [PI, _] : State->get<WriteMap>()) {
-    auto SI = StateInfo(C, State, BReporter, nullptr, nullptr, PI, nullptr);
+    auto SI = StateInfo(C, State, BReporter, E, PI, nullptr);
 
     if constexpr (pfence == true)
       Transitions::pfence(SI);
@@ -132,7 +134,7 @@ void MainChecker::handleFence(const CallEvent& Call, CheckerContext& C) const {
     stateChanged |= SI.stateChanged;
   }
 
-  addStateTransition(State, C, stateChanged);
+  addStateTransition(State, E, C, stateChanged);
 }
 
 template <bool fence>
@@ -149,8 +151,9 @@ void MainChecker::handleFlushFnc(const CallEvent& Call,
   bool _ = false;
 
   SVal Loc = Call.getArgSVal(0);
+  const Expr* E = Call.getOriginExpr();
 
-  HandleInfo HI{State, &Loc, nullptr, C, stateChanged, _};
+  HandleInfo HI{State, C, E, stateChanged, _};
   if (const FieldDecl* FD = getFDFromLoc(Loc); FD) {
     handleFlush<fence>(FD, HI);
   } else if (const RecordDecl* RD = getRDFromRecordLoc(Loc); RD) {
@@ -167,17 +170,17 @@ void MainChecker::handleFlushFnc(const CallEvent& Call,
     }
   }
 
-  addStateTransition(State, C, stateChanged);
+  addStateTransition(State, E, C, stateChanged);
 }
 
 template <bool fence>
 void MainChecker::handleFlush(const NamedDecl* ND, HandleInfo& HI) const {
-  auto& [State, Loc, S, C, stateChanged, isData] = HI;
+  auto& [State, C, E, stateChanged, isData] = HI;
   if (mainVars.isUsedVar(ND)) {
     DBG("flush " << ND->getNameAsString())
     auto& pairList = mainVars.getPairList(ND);
     for (auto& PI : pairList) {
-      auto SI = StateInfo(C, State, BReporter, Loc, nullptr, PI, ND);
+      auto SI = StateInfo(C, State, BReporter, E, PI, ND);
 
       if constexpr (fence == true)
         Transitions::flushFence(SI);
@@ -193,10 +196,15 @@ void MainChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
 
 }
 
-void MainChecker::addStateTransition(ProgramStateRef& State, CheckerContext& C,
+void MainChecker::addStateTransition(ProgramStateRef& State, const Stmt* S,
+                                     CheckerContext& C,
                                      bool stateChanged) const {
   if (stateChanged) {
     DBG("state transition")
+    if(S){
+      SourceRange SR = S->getSourceRange();
+      SlSpace::saveSR(State, SR);
+    }
     C.addTransition(State);
   }
 }

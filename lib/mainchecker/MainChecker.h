@@ -34,24 +34,23 @@ public:
 private:
   struct HandleInfo {
     ProgramStateRef& State;
-    SVal* Loc;
-    const Stmt* S;
     CheckerContext& C;
+    const Stmt* S;
     bool& stateChanged;
     bool& isCheck;
   };
 
-  void addStateTransition(ProgramStateRef& State, CheckerContext& C,
-                          bool stateChanged) const;
+  void addStateTransition(ProgramStateRef& State, const Stmt* S,
+                          CheckerContext& C, bool stateChanged) const;
 
   template <bool fence>
   void handleFlushFnc(const CallEvent& Call, CheckerContext& C) const;
 
-  template <bool fence>
-  void handleFlush(const NamedDecl* ND, HandleInfo& HI) const;
-
   template <bool pfence>
   void handleFence(const CallEvent& Call, CheckerContext& C) const;
+
+  template <bool fence>
+  void handleFlush(const NamedDecl* ND, HandleInfo& HI) const;
 
   void handleWrite(const NamedDecl* ND, HandleInfo& HI) const;
 
