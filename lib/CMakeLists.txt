@@ -5,4 +5,5 @@
 #add_subdirectory(logchecker)
 #add_subdirectory(mcchecker)
 #add_subdirectory(expchecker)
-add_subdirectory(mainchecker)
+#add_subdirectory(mainchecker)
+add_subdirectory(ptrchecker)
