@@ -10,6 +10,8 @@
 #define sentinelp(CHECKER) __attribute((annotate("pair-" TOSTRING(CHECKER))))
 #define sentinel __attribute((annotate("sent")))
 
+#define pptr __attribute((annotate("pptr")))
+
 #define analyze_writes __attribute((annotate("PersistentCode")))
 #define analyze_recovery __attribute((annotate("RecoveryCode")))
 #define analyze_safe __attribute((annotate("SafeCode")))
