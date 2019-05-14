@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "parser/Parser.h"
+#include "state_machine/StateMachine.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.ptrchecker";
 
@@ -15,11 +16,11 @@ class PtrChecker
   using PtrVars = AnnotVar;
 
 public:
-  PtrChecker() : ptrVars("pptr"){}
+  PtrChecker() : BReporter(*this), ptrVars("pptr") {}
 
   void checkBeginFunction(CheckerContext& Ctx) const;
 
-  void checkEndFunction(CheckerContext& C) const;
+  void checkEndFunction(const ReturnStmt *RS, CheckerContext &C) const;
 
   void checkPreCall(const CallEvent& Call, CheckerContext& C) const;
 
@@ -36,13 +37,12 @@ public:
   bool evalCall(const CallExpr* CE, CheckerContext& C) const;
 
 private:
-  void addStateTransition(ProgramStateRef& State, const Stmt* S,
-                          CheckerContext& C, bool stateChanged) const;
 
   void handleFlushFenceFnc(const CallEvent& Call, CheckerContext& C) const;
 
   void handleEnd(CheckerContext& C) const;
 
+  const PtrBugReporter BReporter;
   mutable PtrFncs ptrFncs;
   mutable PtrVars ptrVars;
 };

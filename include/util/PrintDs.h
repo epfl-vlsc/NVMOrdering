@@ -14,6 +14,8 @@ void printND(const NamedDecl* ND, const char* msg, bool isQualified = false) {
   llvm::errs() << "\n";
 }
 
+void printMsg(const char* msg) { llvm::errs() << msg << "\n"; }
+
 void printLoc(const SVal& Loc, const char* msg) {
   llvm::errs() << msg << ":";
   Loc.dump();

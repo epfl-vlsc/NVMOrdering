@@ -1,6 +1,7 @@
 #todo
 * break circular dependency
 
+* clang 8.0.0
 
 ## How to build for the first time ##
 

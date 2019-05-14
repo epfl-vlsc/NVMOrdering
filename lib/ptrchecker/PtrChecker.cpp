@@ -34,7 +34,7 @@ void PtrChecker::handleEnd(CheckerContext& C) const {
     return;
 }
 
-void PtrChecker::checkEndFunction(CheckerContext& C) const {
+void PtrChecker::checkEndFunction(const ReturnStmt *RS, CheckerContext &C) const {
   DBG("checkEndFunction")
   /*
   bool isAnnotated = orderFncs.isPersistentFunction(C);
@@ -53,21 +53,27 @@ void PtrChecker::checkEndFunction(CheckerContext& C) const {
 void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
   DBG("checkBind")
+  printMsg("bind");
   ProgramStateRef State = C.getState();
-  bool stateChanged = false;
 
-  /*
-  if (const FieldDecl* FD = getFDFromLoc(Loc); FD) {
-    HandleInfo HI{State, C, S, stateChanged, isCheck};
-    handleWrite(FD, HI);
-    if (!isCheck) {
-      const RecordDecl* RD = FD->getParent();
-      handleWrite(RD, HI);
+  // check tainted
+  if (const FieldDecl* FD = getFDFromLoc(Loc); ptrVars.inValues(FD)) {
+    printLoc(Loc, "loc");
+
+    if (State->isTainted(Val)) {
+      llvm::errs() << "tainted----\n";
     }
   }
-  */
 
-  addStateTransition(State, S, C, stateChanged);
+  // taint written value
+  printLoc(Loc, "val");
+
+  ProgramStateRef NewState = State->addTaint(Val);
+  if (NewState != State) {
+    C.addTransition(NewState);
+  }
+
+  NewState->dumpTaint();
 }
 
 void PtrChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
@@ -79,7 +85,28 @@ void PtrChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
 }
 
 void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
-                                     CheckerContext& C) const {}
+                                     CheckerContext& C) const {
+  DBG("handleFlush")
+  printMsg("flush");
+  if (Call.getNumArgs() > 2) {
+    llvm::report_fatal_error("check flush function");
+    return;
+  }
+
+  ProgramStateRef State = C.getState();
+  SVal Loc = Call.getArgSVal(0);
+  printLoc(Loc, "floc");
+
+  /*
+  ProgramStateRef NewState = removeTaint(State, Loc);
+  
+  if (NewState != State) {
+    C.addTransition(NewState);
+  }
+
+  NewState->dumpTaint();
+  */
+}
 
 bool PtrChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
   // skip evaluation of all log functions
@@ -97,21 +124,6 @@ bool PtrChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
 
 void PtrChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {}
 
-void PtrChecker::addStateTransition(ProgramStateRef& State, const Stmt* S,
-                                    CheckerContext& C,
-                                    bool stateChanged) const {
-  if (stateChanged) {
-    DBG("state transition")
-    /*
-    if(S){
-      SourceRange SR = S->getSourceRange();
-      SlSpace::saveSR(State, SR);
-    }
-    */
-    C.addTransition(State);
-  }
-}
-
 } // namespace clang::ento::nvm
 
 extern "C" const char clang_analyzerAPIVersionString[] =
@@ -119,5 +131,5 @@ extern "C" const char clang_analyzerAPIVersionString[] =
 
 extern "C" void clang_registerCheckers(clang::ento::CheckerRegistry& registry) {
   registry.addChecker<clang::ento::nvm::PtrChecker>(
-      CHECKER_PLUGIN_NAME, "Checks cache line pair usage");
+      CHECKER_PLUGIN_NAME, "Checks persistent pointer usage", "");
 }
