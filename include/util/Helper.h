@@ -241,8 +241,7 @@ const FieldDecl* getMemLogFieldDecl(const SVal& Loc) {
   return nullptr;
 }
 
-const RecordDecl* getRDFromRecordLoc(const SVal& Loc) {
-  const MemRegion* Region = Loc.getAsRegion();
+const RecordDecl* getMemRecordDecl(const MemRegion* Region) {
   if (!Region) {
     return nullptr;
   } else if (const SymbolicRegion* ObjReg = Region->getAs<SymbolicRegion>()) {
@@ -260,6 +259,11 @@ const RecordDecl* getRDFromRecordLoc(const SVal& Loc) {
   }
 
   return nullptr;
+}
+
+const RecordDecl* getMemRecordDecl(const SVal& Loc) {
+  const MemRegion* Region = Loc.getAsRegion();
+  return getMemRecordDecl(Region);
 }
 
 const VarDecl* getVarDecl(const MemRegion* ParentRegion) {

@@ -38,7 +38,8 @@ void MainChecker::handleEnd(CheckerContext& C) const {
     return;
 }
 
-void MainChecker::checkEndFunction(CheckerContext& C) const {
+void MainChecker::checkEndFunction(const ReturnStmt* RS,
+                                   CheckerContext& C) const {
   DBG("checkEndFunction")
   /*
   bool isAnnotated = orderFncs.isPersistentFunction(C);
@@ -61,7 +62,7 @@ void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   bool stateChanged = false;
   bool isCheck = false;
 
-  if (const FieldDecl* FD = getFDFromLoc(Loc); FD) {
+  if (const FieldDecl* FD = getMemFieldDecl(Loc); FD) {
     HandleInfo HI{State, C, S, stateChanged, isCheck};
     handleWrite(FD, HI);
     if (!isCheck) {
@@ -154,9 +155,9 @@ void MainChecker::handleFlushFnc(const CallEvent& Call,
   const Expr* E = Call.getOriginExpr();
 
   HandleInfo HI{State, C, E, stateChanged, _};
-  if (const FieldDecl* FD = getFDFromLoc(Loc); FD) {
+  if (const FieldDecl* FD = getMemFieldDecl(Loc); FD) {
     handleFlush<fence>(FD, HI);
-  } else if (const RecordDecl* RD = getRDFromRecordLoc(Loc); RD) {
+  } else if (const RecordDecl* RD = getMemRecordDecl(Loc); RD) {
     handleFlush<fence>(RD, HI);
 
     for (const FieldDecl* FD : RD->fields()) {
@@ -201,7 +202,7 @@ void MainChecker::addStateTransition(ProgramStateRef& State, const Stmt* S,
                                      bool stateChanged) const {
   if (stateChanged) {
     DBG("state transition")
-    if(S){
+    if (S) {
       SourceRange SR = S->getSourceRange();
       SlSpace::saveSR(State, SR);
     }
@@ -216,5 +217,5 @@ extern "C" const char clang_analyzerAPIVersionString[] =
 
 extern "C" void clang_registerCheckers(clang::ento::CheckerRegistry& registry) {
   registry.addChecker<clang::ento::nvm::MainChecker>(
-      CHECKER_PLUGIN_NAME, "Checks cache line pair usage");
+      CHECKER_PLUGIN_NAME, "Checks cache line pair usage", "");
 }

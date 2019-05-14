@@ -2,7 +2,6 @@
 
 #include "../parser/PairInfo.h"
 #include "Common.h"
-#include "DbgState.h"
 #include "MainBugReporter.h"
 #include "WriteState.h"
 #include "states/StateInOut.h"

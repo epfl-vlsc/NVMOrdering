@@ -1,6 +1,5 @@
 #pragma once
 #include "Common.h"
-#include "DbgState.h"
 #include "parser/Parser.h"
 #include "state_machine/StateMachine.h"
 
@@ -18,7 +17,7 @@ public:
 
   void checkBeginFunction(CheckerContext& Ctx) const;
 
-  void checkEndFunction(CheckerContext& C) const;
+  void checkEndFunction(const ReturnStmt* RS, CheckerContext& C) const;
 
   void checkPreCall(const CallEvent& Call, CheckerContext& C) const;
 

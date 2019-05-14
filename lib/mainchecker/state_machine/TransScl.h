@@ -1,6 +1,5 @@
 #pragma once
 #include "Common.h"
-#include "DbgState.h"
 #include "StateInfo.h"
 namespace clang::ento::nvm::SclSpace {
 

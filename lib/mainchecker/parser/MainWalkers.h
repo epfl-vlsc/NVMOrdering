@@ -1,9 +1,9 @@
 #pragma once
 #include "AutoCl.h"
 #include "Common.h"
-#include "MainFncs.h"
 #include "MainVars.h"
 #include "PairInfo.h"
+#include "identify/MainFncs.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang::ento::nvm {
