@@ -11,6 +11,10 @@ protected:
 public:
   bool inFunctions(const FunctionDecl* D) const { return functions.count(D); }
 
+  size_t size() { return functions.size(); }
+
+  bool empty() { return functions.empty(); }
+
   void dump() {
     for (const FunctionDecl* FD : functions) {
       llvm::outs() << FD->getQualifiedNameAsString() << "\n";

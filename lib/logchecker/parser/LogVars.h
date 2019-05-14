@@ -4,23 +4,23 @@
 namespace clang::ento::nvm {
 
 class LogVars {
-  static constexpr const char* PERSIST = "persist";
+  static constexpr const char* LOG = "log";
 
-  AnnotVar persistField;
+  AnnotVar logField;
 
 public:
-  LogVars() : persistField(PERSIST) {}
+  LogVars() : logField(LOG) {}
 
   bool isUsedVar(const NamedDecl* ND) const {
-    return persistField.inValues(ND);
+    return logField.inValues(ND);
   }
 
   void insertIfKnown(const NamedDecl* ND) {
-    persistField.insertIfKnown(ND);
+    logField.insertIfKnown(ND);
   }
 
   void dump() {
-    persistField.dump();
+    logField.dump();
   }
 };
 

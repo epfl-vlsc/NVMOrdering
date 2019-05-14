@@ -34,7 +34,13 @@ public:
 private:
   void handleLog(const CallEvent& Call, CheckerContext& C) const;
 
+  void handleTxBeg(const CallEvent& Call, CheckerContext& C) const;
+
+  void handleTxEnd(const CallEvent& Call, CheckerContext& C) const;
+
   void handleEnd(CheckerContext& C) const;
+
+  void handleTx(ProgramStateRef& State, CheckerContext& C) const;
 
   const LogBugReporter BReporter;
   mutable LogFncs logFncs;

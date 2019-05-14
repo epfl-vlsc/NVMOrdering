@@ -9,21 +9,30 @@ const std::string LogError = "NVM Log Error";
 
 class LogBugs {
 public:
-  BugPtr DoubleLogBugType;
-  BugPtr NotLogBeforeWriteBugType;
+  BugPtr DoubleLog;
+  BugPtr NotLogBeforeWrite;
 
 protected:
   LogBugs(const CheckerBase& CB) {
-    DoubleLogBugType.reset(
-        new BugType(&CB, "Already logged", LogError));
-    NotLogBeforeWriteBugType.reset(new BugType(&CB, "Not logged", LogError));
+    DoubleLog.reset(new BugType(&CB, "Already logged", LogError));
+    NotLogBeforeWrite.reset(new BugType(&CB, "Not logged", LogError));
   }
 };
 
-class LogBugReporter : public BaseReporter, public LogBugs {
+class TxBugs {
+public:
+  BugPtr AccessOutsideTx;
+
+protected:
+  TxBugs(const CheckerBase& CB) {
+    AccessOutsideTx.reset(new BugType(&CB, "Access outside tx", LogError));
+  }
+};
+
+class LogBugReporter : public BaseReporter, public LogBugs, public TxBugs {
 
 public:
-  LogBugReporter(const CheckerBase& CB) : LogBugs(CB) {}
+  LogBugReporter(const CheckerBase& CB) : LogBugs(CB), TxBugs(CB) {}
 };
 
 } // namespace clang::ento::nvm

@@ -22,12 +22,17 @@ struct StateInfo : public StateOut, public StateIn<LogBugReporter> {
   }
 
   void reportDoubleLogBug() const {
-    auto& bugPtr = BR.DoubleLogBugType;
+    auto& bugPtr = BR.DoubleLog;
     report(bugPtr, "log twice:");
   }
 
   void reportNotLogBeforeWriteBug() const {
-    auto& bugPtr = BR.NotLogBeforeWriteBugType;
+    auto& bugPtr = BR.NotLogBeforeWrite;
+    report(bugPtr, "not logged before write:");
+  }
+
+  void reportAccessOutsideTxBug() const {
+    auto& bugPtr = BR.AccessOutsideTx;
     report(bugPtr, "not logged before write:");
   }
 

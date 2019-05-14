@@ -62,4 +62,25 @@ public:
   }
 };
 
+class LogFunction : public NamedFunction {
+public:
+  bool checkName(const IdentifierInfo* II) const {
+    return II && (II->isStr("log") || II->isStr("log_range"));
+  }
+};
+
+class TxBegFunction : public NamedFunction {
+public:
+  bool checkName(const IdentifierInfo* II) const {
+    return II && (II->isStr("tx_begin"));
+  }
+};
+
+class TxEndFunction : public NamedFunction {
+public:
+  bool checkName(const IdentifierInfo* II) const {
+    return II && (II->isStr("tx_end"));
+  }
+};
+
 } // namespace clang::ento::nvm

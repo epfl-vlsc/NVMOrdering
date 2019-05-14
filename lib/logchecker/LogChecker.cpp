@@ -21,6 +21,11 @@ void LogChecker::checkBeginFunction(CheckerContext& C) const {
   bool isTopFnc = isTopFunction(C);
 
   // if not an annotated function, do not analyze
+  if (!logFncs.checkTxMode()) {
+    logFncs.useTxMode();
+    logFncs.setTxMode();
+  }
+
   if (!isAnnotated && isTopFnc) {
     handleEnd(C);
   }
@@ -34,6 +39,10 @@ void LogChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
 
   if (logFncs.isLogFunction(FD)) {
     handleLog(Call, C);
+  } else if (logFncs.isTxBegFunction(FD)) {
+    handleTxBeg(Call, C);
+  } else if (logFncs.isTxEndFunction(FD)) {
+    handleTxEnd(Call, C);
   }
 }
 
@@ -47,12 +56,29 @@ void LogChecker::handleLog(const CallEvent& Call, CheckerContext& C) const {
 
   SVal Loc = Call.getArgSVal(0);
   const Expr* E = Call.getOriginExpr();
+
+  printLoc(Loc, "log");
   if (const NamedDecl* ND = getMemLogFieldDecl(Loc); logVars.isUsedVar(ND)) {
     DBG("log " << ND->getNameAsString())
     ProgramStateRef State = C.getState();
     auto SI = StateInfo(C, State, BReporter, E, ND);
+    if (logFncs.isTxEnabled()) {
+      TxSpace::checkTx(SI);
+    }
     LogSpace::logData(SI);
   }
+}
+
+void LogChecker::handleTxBeg(const CallEvent& Call, CheckerContext& C) const {
+  DBG("handleTxBegin")
+  ProgramStateRef State = C.getState();
+  TxSpace::begTx(State, C);
+}
+
+void LogChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
+  DBG("handleTxEnd")
+  ProgramStateRef State = C.getState();
+  TxSpace::endTx(State, C);
 }
 
 bool LogChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
@@ -62,7 +88,7 @@ bool LogChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
     return false;
   }
 
-  if (logFncs.isLogFunction(FD)) {
+  if (logFncs.isUsedFnc(FD)) {
     return true;
   }
 
@@ -73,10 +99,14 @@ void LogChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
   DBG("checkBind")
 
+  printLoc(Loc, "loc");
   if (const NamedDecl* ND = getMemFieldDecl(Loc); logVars.isUsedVar(ND)) {
     DBG("write " << ND->getNameAsString())
     ProgramStateRef State = C.getState();
     auto SI = StateInfo(C, State, BReporter, S, ND);
+    if (logFncs.isTxEnabled()) {
+      TxSpace::checkTx(SI);
+    }
     LogSpace::writeData(SI);
   }
 }

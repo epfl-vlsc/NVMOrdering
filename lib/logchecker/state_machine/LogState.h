@@ -25,3 +25,4 @@ public:
 
 REGISTER_MAP_WITH_PROGRAMSTATE(LogMap, const clang::NamedDecl*,
                                clang::ento::nvm::LogState)
+REGISTER_TRAIT_WITH_PROGRAMSTATE(TxCounter, unsigned)
