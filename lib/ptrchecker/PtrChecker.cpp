@@ -34,7 +34,8 @@ void PtrChecker::handleEnd(CheckerContext& C) const {
     return;
 }
 
-void PtrChecker::checkEndFunction(const ReturnStmt *RS, CheckerContext &C) const {
+void PtrChecker::checkEndFunction(const ReturnStmt* RS,
+                                  CheckerContext& C) const {
   DBG("checkEndFunction")
   /*
   bool isAnnotated = orderFncs.isPersistentFunction(C);
@@ -60,20 +61,22 @@ void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   if (const FieldDecl* FD = getFDFromLoc(Loc); ptrVars.inValues(FD)) {
     printLoc(Loc, "loc");
 
-    if (State->isTainted(Val)) {
-      llvm::errs() << "tainted----\n";
+    if (Transitions::isPtrWritten(State, Val)) {
+      if (ExplodedNode* EN = C.generateErrorNode()) {
+        DBG("generate error node")
+        BugReportData BRData{nullptr, State,         C,
+                             EN, "not flushed", BReporter.NotFlushBug};
+        BReporter.report(BRData);
+      }
     }
   }
 
   // taint written value
-  printLoc(Loc, "val");
-
-  ProgramStateRef NewState = State->addTaint(Val);
+  printLoc(Val, "val");
+  ProgramStateRef NewState = Transitions::writePtr(State, Val);
   if (NewState != State) {
     C.addTransition(NewState);
   }
-
-  NewState->dumpTaint();
 }
 
 void PtrChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
@@ -97,15 +100,10 @@ void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
   SVal Loc = Call.getArgSVal(0);
   printLoc(Loc, "floc");
 
-  /*
-  ProgramStateRef NewState = removeTaint(State, Loc);
-  
+  ProgramStateRef NewState = Transitions::flushPtr(State, Loc);
   if (NewState != State) {
     C.addTransition(NewState);
   }
-
-  NewState->dumpTaint();
-  */
 }
 
 bool PtrChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
