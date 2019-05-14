@@ -1,9 +1,9 @@
 #pragma once
 #include "clang/AST/StmtVisitor.h"
 #include "clang/StaticAnalyzer/Core/Checker.h"
-#include "clang/StaticAnalyzer/Frontend/CheckerRegistry.h"
 #include "clang/StaticAnalyzer/Core/PathSensitive/CallEvent.h"
 #include "clang/StaticAnalyzer/Core/PathSensitive/CheckerContext.h"
+#include "clang/StaticAnalyzer/Frontend/CheckerRegistry.h"
 #include "llvm/Support/raw_ostream.h"
 #include <array>
 #include <map>
@@ -181,8 +181,20 @@ const ValueDecl* getValueDecl(const MemRegion* Region) {
   return nullptr;
 }
 
-const FieldDecl* getFDFromLoc(const SVal& Loc) {
+const ValueDecl* getValueDecl(const SVal& Loc) {
   const MemRegion* Region = Loc.getAsRegion();
+  return getValueDecl(Region);
+}
+
+const ValueDecl* getValueDecl(const char* D) {
+  if (!D) {
+    return nullptr;
+  }
+  const Decl* BD = (const Decl*)D;
+  return getValueDecl(BD);
+}
+
+const FieldDecl* getMemFieldDecl(const MemRegion* Region) {
   if (!Region) {
     return nullptr;
   } else if (const FieldRegion* FieldReg = Region->getAs<FieldRegion>()) {
@@ -190,6 +202,40 @@ const FieldDecl* getFDFromLoc(const SVal& Loc) {
     if (const FieldDecl* FD = dyn_cast_or_null<FieldDecl>(BD)) {
       return FD;
     }
+  }
+
+  return nullptr;
+}
+
+const FieldDecl* getMemFieldDecl(const SVal& Loc) {
+  const MemRegion* Region = Loc.getAsRegion();
+  return getMemFieldDecl(Region);
+}
+
+const FieldDecl* getMemSymFieldDecl(const MemRegion* Region) {
+  if (!Region) {
+    return nullptr;
+  } else if (const SymbolicRegion* SymReg = Region->getAs<SymbolicRegion>()) {
+    SymbolRef SR = SymReg->getSymbol();
+    const MemRegion* FMR = SR->getOriginRegion();
+    if (const FieldDecl* FD = getMemFieldDecl(FMR); FD) {
+      return FD;
+    }
+  }
+  return nullptr;
+}
+
+const FieldDecl* getMemSymFieldDecl(const SVal& Loc) {
+  const MemRegion* Region = Loc.getAsRegion();
+  return getMemSymFieldDecl(Region);
+}
+
+const FieldDecl* getMemLogFieldDecl(const SVal& Loc) {
+  const MemRegion* Region = Loc.getAsRegion();
+  if (const FieldDecl* FD = getMemFieldDecl(Region); FD) {
+    return FD;
+  } else if (const FieldDecl* FD = getMemSymFieldDecl(Region); FD) {
+    return FD;
   }
 
   return nullptr;
@@ -216,19 +262,6 @@ const RecordDecl* getRDFromRecordLoc(const SVal& Loc) {
   return nullptr;
 }
 
-const ValueDecl* getValueDecl(const SVal& Loc) {
-  const MemRegion* Region = Loc.getAsRegion();
-  return getValueDecl(Region);
-}
-
-const ValueDecl* getValueDecl(const char* D) {
-  if (!D) {
-    return nullptr;
-  }
-  const Decl* BD = (const Decl*)D;
-  return getValueDecl(BD);
-}
-
 const VarDecl* getVarDecl(const MemRegion* ParentRegion) {
   if (!ParentRegion) {
     return nullptr;
@@ -250,29 +283,6 @@ bool isPtrRegion(const VarRegion* VarReg) {
 
 const VarDecl* getVDFromVarReg(const VarRegion* VarReg) {
   return VarReg->getDecl();
-}
-
-const NamedDecl* getSymLayeredField(const MemRegion* MR) {
-  if (const SymbolicRegion* SymReg = MR->getAs<SymbolicRegion>()) {
-    SymbolRef SR = SymReg->getSymbol();
-    const MemRegion* FMR = SR->getOriginRegion();
-    if (const NamedDecl* ND = getValueDecl(FMR); ND) {
-      return ND;
-    }
-  }
-  return nullptr;
-}
-
-const NamedDecl* getLoggedField(const MemRegion* MR) {
-  if (!MR) {
-    return nullptr;
-  } else if (const NamedDecl* ND = getValueDecl(MR); ND) {
-    return ND;
-  } else if (const NamedDecl* ND = getSymLayeredField(MR); ND) {
-    return ND;
-  }
-
-  return nullptr;
 }
 
 const RecordDecl* getRecordDecl(QualType& QT) {

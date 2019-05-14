@@ -17,7 +17,6 @@ void PtrChecker::checkASTDecl(const FieldDecl* FD, AnalysisManager& Mgr,
 
 void PtrChecker::checkBeginFunction(CheckerContext& C) const {
   DBG("checkBeginFunction")
-  /*
   bool isAnnotated = ptrFncs.isPersistentFunction(C);
   bool isTopFnc = isTopFunction(C);
 
@@ -25,7 +24,6 @@ void PtrChecker::checkBeginFunction(CheckerContext& C) const {
   if (!isAnnotated && isTopFnc) {
     handleEnd(C);
   }
-  */
 }
 
 void PtrChecker::handleEnd(CheckerContext& C) const {
@@ -54,25 +52,21 @@ void PtrChecker::checkEndFunction(const ReturnStmt* RS,
 void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
   DBG("checkBind")
-  printMsg("bind");
   ProgramStateRef State = C.getState();
 
   // check tainted
-  if (const FieldDecl* FD = getFDFromLoc(Loc); ptrVars.inValues(FD)) {
-    printLoc(Loc, "loc");
-
+  if (const FieldDecl* FD = getMemFieldDecl(Loc); ptrVars.inValues(FD)) {
     if (Transitions::isPtrWritten(State, Val)) {
       if (ExplodedNode* EN = C.generateErrorNode()) {
         DBG("generate error node")
         BugReportData BRData{nullptr, State,         C,
-                             EN, "not flushed", BReporter.NotFlushBug};
+                             EN,      "not flushed", BReporter.NotFlushBug};
         BReporter.report(BRData);
       }
     }
   }
 
   // taint written value
-  printLoc(Val, "val");
   ProgramStateRef NewState = Transitions::writePtr(State, Val);
   if (NewState != State) {
     C.addTransition(NewState);
@@ -90,7 +84,6 @@ void PtrChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
 void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
                                      CheckerContext& C) const {
   DBG("handleFlush")
-  printMsg("flush");
   if (Call.getNumArgs() > 2) {
     llvm::report_fatal_error("check flush function");
     return;
@@ -98,8 +91,6 @@ void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
 
   ProgramStateRef State = C.getState();
   SVal Loc = Call.getArgSVal(0);
-  printLoc(Loc, "floc");
-
   ProgramStateRef NewState = Transitions::flushPtr(State, Loc);
   if (NewState != State) {
     C.addTransition(NewState);
