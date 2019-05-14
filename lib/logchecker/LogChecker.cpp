@@ -46,15 +46,13 @@ void LogChecker::handleLog(const CallEvent& Call, CheckerContext& C) const {
   }
 
   SVal Loc = Call.getArgSVal(0);
-  const MemRegion* Region = Loc.getAsRegion();
-  if (const NamedDecl* ND = getLoggedField(Region); ND) {
-    if (logVars.isUsedVar(ND)) {
-      DBG("log " << ND->getNameAsString())
-      ProgramStateRef State = C.getState();
-      auto SI = StateInfo(C, State, BReporter, &Loc, nullptr, ND);
-      LogSpace::logData(SI);
-    }
-  } 
+  const Expr* E = Call.getOriginExpr();
+  if (const NamedDecl* ND = getMemLogFieldDecl(Loc); logVars.isUsedVar(ND)) {
+    DBG("log " << ND->getNameAsString())
+    ProgramStateRef State = C.getState();
+    auto SI = StateInfo(C, State, BReporter, E, ND);
+    LogSpace::logData(SI);
+  }
 }
 
 bool LogChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
@@ -71,24 +69,16 @@ bool LogChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
   return false;
 }
 
-
 void LogChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
   DBG("checkBind")
 
-  const MemRegion* Region = Loc.getAsRegion();
-  if(!Region){
-    return;
+  if (const NamedDecl* ND = getMemFieldDecl(Loc); logVars.isUsedVar(ND)) {
+    DBG("write " << ND->getNameAsString())
+    ProgramStateRef State = C.getState();
+    auto SI = StateInfo(C, State, BReporter, S, ND);
+    LogSpace::writeData(SI);
   }
-
-  if (const NamedDecl* ND = getValueDecl(Region); ND) {
-    if (logVars.isUsedVar(ND)) {
-      DBG("write " << ND->getNameAsString())
-      ProgramStateRef State = C.getState();
-      auto SI = StateInfo(C, State, BReporter, &Loc, S, ND);
-      LogSpace::writeData(SI);
-    }
-  } 
 }
 
 void LogChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {}
@@ -106,5 +96,5 @@ extern "C" const char clang_analyzerAPIVersionString[] =
 
 extern "C" void clang_registerCheckers(clang::ento::CheckerRegistry& registry) {
   registry.addChecker<clang::ento::nvm::LogChecker>(CHECKER_PLUGIN_NAME,
-                                                    "Checks logging use");
+                                                    "Checks logging use", "");
 }

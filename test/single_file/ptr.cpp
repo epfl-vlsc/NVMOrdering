@@ -20,5 +20,10 @@ struct Ptr {
   void analyze_writes notFlushed() {
     Ptr* ptr = new Ptr;
     this->next = ptr;
-  }  
+  }
+
+  void unanalyzed() {
+    Ptr* ptr = new Ptr;
+    this->next = ptr;
+  }    
 };

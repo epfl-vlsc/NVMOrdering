@@ -1,9 +1,8 @@
 // transaction pmdk checker
 #pragma once
 #include "Common.h"
-#include "DbgState.h"
 #include "parser/Parser.h"
-#include "state_machine/Transitions.h"
+#include "state_machine/StateMachine.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.logchecker";
 

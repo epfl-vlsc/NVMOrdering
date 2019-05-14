@@ -9,15 +9,15 @@ struct StateInfo : public StateOut, public StateIn<LogBugReporter> {
   const NamedDecl* ND;
 
   StateInfo(CheckerContext& C_, ProgramStateRef& State_,
-            const LogBugReporter& BR_, SVal* Loc_, const Stmt* S_,
-            const NamedDecl* ND_)
-      : StateIn<LogBugReporter>(C_, State_, BR_, Loc_, S_), ND(ND_) {}
+            const LogBugReporter& BR_, const Stmt* S_, const NamedDecl* ND_)
+      : StateIn<LogBugReporter>(C_, State_, BR_, S_), ND(ND_) {}
 
   void report(const BugPtr& bugPtr, const char* msg) const {
     DBG("report")
     if (ExplodedNode* EN = this->C.generateErrorNode()) {
       DBG("generate error node")
-      this->BR.report(this->C, ND, msg, this->Loc, EN, bugPtr);
+      BugReportData BRData{ND, this->State, this->C, EN, msg, bugPtr};
+      this->BR.report(BRData);
     }
   }
 
@@ -31,9 +31,7 @@ struct StateInfo : public StateOut, public StateIn<LogBugReporter> {
     report(bugPtr, "not logged before write:");
   }
 
-  void addTransition(){
-    C.addTransition(State);
-  }
+  void addTransition() { C.addTransition(State); }
 };
 
 } // namespace clang::ento::nvm
