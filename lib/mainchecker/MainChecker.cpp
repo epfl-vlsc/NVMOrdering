@@ -61,6 +61,8 @@ void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   bool isCheck = false;
 
   if (const FieldDecl* FD = getMemFieldDecl(Loc); FD) {
+    DBGS(S, "bind")
+    DBGL(Loc, "bind")
     HandleInfo HI{State, C, S, stateChanged, isCheck};
     handleWrite(FD, HI);
     if (!isCheck) {
@@ -75,7 +77,7 @@ void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
 void MainChecker::handleWrite(const NamedDecl* ND, HandleInfo& HI) const {
   auto& [State, C, S, stateChanged, isCheck] = HI;
   if (mainVars.isUsedVar(ND)) {
-    DBG("write " << ND->getNameAsString())
+    DBG("write " << ND->getQualifiedNameAsString())
     auto& pairList = mainVars.getPairList(ND);
     for (auto& PI : pairList) {
       auto SI = StateInfo(C, State, BReporter, S, PI, ND);
@@ -150,6 +152,9 @@ void MainChecker::handleFlushFnc(const CallEvent& Call,
   SVal Loc = Call.getArgSVal(0);
   const Expr* E = Call.getOriginExpr();
 
+  DBGS(E, "flush")
+  DBGL(Loc, "flush")
+
   HandleInfo HI{State, C, E, stateChanged, _};
   if (const FieldDecl* FD = getMemFieldDecl(Loc); FD) {
     handleFlush<fence>(FD, HI);
@@ -174,7 +179,7 @@ template <bool fence>
 void MainChecker::handleFlush(const NamedDecl* ND, HandleInfo& HI) const {
   auto& [State, C, E, stateChanged, isData] = HI;
   if (mainVars.isUsedVar(ND)) {
-    DBG("flush " << ND->getNameAsString())
+    DBG("flush " << ND->getQualifiedNameAsString())
     auto& pairList = mainVars.getPairList(ND);
     for (auto& PI : pairList) {
       auto SI = StateInfo(C, State, BReporter, E, PI, ND);
@@ -183,7 +188,6 @@ void MainChecker::handleFlush(const NamedDecl* ND, HandleInfo& HI) const {
         Transitions::flushFence(SI);
       else
         Transitions::flush(SI);
-
       stateChanged |= SI.stateChanged;
     }
   }
