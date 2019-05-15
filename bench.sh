@@ -100,6 +100,26 @@ fi
 
 #echo--------------------------------------------------------
 
+#nstore------------------------------------------------------  
+NSTORE_SRCS=(plist_user)
+array_contains NSTORE_SRCS ${TEST_NAME}
+res=$?
+
+if [ "$res" == "1" ] ;then
+    CC="clang++"
+    CFLAGS="-DHAVE_CONFIG_H -fsized-deallocation -Wall -Wextra \
+-Werror -ggdb -Wno-pointer-arith -O3 -D_ENABLE_FTRACE -std=c++11 \
+-fsized-deallocation -MT -MD -MP -Wno-unused-variable \
+-Wno-unused-parameter"
+    BENCH_DIR="${TEST_DIR}/nstore"
+    SRC_DIR="${BENCH_DIR}/src"
+    TEST_FILE=${SRC_DIR}/${TEST_NAME}.cpp
+    INCLUDES="-I${BENCH_DIR}/.. -I${SRC_DIR} -I${SRC_DIR}/.. \
+-I${SRC_DIR}/common"
+fi
+
+#nstore------------------------------------------------------
+
 PATCH_DIR="${TEST_DIR}/patch"
 PATCH_FILE="${PATCH_DIR}/${TOOL_NAME}_${PATCH_NO}_${TEST_NAME}.txt"
 #initialize info---------------------------------------------

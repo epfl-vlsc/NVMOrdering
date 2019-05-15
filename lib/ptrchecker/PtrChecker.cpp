@@ -51,8 +51,10 @@ void PtrChecker::checkEndFunction(const ReturnStmt* RS,
 
 void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
-  DBG("checkBind")
   ProgramStateRef State = C.getState();
+
+  DBGL(Loc, "bind")
+  DBGS(S, "bind")
 
   // check tainted
   if (const FieldDecl* FD = getMemFieldDecl(Loc); ptrVars.inValues(FD)) {
@@ -83,7 +85,6 @@ void PtrChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
 
 void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
                                      CheckerContext& C) const {
-  DBG("handleFlush")
   if (Call.getNumArgs() > 2) {
     llvm::report_fatal_error("check flush function");
     return;
@@ -91,6 +92,10 @@ void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
 
   ProgramStateRef State = C.getState();
   SVal Loc = Call.getArgSVal(0);
+  const Expr* E = Call.getOriginExpr();
+  DBGL(Loc, "flush")
+  DBGS(E, "flush")
+
   ProgramStateRef NewState = Transitions::flushPtr(State, Loc);
   if (NewState != State) {
     C.addTransition(NewState);
