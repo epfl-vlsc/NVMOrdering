@@ -15,9 +15,8 @@ public:
 private:
   void report(const BugPtr& bugPtr, const char* msg,
               const NamedDecl* ND) const {
-    DBG("report")
+    DBG("report bug " << msg)
     if (ExplodedNode* EN = this->C.generateErrorNode()) {
-      DBG("generate error node")
       BugReportData BRData{ND, this->State, this->C, EN, msg, bugPtr};
       this->BR.report(BRData);
     }

@@ -374,4 +374,9 @@ public:
   std::set<const DeclaratorDecl*>& getFieldSet() { return fieldSet; }
 };
 
+std::string getFunctionDeclName(CheckerContext& C) {
+  const FunctionDecl* FD = getFuncDecl(C);
+  return FD->getQualifiedNameAsString();
+}
+
 } // namespace clang::ento::nvm

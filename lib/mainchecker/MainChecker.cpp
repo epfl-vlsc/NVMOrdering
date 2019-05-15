@@ -21,8 +21,6 @@ void MainChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
 }
 
 void MainChecker::checkBeginFunction(CheckerContext& C) const {
-
-  DBG("checkBeginFunction")
   bool isAnnotated = mainFncs.isPersistentFunction(C);
   bool isTopFnc = isTopFunction(C);
 
@@ -30,6 +28,8 @@ void MainChecker::checkBeginFunction(CheckerContext& C) const {
   if (!isAnnotated && isTopFnc) {
     handleEnd(C);
   }
+
+  DBG("Function:" << getFunctionDeclName(C))
 }
 
 void MainChecker::handleEnd(CheckerContext& C) const {
@@ -40,7 +40,6 @@ void MainChecker::handleEnd(CheckerContext& C) const {
 
 void MainChecker::checkEndFunction(const ReturnStmt* RS,
                                    CheckerContext& C) const {
-  DBG("checkEndFunction")
   /*
   bool isAnnotated = orderFncs.isPersistentFunction(C);
   bool isTopFnc = isTopFunction(C);
@@ -57,7 +56,6 @@ void MainChecker::checkEndFunction(const ReturnStmt* RS,
 
 void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                             CheckerContext& C) const {
-  DBG("checkBind")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
   bool isCheck = false;
@@ -118,7 +116,6 @@ bool MainChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
 
 template <bool pfence>
 void MainChecker::handleFence(const CallEvent& Call, CheckerContext& C) const {
-  DBG("handlePfence")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
@@ -141,7 +138,6 @@ void MainChecker::handleFence(const CallEvent& Call, CheckerContext& C) const {
 template <bool fence>
 void MainChecker::handleFlushFnc(const CallEvent& Call,
                                  CheckerContext& C) const {
-  DBG("handleFlush")
   if (Call.getNumArgs() > 2) {
     llvm::report_fatal_error("check flush function");
     return;
@@ -194,14 +190,26 @@ void MainChecker::handleFlush(const NamedDecl* ND, HandleInfo& HI) const {
 }
 
 void MainChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
+  if (usesName(S, "use_nvm")) {
+    ProgramStateRef State = C.getState();
+    const LocationContext* LC = C.getLocationContext();
+    SVal Val = State->getSVal(S, LC);
+    Optional<DefinedOrUnknownSVal> DVal = Val.getAs<DefinedOrUnknownSVal>();
 
+    if (!DVal) {
+      DBG("undef");
+      handleEnd(C);
+    }
+
+    State = State->assume(*DVal, true);
+    C.addTransition(State);
+  }
 }
 
 void MainChecker::addStateTransition(ProgramStateRef& State, const Stmt* S,
                                      CheckerContext& C,
                                      bool stateChanged) const {
   if (stateChanged) {
-    DBG("state transition")
     if (S) {
       SourceRange SR = S->getSourceRange();
       SlSpace::saveSR(State, SR);

@@ -13,13 +13,16 @@
 #define TX_END pmemobj_tx_end();
 
 //log checker
+#define log_field __attribute((annotate("log")))
 #define analyze_logging __attribute((annotate("LogCode")))
-#define logger __attribute((annotate("LogFnc")))
-#define persist __attribute((annotate("persist")))
 
 //main checker
 #define analyze_writes __attribute((annotate("PersistentCode")))
 #define sentinelp(CHECKER) __attribute((annotate("pair-" TOSTRING(CHECKER))))
+#define sentinel __attribute((annotate("sent")))
+
+//ptr checker
+#define pptr __attribute((annotate("pptr")))
 
 //rec checker
 #define analyze_recovery __attribute((annotate("RecoveryCode")))

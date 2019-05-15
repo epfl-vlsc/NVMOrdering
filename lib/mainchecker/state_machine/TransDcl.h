@@ -150,10 +150,10 @@ void flushFenceData(StateInfo& SI) {
     SI.doTransition(WriteState::KindPD());
   } else if (WS->isFlushData()) {
     DBG("isFlushData")
-    SI.reportDoubleFlushBug(true);
+    //SI.reportDoubleFlushBug(true);
   } else if (WS->isPfenceData()) {
     DBG("isPfenceData")
-    SI.reportDoubleFlushBug(true);
+    //SI.reportDoubleFlushBug(true);
   } else if (WS->isWriteCheck()) {
     DBG("isWriteCheck")
     SI.reportCommitBug(false);
@@ -192,10 +192,10 @@ void flushFenceCheck(StateInfo& SI) {
     SI.doTransition(WriteState::KindPC());
   } else if (WS->isFlushCheck()) {
     DBG("isFlushCheck")
-    SI.reportDoubleFlushBug(false);
+    //SI.reportDoubleFlushBug(false);
   } else if (WS->isPfenceCheck()) {
     DBG("isPfenceCheck")
-    SI.reportWriteBug(false);
+    //SI.reportWriteBug(false);
   } else {
     llvm::report_fatal_error("not possible");
   }
