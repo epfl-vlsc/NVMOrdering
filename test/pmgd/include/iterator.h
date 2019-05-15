@@ -145,7 +145,7 @@ namespace PMGD {
     class TransactionImpl;
 
     class PropertyRef {
-        persist uint8_t *_chunk;
+        log_field uint8_t *_chunk;
         unsigned _offset;
 
         friend class PropertyList;

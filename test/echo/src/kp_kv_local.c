@@ -47,9 +47,9 @@ struct kp_kv_local_struct {
 	   * ever change.
 	   */
 	ds_state state;
-};
+} sentinelp(kp_kv_local_struct::state);
 
-int kp_kv_local_create(kp_kv_master *master, kp_kv_local **local,
+int analyze_writes kp_kv_local_create(kp_kv_master *master, kp_kv_local **local,
 		size_t expected_max_keys, bool use_nvm)
 {
 	int ret;
@@ -176,7 +176,7 @@ int kp_kv_local_create(kp_kv_master *master, kp_kv_local **local,
 	return 0;
 }
 
-void kp_kv_local_destroy(kp_kv_local **local)
+void analyze_writes kp_kv_local_destroy(kp_kv_local **local)
 {
 	bool use_nvm;
 

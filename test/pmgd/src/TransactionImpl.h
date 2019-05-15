@@ -229,11 +229,11 @@ namespace PMGD {
               { return _iter_callbacks; }
 
             // log data; user performs the writes
-            void logger log(void *ptr, size_t len);
+            void log(void *ptr, size_t len);
 
             // log data; base to base+end
             template <typename T>
-            void logger log_range(void *base, T *end)
+            void log_range(void *base, T *end)
                 { log(base, (char *)(end + 1) - (char *)base); }
 
             // log old_val and write new_val

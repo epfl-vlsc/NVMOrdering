@@ -44,6 +44,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "annot.h"
+
 #define INITIAL_GLOBAL_SNAPSHOT 444
   // arbitrary
 #define GC_VECTOR_SIZE ((unsigned long)16)
@@ -77,7 +79,7 @@ struct kp_kvstore_struct {
 	vector *commit_log;
 	pthread_mutex_t *snapshot_lock;  //lock for the snapshot number
 	ds_state state;
-};
+} sentinelp(kp_kvstore_struct::state);
 
 /* Global variables: */
 static int kp_kvstore_count = 0;  /* unique identifier for kp_kvstores */
@@ -102,7 +104,7 @@ typedef struct kp_vte_ {
 	uint64_t snapshot;     //LOCAL only: working snapshot when inserted!
 	kp_commit_record *cr;  //MASTER only: pointer to commit record!
 	ds_state state;
-} kp_vte;
+} sentinelp(kp_vte_::state) kp_vte;
 
 /* Version tables: right now, the version table keeps track of what
  * its "current" version is, the idea being that the current version
@@ -126,7 +128,7 @@ struct kp_vt_struct {
 	vector *vtes;    //vector of version table entries
 	pthread_mutex_t *lock;  //lock for this version table
 	ds_state state;
-};
+} sentinelp(dcl-kp_vt_struct::state);
 
 /* Commit records serve several purposes: ...
  * IMPORTANT: in kp_append_to_commit_log(), it is assumed that end_snapshot
@@ -437,7 +439,7 @@ int kp_ht_entry_set(kp_ht_entry *entry, const char *key, kp_vt *vt,
  * Returns: 0 on success, -1 on error. On success, *entry is set to point
  * to the new entry.
  */
-int kp_ht_entry_create_internal(kp_ht_entry **entry, const char *key,
+int analyze_writes kp_ht_entry_create_internal(kp_ht_entry **entry, const char *key,
 		bool copy_key, kp_vt *vt, bool use_nvm)
 {
 	int ret;
@@ -917,7 +919,7 @@ bool kp_cr_is_finalized(kp_commit_record *cr)
  * it and should not take any actions based on the state without locking
  * the state_lock again. If something went wrong in this function, then
  * UNDEFINED will be returned. */
-commit_state kp_commit_state_transition(kp_commit_record *cr,
+commit_state analyze_writes kp_commit_state_transition(kp_commit_record *cr,
 		bool prev_is_finalized, bool success, bool is_owner,
 		bool detect_conflicts, bool use_nvm)
 {
@@ -1497,7 +1499,7 @@ commit_state kp_commit_state_transition(kp_commit_record *cr,
  * Returns: 0 on success, -1 on error. On success, *gc is set to point
  * to the new gc struct.
  */
-int kp_gc_create(kp_gc **gc, bool use_nvm)
+int analyze_writes kp_gc_create(kp_gc **gc, bool use_nvm)
 {
 	int ret;
 	bool use_nvm_gc;
@@ -6644,7 +6646,7 @@ void kp_commit_record_destroy(kp_commit_record **cr, bool free_keys,
 	}
 }
 
-int kp_kvpair_create(kp_kvpair **pair, const char *key, const void *value,
+int analyze_writes kp_kvpair_create(kp_kvpair **pair, const char *key, const void *value,
 		size_t size, bool use_nvm)
 {
 	/* Count this entire function towards the MASTER - this is where the

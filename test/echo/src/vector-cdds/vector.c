@@ -13,6 +13,8 @@
 #include "../kp_macros.h"
   //hacky...
 
+#include "annot.h"
+
 #define VECTOR_INIT_SIZE 8
 #define VECTOR_RESIZE_FACTOR 2
 #define VECTOR_MAX_COUNT ((unsigned long long)(0-2))
@@ -32,14 +34,14 @@
  * things.
  */
 struct vector_ {
-	void** data;               //array of void pointers
+	void** data; //array of void pointers
 	unsigned long long size;   //number of array elements allocated
 	unsigned long long count;  //number of elements in use
 	bool use_nvm;
 	ds_state state;
-};
+} sentinelp(vector_::state);
 
-int vector_create(vector **v, unsigned long long size, bool use_nvm)
+int analyze_writes vector_create(vector **v, unsigned long long size, bool use_nvm)
 {
 	unsigned long long init_size;
 
@@ -119,7 +121,7 @@ unsigned long long vector_count(const vector *v)
  * hacked this interface to return the element that used to be the last
  * element in the vector, before we appended this one. Hmmm...
  */
-int vector_append(vector *v, const void *e, void **previous_tail)
+int analyze_writes vector_append(vector *v, const void *e, void **previous_tail)
 {
 	unsigned long long orig_size, new_size;
 	int flush_size = 0;
@@ -296,7 +298,7 @@ int vector_append(vector *v, const void *e, void **previous_tail)
  *
  * This function allows NULL pointers for the element put into the array,
  * for now. */
-uint64_t vector_insert(vector *v, const void *e, vector_comparator cmp)
+uint64_t analyze_writes vector_insert(vector *v, const void *e, vector_comparator cmp)
 {
 	unsigned long long orig_size, new_size;
 	uint64_t insert_idx, shift_idx;
@@ -533,7 +535,7 @@ int vector_get(const vector *v, unsigned long long idx, void **e)
 	return 0;
 }
 
-int vector_delete(vector *v, unsigned long long idx, void **e)
+int analyze_writes vector_delete(vector *v, unsigned long long idx, void **e)
 {
 	unsigned long long i;
 	int flush_size = 0;

@@ -35,6 +35,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "annot.h"
+
 #if USE_OBSTACK
 # include "obstack.h"
 # ifndef obstack_chunk_alloc
@@ -49,7 +51,7 @@ struct hash_entry
 {
 	void *data;
 	pthread_mutex_t *lock;  //PJH
-	struct hash_entry *next;
+	pptr struct hash_entry *next;
 };
 
 struct hash_table
@@ -88,7 +90,7 @@ struct hash_table
 	Hash_data_freer data_freer;
 
 	/* A linked list of freed struct hash_entry structs.  */
-	struct hash_entry *free_entry_list;
+	pptr struct hash_entry *free_entry_list;
 
 #if USE_OBSTACK
 	/* Whenever obstacks are used, it is possible to allocate all overflowed
@@ -98,7 +100,7 @@ struct hash_table
 #endif
 	bool use_nvm;
 	ds_state state;
-};
+} sentinelp(hash_table::state);
 
 /* A hash table contains many internal entries, each holding a pointer to
    some user-provided data (also called a user entry).  An entry indistinctly
@@ -775,7 +777,7 @@ compute_bucket_size (size_t candidate, const Hash_tuning *tuning)
    simply an auxiliary struct that you have malloc'd to aggregate several
    values.  */
 /* Returns: 0 on success, -1 on failure. */
-int
+int analyze_writes
 hash_initialize (Hash_table **table, size_t candidate, const Hash_tuning *tuning,
 		Hash_hasher hasher, Hash_comparator comparator,
 		Hash_data_freer data_freer, bool use_nvm)
@@ -1025,7 +1027,7 @@ allocate_entry (Hash_table *table)
 /* Free a hash entry which was part of some bucket overflow,
    saving it for later recycling.  */
 
-static void
+static void analyze_writes
 free_entry (Hash_table *table, struct hash_entry *entry)
 {
 	ht_debug("entered: entry=%p\n", entry);
@@ -1342,7 +1344,7 @@ static bool rehash_warned = false;
  different ENTRY values that point to data that compares "equal".  Thus,
  when the ENTRY value is a simple scalar, you must use
  hash_insert_if_absent.  ENTRY must not be NULL.  */
-int
+int analyze_writes
 hash_insert_if_absent (Hash_table *table, void const *entry,
 		void const **matched_ent)
 {

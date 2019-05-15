@@ -68,8 +68,8 @@ res=$?
 if [ "$res" == "1" ] ;then
     CC="clang++"
     CFLAGS="--std=c++11  -O3 -fomit-frame-pointer -funit-at-a-time -fno-strict-aliasing \
--fno-threadsafe-statics -fnon-call-exceptions -fPIC -Wall -Wno-parentheses -Wno-conversion \
--Wno-sign-compare -DPM -DPMFLUSH=clflushopt -MP -MMD"
+-fno-threadsafe-statics -fnon-call-exceptions -fno-aligned-allocation -fPIC -Wall \
+-Wno-parentheses -Wno-conversion -Wno-sign-compare -DPM -DPMFLUSH=clflushopt -MP -MMD"
     BENCH_DIR="${TEST_DIR}/pmgd"
     TEST_FILE=${BENCH_DIR}/src/${TEST_NAME}.cc
     INCLUDES="-I${BENCH_DIR}/include -I${BENCH_DIR}/.."
@@ -79,14 +79,20 @@ fi
 
 #echo--------------------------------------------------------
 
-ECHO_SRCS=(kp_kv_master)
+ECHO_SRCS=(kp_kv_master hash kp_kv_local vector kp_kvstore)
 array_contains ECHO_SRCS ${TEST_NAME}
 res=$?
+
 if [ "$res" == "1" ] ;then
     CC="clang"
     CFLAGS="-ggdb -O0 -std=c99 -D_ENABLE_FTRACE -D_GNU_SOURCE -Wall -fPIC -c"
     BENCH_DIR="${TEST_DIR}/echo"
     SRC_DIR="${BENCH_DIR}/src"
+    if [ "$TEST_NAME" == "hash" ] ;then
+        SRC_DIR=${SRC_DIR}/hash_table
+    elif [ "$TEST_NAME" == "vector" ] ;then
+        SRC_DIR=${SRC_DIR}/vector-cdds
+    fi
     TEST_FILE=${SRC_DIR}/${TEST_NAME}.c
     INCLUDES="-I${BENCH_DIR}/.. -I${SRC_DIR}/vector-cdds/ \
 -I${SRC_DIR}/hash_table/ -I${SRC_DIR}/threadpool/ -I${BENCH_DIR}/include"
