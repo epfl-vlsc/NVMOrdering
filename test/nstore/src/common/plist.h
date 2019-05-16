@@ -10,12 +10,12 @@ template<typename V>
 class plist {
  public:
   struct node {
-    struct node* next;
+    pptr struct node* next;
     V val;
   };
 
-  struct node** head;
-  struct node** tail;
+  sentinelp(storage::plist::activate) struct node** head;
+  sentinelp(storage::plist::activate) struct node** tail;
   bool activate;
   off_t _size = 0;
 

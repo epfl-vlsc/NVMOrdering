@@ -16,7 +16,6 @@ void PtrChecker::checkASTDecl(const FieldDecl* FD, AnalysisManager& Mgr,
 }
 
 void PtrChecker::checkBeginFunction(CheckerContext& C) const {
-  DBG("checkBeginFunction")
   bool isAnnotated = ptrFncs.isPersistentFunction(C);
   bool isTopFnc = isTopFunction(C);
 
@@ -24,6 +23,8 @@ void PtrChecker::checkBeginFunction(CheckerContext& C) const {
   if (!isAnnotated && isTopFnc) {
     handleEnd(C);
   }
+
+  DBG("function: " << getFunctionDeclName(C))
 }
 
 void PtrChecker::handleEnd(CheckerContext& C) const {
@@ -34,7 +35,6 @@ void PtrChecker::handleEnd(CheckerContext& C) const {
 
 void PtrChecker::checkEndFunction(const ReturnStmt* RS,
                                   CheckerContext& C) const {
-  DBG("checkEndFunction")
   /*
   bool isAnnotated = orderFncs.isPersistentFunction(C);
   bool isTopFnc = isTopFunction(C);
@@ -52,13 +52,13 @@ void PtrChecker::checkEndFunction(const ReturnStmt* RS,
 void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
   ProgramStateRef State = C.getState();
-
   DBGL(Loc, "bind")
   DBGS(S, "bind")
 
   // check tainted
   if (const FieldDecl* FD = getMemFieldDecl(Loc); ptrVars.inValues(FD)) {
     if (Transitions::isPtrWritten(State, Val)) {
+      DBG("isPtrWritten")
       if (ExplodedNode* EN = C.generateErrorNode()) {
         DBG("generate error node")
         BugReportData BRData{nullptr, State,         C,
@@ -69,7 +69,9 @@ void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   }
 
   // taint written value
+  DBG("writePtr")
   ProgramStateRef NewState = Transitions::writePtr(State, Val);
+
   if (NewState != State) {
     C.addTransition(NewState);
   }
@@ -96,7 +98,9 @@ void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
   DBGL(Loc, "flush")
   DBGS(E, "flush")
 
+  DBG("flushPtr")
   ProgramStateRef NewState = Transitions::flushPtr(State, Loc);
+  
   if (NewState != State) {
     C.addTransition(NewState);
   }
