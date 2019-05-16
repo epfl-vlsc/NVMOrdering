@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Common.h"
-#include "DbgState.h"
 #include "TxpBugReporter.h"
 #include "states/StateInOut.h"
 
@@ -10,25 +9,22 @@ namespace clang::ento::nvm {
 struct StateInfo : public StateOut, public StateIn<TxpBugReporter> {
   const NamedDecl* Obj;
   const NamedDecl* Field;
-  bool inTx;
 
   StateInfo(CheckerContext& C_, ProgramStateRef& State_,
-            const TxpBugReporter& BR_, SVal* Loc_, const Stmt* S_,
-            const NamedDecl* Obj_, const NamedDecl* Field_, bool inTx_)
-      : StateIn(C_, State_, BR_, Loc_, S_), Obj(Obj_), Field(Field_),
-        inTx(inTx_) {}
+            const TxpBugReporter& BR_, const Stmt* S_,
+            const NamedDecl* Obj_, const NamedDecl* Field_)
+      : StateIn(C_, State_, BR_, S_), Obj(Obj_), Field(Field_) {}
 
   void report(const BugPtr& bugPtr, const char* msg) const {
     DBG("report")
     if (ExplodedNode* EN = this->C.generateErrorNode()) {
       DBG("generate error node")
-
-      this->BR.report(this->C, this->Obj, this->Field, msg, this->Loc, EN,
-                      bugPtr);
+      BugReportData BR{nullptr, this->State, this->C, EN, msg, bugPtr};
+      this->BR.report(BR);
     }
   }
 
-  void reportAccessOutTxBug() const {
+  void reportAccessOutsideTxBug() const {
     auto& bugPtr = BR.AccessOutTxBugType;
     report(bugPtr, "access outside tx:");
   }

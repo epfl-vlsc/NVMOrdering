@@ -1,6 +1,5 @@
 #pragma once
 #include "Common.h"
-#include "DbgState.h"
 #include "StateInfo.h"
 #include "States.h"
 
@@ -10,12 +9,6 @@ namespace clang::ento::nvm::WriteSpace {
 
 void writeObj(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
-  if (!SI.inTx) {
-    DBG("not in tx")
-    SI.reportAccessOutTxBug();
-    return;
-  }
-
   const bool* ObjLogState = State->get<LogMap>(SI.Obj);
 
   if (ObjLogState && *ObjLogState) {
@@ -29,11 +22,6 @@ void writeObj(StateInfo& SI) {
 
 void writeField(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
-  if (!SI.inTx) {
-    DBG("not in tx")
-    SI.reportAccessOutTxBug();
-    return;
-  }
 
   const bool* ObjLogState = State->get<LogMap>(SI.Obj);
   const bool* FieldLogState = State->get<LogMap>(SI.Field);
@@ -52,12 +40,7 @@ void writeField(StateInfo& SI) {
 
 void logObj(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
-  if (!SI.inTx) {
-    DBG("not in tx")
-    SI.reportAccessOutTxBug();
-    return;
-  }
-
+  
   const NamedDecl* Obj = SI.Obj;
   const bool* ObjLogState = State->get<LogMap>(Obj);
   if (ObjLogState && *ObjLogState) {
@@ -72,12 +55,7 @@ void logObj(StateInfo& SI) {
 
 void logField(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
-  if (!SI.inTx) {
-    DBG("not in tx")
-    SI.reportAccessOutTxBug();
-    return;
-  }
-
+  
   const NamedDecl* Obj = SI.Obj;
   const NamedDecl* Field = SI.Field;
 

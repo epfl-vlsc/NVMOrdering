@@ -23,13 +23,14 @@ void TxpChecker::handleEnd(CheckerContext& C) const {
     return;
 }
 
-void TxpChecker::checkEndFunction(CheckerContext& C) const {
+void TxpChecker::checkEndFunction(const ReturnStmt* RS,
+                                  CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   bool isTopFnc = isTopFunction(C);
 
   // if pmalloc/pfree/paccess function, do not analyze
   if (isTopFnc) {
-    //printStates(State, C);
+    // printStates(State, C);
   }
 }
 
@@ -46,7 +47,6 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   DBG("Bind")
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
-  bool inTx = TxSpace::inTx(State);
 
   AssignmentWalker aw(S, C.getASTContext());
 
@@ -62,14 +62,16 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
     assert(ObjND && FieldND && "obj and field has to exist");
     DBG("write field:" << FieldND->getNameAsString()
                        << "obj:" << ObjND->getNameAsString())
-    auto SI = StateInfo(C, State, BReporter, &Loc, S, ObjND, FieldND, inTx);
+    auto SI = StateInfo(C, State, BReporter, S, ObjND, FieldND);
+    TxSpace::checkTx(SI);
     WriteSpace::writeField(SI);
     stateChanged |= SI.stateChanged;
   } else if (aw.isInitObj()) {
     const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
     assert(ObjND && "obj has to exist");
     DBG("alloc obj:" << ObjND->getNameAsString())
-    auto SI = StateInfo(C, State, BReporter, &Loc, S, ObjND, nullptr, inTx);
+    auto SI = StateInfo(C, State, BReporter, S, ObjND, nullptr);
+    TxSpace::checkTx(SI);
     WriteSpace::writeObj(SI);
     stateChanged |= SI.stateChanged;
   }
@@ -159,11 +161,10 @@ void TxpChecker::handleTxRangeDirect(const CallEvent& Call,
   if (const VarDecl* ObjVD = getVDUsingOrigin(Loc)) {
     ProgramStateRef State = C.getState();
     bool stateChanged = false;
-    bool inTx = TxSpace::inTx(State);
     const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
     DBG("obj log" << ObjND->getNameAsString())
-    auto SI =
-        StateInfo(C, State, BReporter, nullptr, nullptr, ObjND, nullptr, inTx);
+    auto SI = StateInfo(C, State, BReporter, nullptr, ObjND, nullptr);
+    TxSpace::checkTx(SI);
     WriteSpace::logObj(SI);
     stateChanged |= SI.stateChanged;
     addStateTransition(State, C, stateChanged);
@@ -189,22 +190,21 @@ void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
 
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
-  bool inTx = TxSpace::inTx(State);
 
   if (FieldVD) {
     const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
     const NamedDecl* FieldND = IpSpace::getRealND(State, FieldVD);
     DBG("write field:" << FieldND->getNameAsString()
                        << "obj:" << ObjND->getNameAsString())
-    auto SI =
-        StateInfo(C, State, BReporter, nullptr, nullptr, ObjND, FieldND, inTx);
+    auto SI = StateInfo(C, State, BReporter, nullptr, ObjND, FieldND);
+    TxSpace::checkTx(SI);
     WriteSpace::logField(SI);
     stateChanged |= SI.stateChanged;
   } else if (ObjVD) {
     const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
     DBG("obj log" << ObjND->getNameAsString())
-    auto SI =
-        StateInfo(C, State, BReporter, nullptr, nullptr, ObjND, nullptr, inTx);
+    auto SI = StateInfo(C, State, BReporter, nullptr, ObjND, nullptr);
+    TxSpace::checkTx(SI);
     WriteSpace::logObj(SI);
     stateChanged |= SI.stateChanged;
   }
@@ -217,8 +217,7 @@ void TxpChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
-  auto SI =
-      StateInfo(C, State, BReporter, nullptr, nullptr, nullptr, nullptr, false);
+  auto SI = StateInfo(C, State, BReporter, nullptr, nullptr, nullptr);
   TxSpace::begTx(SI);
   stateChanged |= SI.stateChanged;
 
@@ -230,8 +229,7 @@ void TxpChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
 
-  auto SI =
-      StateInfo(C, State, BReporter, nullptr, nullptr, nullptr, nullptr, false);
+  auto SI = StateInfo(C, State, BReporter, nullptr, nullptr, nullptr);
   TxSpace::endTx(SI);
   stateChanged |= SI.stateChanged;
 
@@ -277,5 +275,5 @@ extern "C" const char clang_analyzerAPIVersionString[] =
 
 extern "C" void clang_registerCheckers(clang::ento::CheckerRegistry& registry) {
   registry.addChecker<clang::ento::nvm::TxpChecker>(CHECKER_PLUGIN_NAME,
-                                                    "Checks pmdk");
+                                                    "Checks pmdk", "");
 }

@@ -1,6 +1,5 @@
 #pragma once
 #include "Common.h"
-#include "DbgState.h"
 #include "StateInfo.h"
 #include "States.h"
 
@@ -10,6 +9,17 @@ bool inTx(ProgramStateRef& State) {
   unsigned txCount = State->get<TxCounter>();
   DBG("inTx:" << txCount)
   return txCount > 0;
+}
+
+void checkTx(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+  unsigned txCount = State->get<TxCounter>();
+  if (txCount < 1) {
+    // more tx end
+    SI.reportAccessOutsideTxBug();
+  }
+
+  DBG("checkTx txCount:" << txCount)
 }
 
 void begTx(StateInfo& SI) {

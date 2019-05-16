@@ -1,7 +1,6 @@
 // transaction pmdk checker
 #pragma once
 #include "Common.h"
-#include "DbgState.h"
 #include "parser/Parser.h"
 #include "state_machine/Transitions.h"
 #include "state_machine/TxpBugReporter.h"
@@ -19,7 +18,7 @@ public:
 
   void checkBeginFunction(CheckerContext& C) const;
 
-  void checkEndFunction(CheckerContext& C) const;
+  void checkEndFunction(const ReturnStmt* RS, CheckerContext& C) const;
 
   void checkBind(SVal Loc, SVal Val, const Stmt* S, CheckerContext& C) const;
 
@@ -47,8 +46,6 @@ private:
   void handleTxRange(const CallEvent& Call, CheckerContext& C) const;
 
   void handleTxEnd(const CallEvent& Call, CheckerContext& C) const;
-
-  bool inTx(ProgramStateRef& State) const;
 
   void handleEnd(CheckerContext& C) const;
 
