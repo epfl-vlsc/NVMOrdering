@@ -202,6 +202,12 @@ const FieldDecl* getMemFieldDecl(const MemRegion* Region) {
     if (const FieldDecl* FD = dyn_cast_or_null<FieldDecl>(BD)) {
       return FD;
     }
+  } else if (const SymbolicRegion* SymReg = Region->getAs<SymbolicRegion>()) {
+    SymbolRef SR = SymReg->getSymbol();
+    const MemRegion* FMR = SR->getOriginRegion();
+    if (const FieldDecl* FD = getMemFieldDecl(FMR); FD) {
+      return FD;
+    }
   }
 
   return nullptr;
@@ -212,33 +218,8 @@ const FieldDecl* getMemFieldDecl(const SVal& Loc) {
   return getMemFieldDecl(Region);
 }
 
-const FieldDecl* getMemSymFieldDecl(const MemRegion* Region) {
-  if (!Region) {
-    return nullptr;
-  } else if (const SymbolicRegion* SymReg = Region->getAs<SymbolicRegion>()) {
-    SymbolRef SR = SymReg->getSymbol();
-    const MemRegion* FMR = SR->getOriginRegion();
-    if (const FieldDecl* FD = getMemFieldDecl(FMR); FD) {
-      return FD;
-    }
-  }
-  return nullptr;
-}
-
-const FieldDecl* getMemSymFieldDecl(const SVal& Loc) {
-  const MemRegion* Region = Loc.getAsRegion();
-  return getMemSymFieldDecl(Region);
-}
-
 const FieldDecl* getMemLogFieldDecl(const SVal& Loc) {
-  const MemRegion* Region = Loc.getAsRegion();
-  if (const FieldDecl* FD = getMemFieldDecl(Region); FD) {
-    return FD;
-  } else if (const FieldDecl* FD = getMemSymFieldDecl(Region); FD) {
-    return FD;
-  }
-
-  return nullptr;
+  return getMemFieldDecl(Loc);
 }
 
 const RecordDecl* getMemRecordDecl(const MemRegion* Region) {
