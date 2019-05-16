@@ -20,7 +20,8 @@ TEST_DIR="${BASE_DIR}/test"
 
 # -Xclang -analyzer-display-progress"
 if [ "$MODE" == "run" ] ;then
-    SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2"
+    SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2
+-Xclang -analyzer-config -Xclang c++-allocator-inlining=true"
     PLUGIN="-fplugin=${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
 -Xclang -analyze -Xclang -analyzer-checker=nvm.${TOOL_NAME}checker"
 elif [ "$MODE" == "scan" ] ;then
@@ -28,7 +29,7 @@ elif [ "$MODE" == "scan" ] ;then
     PLUGIN="-load-plugin ${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
 -enable-checker nvm.${TOOL_NAME}checker"
     DISPLUGIN="-disable-checker alpha,apiModeling,valist,\
-cplusplus,deadcode,debug,llvm,nullability,optin,security,osx,core,unix"
+cplusplus,deadcode,debug,nullability,optin,security,osx,core,unix"
 fi
 
 array_contains () { 

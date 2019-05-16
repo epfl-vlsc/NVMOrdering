@@ -24,7 +24,8 @@ TEST_FILE=${SINGLE_FILE_REPO}/$TEST_NAME.cpp
 PATCH_DIR=${TEST_DIR}
 
 if [ "$MODE" == "run" ] || [ "$MODE" == "mini" ] ;then
-    SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2 -Xclang -analyzer-display-progress"
+    SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2
+-Xclang -analyzer-display-progress -Xclang -analyzer-config -Xclang c++-allocator-inlining=true"
     PLUGIN="-fplugin=${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
     -Xclang -analyze -Xclang -analyzer-checker=nvm.${TOOL_NAME}checker"
 elif [ "$MODE" == "scan" ] || [ "$MODE" == "multi" ] ;then
@@ -32,7 +33,7 @@ elif [ "$MODE" == "scan" ] || [ "$MODE" == "multi" ] ;then
     PLUGIN="-load-plugin ${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
     -enable-checker nvm.${TOOL_NAME}checker"
     DISPLUGIN="-disable-checker alpha,apiModeling,valist,\
-cplusplus,deadcode,debug,llvm,nullability,optin,security,osx,core,unix"
+cplusplus,deadcode,debug,nullability,optin,security,osx,core,unix"
 elif [ "$MODE" == "ast" ] ;then
     SBFLAGS="-Xclang -ast-dump -fsyntax-only"
 fi
