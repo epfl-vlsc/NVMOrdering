@@ -2,8 +2,7 @@
 #pragma once
 #include "Common.h"
 #include "parser/Parser.h"
-#include "state_machine/Transitions.h"
-#include "state_machine/TxpBugReporter.h"
+#include "state_machine/StateMachine.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.txpchecker";
 
@@ -12,7 +11,8 @@ namespace clang::ento::nvm {
 class TxpChecker
     : public Checker<check::BeginFunction, check::EndFunction, check::Bind,
                      check::ASTDecl<FunctionDecl>, check::PostCall,
-                     check::PreCall, check::BranchCondition, eval::Call> {
+                     check::PreCall, check::DeadSymbols, check::BranchCondition,
+                     eval::Call> {
 public:
   TxpChecker() : BReporter(*this) {}
 
@@ -33,9 +33,11 @@ public:
 
   void checkBranchCondition(const Stmt* Cond, CheckerContext& C) const;
 
+  void checkDeadSymbols(SymbolReaper& SR, CheckerContext& C) const;
+
 private:
-  void addStateTransition(ProgramStateRef& State, CheckerContext& C,
-                          bool stateChanged) const;
+  void addStateTransition(ProgramStateRef& State, const Stmt* S,
+                          CheckerContext& C, bool stateChanged) const;
 
   void handleTxBegin(const CallEvent& Call, CheckerContext& C) const;
 

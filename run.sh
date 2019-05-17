@@ -86,7 +86,7 @@ run_scanbuild(){
 }
 
 dump_ast(){
-    clang++ ${SBFLAGS} ${TEST_FILE} > ./test/ast.txt
+    clang++ ${SBFLAGS} ${TEST_DIR}/${TEST_NAME} > ./test/ast.txt
 }
 #functions---------------------------------------------------
 

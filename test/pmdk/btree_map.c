@@ -523,7 +523,7 @@ btree_map_remove_item(TOID(struct btree_map) map,
 /*
  * btree_map_remove -- removes key-value pair from the map
  */
-PMEMoid
+PMEMoid analyze_tx
 btree_map_remove(PMEMobjpool *pop, TOID(struct btree_map) map, uint64_t key)
 {
 	PMEMoid ret = OID_NULL;
