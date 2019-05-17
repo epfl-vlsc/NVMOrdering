@@ -95,7 +95,7 @@ PMEMoid analyze_tx btree_map_remove(PMEMobjpool* pop,
   return ret;
 }*/
 
-static void btree_map_rotate_left(TOID(struct tree_map_node) lsb,
+static void CCC(TOID(struct tree_map_node) lsb,
                                   TOID(struct tree_map_node) node,
                                   TOID(struct tree_map_node) parent, int p) {
 
@@ -108,21 +108,20 @@ static void btree_map_rotate_left(TOID(struct tree_map_node) lsb,
   D_RW(lsb)->n -= 1;
 }
 
-static PMEMoid btree_map_remove_item(TOID(struct btree_map) map,
+static PMEMoid BBB(TOID(struct btree_map) map,
                                      TOID(struct tree_map_node) node,
                                      TOID(struct tree_map_node) parent,
                                      uint64_t key, int p) {
 
-  TOID(struct tree_map_node) lsb = parent;
-  btree_map_rotate_left(lsb, node, parent, p);
+  CCC(D_RO(map)->root, node, parent, p);
   return OID_NULL;
 }
 
-PMEMoid analyze_tx btree_map_remove(PMEMobjpool* pop,
+PMEMoid analyze_tx AAA(PMEMobjpool* pop,
                                     TOID(struct btree_map) map, uint64_t key) {
   PMEMoid ret = OID_NULL;
   TX_BEGIN(pop) {
-    btree_map_remove_item(map, D_RW(map)->root, TOID_NULL(struct tree_map_node),
+    BBB(map, D_RW(map)->root, TOID_NULL(struct tree_map_node),
                           key, 0);
   }
   TX_END

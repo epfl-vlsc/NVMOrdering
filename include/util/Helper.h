@@ -153,6 +153,25 @@ const FunctionDecl* getFuncDecl(CheckerContext& C) {
   return getFuncDecl(BD);
 }
 
+const FunctionDecl* getCallerFuncDecl(CheckerContext& C) {
+  return getFuncDecl(C);
+}
+
+const LocationContext* getCallerLocationContext(CheckerContext& C) {
+  const LocationContext* LC = C.getLocationContext();
+  return LC->getParent();
+}
+
+bool isCallerParentOfCallee(const LocationContext* CallerLC,
+                            const LocationContext* CalleeLC) {
+  if (!CallerLC) {
+    // top level is nullptr
+    return true;
+  } else {
+    return CallerLC->isParentOf(CalleeLC);
+  }
+}
+
 const DeclaratorDecl* getDeclaratorDecl(const Decl* BD) {
   if (const DeclaratorDecl* D = dyn_cast_or_null<DeclaratorDecl>(BD)) {
     return D;

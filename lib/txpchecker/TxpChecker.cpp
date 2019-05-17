@@ -40,6 +40,7 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   DBGS(S, "bind")
 
   const FunctionDecl* FD = getFuncDecl(C);
+  const LocationContext* LC = C.getLocationContext();
 
   AssignmentWalker aw(S, C.getASTContext());
 
@@ -51,32 +52,33 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
     printND(FD, "func");
     printND(AliasND, "alias");
 
-    IpSpace::setIpMap(State, ObjND, AliasND);
+    // IpSpace::setIpMap(State, ObjND, AliasND);
   } else if (aw.isWriteField()) {
-    const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
-    const NamedDecl* FieldND = IpSpace::getRealND(State, aw.getFieldND());
-    assert(ObjND && FieldND && "obj and field has to exist");
-    DBG("write field:" << FieldND->getNameAsString()
-                       << "obj:" << ObjND->getNameAsString())
+    // const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
+    // const NamedDecl* FieldND = IpSpace::getRealND(State, aw.getFieldND());
+
+    const NamedDecl* ObjND = aw.getObjND();
+    const NamedDecl* FieldND = aw.getFieldND();
+
+    auto VI = VarInfo::getVarInfo(FD, ObjND, FieldND, LC);
+    VI.dump();
+
     auto SI = StateInfo(C, State, BReporter, S, ObjND, FieldND);
-    TxSpace::checkTx(SI);
-    WriteSpace::writeField(SI);
+    // TxSpace::checkTx(SI);
+    // WriteSpace::writeField(SI);
     stateChanged |= SI.stateChanged;
-
-    printND(FD, "func");
-    printND(ObjND, "obj");
-    printND(FieldND, "field");
   } else if (aw.isInitObj()) {
-    const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
-    assert(ObjND && "obj has to exist");
-    DBG("alloc obj:" << ObjND->getNameAsString())
-    auto SI = StateInfo(C, State, BReporter, S, ObjND, nullptr);
-    TxSpace::checkTx(SI);
-    WriteSpace::writeObj(SI);
-    stateChanged |= SI.stateChanged;
+    // const NamedDecl* ObjND = IpSpace::getRealND(State, aw.getObjND());
 
-    printND(FD, "func");
-    printND(ObjND, "obj");
+    const NamedDecl* ObjND = aw.getObjND();
+
+    auto VI = VarInfo::getVarInfo(FD, ObjND, nullptr, LC);
+    VI.dump();
+
+    auto SI = StateInfo(C, State, BReporter, S, ObjND, nullptr);
+    // TxSpace::checkTx(SI);
+    // WriteSpace::writeObj(SI);
+    stateChanged |= SI.stateChanged;
   }
 
   addStateTransition(State, S, C, stateChanged);
@@ -103,13 +105,31 @@ bool TxpChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
 
 void TxpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
   // todo remove mapping once the function is done
-  const FunctionDecl* FD = getFuncDecl(Call);
-  if (!FD || txpFunctions.isAnyPfnc(FD) || !Call.getNumArgs()) {
+  const FunctionDecl* CallerFD = getCallerFuncDecl(C);
+  const FunctionDecl* CalleeFD = getFuncDecl(Call);
+
+  const LocationContext* CallerLC = getCallerLocationContext(C);
+  const LocationContext* CalleeLC = C.getLocationContext();
+
+  llvm::errs() << CallerLC << " " << CalleeLC << "\n";
+
+  if (CallerLC)
+    CallerLC->dumpStack();
+  printMsg("");
+  CalleeLC->dumpStack();
+  printMsg("");
+
+  assert(CallerLC->isParentOf(CalleeLC) && "stack discipline");
+
+  if (!CalleeFD || txpFunctions.isAnyPfnc(CalleeFD) || !Call.getNumArgs()) {
     return;
   }
 
   const Expr* OE = Call.getOriginExpr();
-  DBGS(OE, "bind")
+  DBGS(OE, "checkPreCall")
+
+  printND(CallerFD, "caller");
+  printND(CalleeFD, "callee");
 
   ProgramStateRef State = C.getState();
   // interprocedural assignments
@@ -127,16 +147,26 @@ void TxpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
 
     if (ipw.isField()) {
       const NamedDecl* FieldArg = ipw.getFieldND();
-      assert(FieldArg && "field nullptr");
-      IpSpace::setIpMap(State, Param, FieldArg);
+      const NamedDecl* ObjArg = ipw.getObjND();
+
+      auto CallerVI = VarInfo::getVarInfo(CallerFD, ObjArg, FieldArg, CallerLC);
+      auto CurrentVI = VarInfo::getVarInfo(CalleeFD, Param, nullptr, CalleeLC);
+      CallerVI.dump();
+      CurrentVI.dump();
+
+      // IpSpace::setIpMap(State, Param, FieldArg);
     } else if (ipw.isObj()) {
       const NamedDecl* ObjArg = ipw.getObjND();
-      assert(ObjArg && "obj nullptr");
-      IpSpace::setIpMap(State, Param, ObjArg);
+
+      auto CallerVI = VarInfo::getVarInfo(CallerFD, ObjArg, nullptr, CallerLC);
+      auto CurrentVI = VarInfo::getVarInfo(CalleeFD, Param, nullptr, CalleeLC);
+      CallerVI.dump();
+      CurrentVI.dump();
+
+      // IpSpace::setIpMap(State, Param, ObjArg);
     }
   }
 
-  DBG("checkPreCall:" << FD->getName())
   addStateTransition(State, nullptr, C, true);
 }
 
@@ -147,8 +177,6 @@ void TxpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
   }
 
   DBG("checkPostCall:" << FD->getName())
-  const Stmt* OE = Call.getOriginExpr();
-  DBGS(OE, "bind")
 
   if (txpFunctions.isTxBeg(FD)) {
     handleTxBegin(Call, C);
@@ -168,15 +196,20 @@ void TxpChecker::handleTxRangeDirect(const CallEvent& Call,
   SVal Loc = Call.getArgSVal(0);
   const Expr* E = Call.getOriginExpr();
   const FunctionDecl* FD = getFuncDecl(Call);
+  const LocationContext* LC = C.getLocationContext();
 
   if (const VarDecl* ObjVD = getVDUsingOrigin(Loc)) {
     ProgramStateRef State = C.getState();
     bool stateChanged = false;
-    const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
-    DBG("obj log" << ObjND->getNameAsString())
+    // const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
+    const NamedDecl* ObjND = ObjVD;
+
+    auto VI = VarInfo::getVarInfo(FD, ObjND, nullptr, LC);
+    VI.dump();
+
     auto SI = StateInfo(C, State, BReporter, nullptr, ObjND, nullptr);
-    TxSpace::checkTx(SI);
-    WriteSpace::logObj(SI);
+    // TxSpace::checkTx(SI);
+    // WriteSpace::logObj(SI);
     stateChanged |= SI.stateChanged;
     addStateTransition(State, E, C, stateChanged);
 
@@ -190,6 +223,7 @@ void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
   SVal Loc = Call.getArgSVal(0);
   const VarDecl* ObjVD = getVDUsingLazy(Loc);
   const FunctionDecl* FD = getFuncDecl(Call);
+  const LocationContext* LC = C.getLocationContext();
 
   // get field
   const Expr* Param1 = Call.getArgExpr(1);
@@ -207,24 +241,30 @@ void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
   const Expr* E = Call.getOriginExpr();
 
   if (FieldVD) {
-    const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
-    const NamedDecl* FieldND = IpSpace::getRealND(State, FieldVD);
-    DBG("write field:" << FieldND->getNameAsString()
-                       << "obj:" << ObjND->getNameAsString())
-    auto SI = StateInfo(C, State, BReporter, nullptr, ObjND, FieldND);
-    TxSpace::checkTx(SI);
-    WriteSpace::logField(SI);
-    stateChanged |= SI.stateChanged;
+    // const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
+    // const NamedDecl* FieldND = IpSpace::getRealND(State, FieldVD);
 
-    printND(FD, "func");
-    printND(ObjND, "obj");
-    printND(FieldND, "field");
+    const NamedDecl* ObjND = ObjVD;
+    const NamedDecl* FieldND = FieldVD;
+
+    auto VI = VarInfo::getVarInfo(FD, ObjND, FieldND, LC);
+    VI.dump();
+
+    auto SI = StateInfo(C, State, BReporter, nullptr, ObjND, FieldND);
+    // TxSpace::checkTx(SI);
+    // WriteSpace::logField(SI);
+    stateChanged |= SI.stateChanged;
   } else if (ObjVD) {
-    const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
-    DBG("obj log" << ObjND->getNameAsString())
+    // const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
+
+    const NamedDecl* ObjND = ObjVD;
+
+    auto VI = VarInfo::getVarInfo(FD, ObjND, nullptr, LC);
+    VI.dump();
+
     auto SI = StateInfo(C, State, BReporter, nullptr, ObjND, nullptr);
-    TxSpace::checkTx(SI);
-    WriteSpace::logObj(SI);
+    // TxSpace::checkTx(SI);
+    // WriteSpace::logObj(SI);
     stateChanged |= SI.stateChanged;
 
     printND(FD, "func");
@@ -282,7 +322,7 @@ void TxpChecker::checkBranchCondition(const Stmt* Cond,
   */
 }
 
-void TxpChecker::checkDeadSymbols(SymbolReaper &SR, CheckerContext &C) const {
+void TxpChecker::checkDeadSymbols(SymbolReaper& SR, CheckerContext& C) const {
   /*
   ProgramStateRef State = C.getState();
   StreamMapTy TrackedStreams = State->get<StreamMap>();
@@ -305,7 +345,7 @@ void TxpChecker::checkDeadSymbols(SymbolReaper &SR, CheckerContext &C) const {
     return;
   reportLeaks(LeakedStreams, C, N);
   */
- llvm::errs() << "dead symbols\n";
+  llvm::errs() << "dead symbols\n";
 }
 
 void TxpChecker::addStateTransition(ProgramStateRef& State, const Stmt* S,

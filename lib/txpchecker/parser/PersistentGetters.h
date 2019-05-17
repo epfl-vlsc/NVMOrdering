@@ -37,6 +37,38 @@ const NamedDecl* getObjFromME(const MemberExpr* ME) {
   return nullptr;
 }
 
+const NamedDecl* getIPAObjFromME(const MemberExpr* ME) {
+  if (!ME) {
+    return nullptr;
+  }
+
+  const Stmt* Child1 = getNthChild(ME, 0);
+  const Stmt* Child2 = getNthChild(Child1, 0);
+  const Stmt* Child3 = getNthChild(Child2, 0);
+  const Stmt* Child4 = getNthChild(Child3, 1);
+  const Stmt* Child5 = getNthChild(Child4, 0);
+  const Stmt* Child6 = getNthChild(Child5, 0);
+  const Stmt* Child7 = getNthChild(Child6, 0);
+
+  if (const DeclRefExpr* DRE = dyn_cast_or_null<DeclRefExpr>(Child7)) {
+    if (const NamedDecl* ND = DRE->getFoundDecl()) {
+      return ND;
+    }
+  }
+
+  return nullptr;
+}
+
+const NamedDecl* getAllObjFromME(const MemberExpr* ME) {
+  if (const NamedDecl* ND = getObjFromME(ME)) {
+    return ND;
+  } else if (const NamedDecl* ND = getIPAObjFromME(ME)) {
+    return ND;
+  }
+
+  return nullptr;
+}
+
 const VarDecl* getVDFromME(const MemberExpr* ME) {
   if (!ME) {
     return nullptr;

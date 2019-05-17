@@ -27,8 +27,8 @@ public:
     }
 
     QualType QT = ICE->getType();
-    //do not track non persistent types
-    if(!isPersistentType(QT, ASTC)){
+    // do not track non persistent types
+    if (!isPersistentType(QT, ASTC)) {
       return;
     }
 
@@ -40,6 +40,8 @@ public:
     } else if (const MemberExpr* ME = dyn_cast_or_null<MemberExpr>(Child1)) {
       // field
       fieldND = (NamedDecl*)ME->getMemberDecl();
+      objND = (NamedDecl*)getAllObjFromME(ME);
+      assert(objND && "field must have obj");
       Kind = K::FIELD;
     }
   }
