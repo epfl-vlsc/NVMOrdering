@@ -49,8 +49,6 @@ private:
 
   void handleEnd(CheckerContext& C) const;
 
-  void printStates(ProgramStateRef& State, CheckerContext& C) const;
-
   TxpBugReporter BReporter;
   mutable TxpFunctions txpFunctions;
 };

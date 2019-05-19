@@ -95,9 +95,8 @@ PMEMoid analyze_tx btree_map_remove(PMEMobjpool* pop,
   return ret;
 }*/
 
-static void CCC(TOID(struct tree_map_node) lsb,
-                                  TOID(struct tree_map_node) node,
-                                  TOID(struct tree_map_node) parent, int p) {
+static void CCC(TOID(struct tree_map_node) lsb, TOID(struct tree_map_node) node,
+                TOID(struct tree_map_node) parent, int p) {
 
   TX_ADD_FIELD(parent, items[p - 1]);
   D_RW(parent)->items[p - 1] = D_RO(lsb)->items[D_RO(lsb)->n - 1];
@@ -108,20 +107,19 @@ static void CCC(TOID(struct tree_map_node) lsb,
   D_RW(lsb)->n -= 1;
 }
 
-static PMEMoid BBB(TOID(struct btree_map) map,
-                                     TOID(struct tree_map_node) node,
-                                     TOID(struct tree_map_node) parent,
-                                     uint64_t key, int p) {                                 
-  CCC(D_RO(map)->root, node, parent, p);
+static PMEMoid BBB(TOID(struct btree_map) map, TOID(struct tree_map_node) node,
+                   TOID(struct tree_map_node) parent, uint64_t key, int p) {
+  while (1) {
+    CCC(D_RO(map)->root, node, parent, p);
+  }
   return OID_NULL;
 }
 
-PMEMoid analyze_tx AAA(PMEMobjpool* pop,
-                                    TOID(struct btree_map) map, uint64_t key) {
+PMEMoid analyze_tx AAA(PMEMobjpool* pop, TOID(struct btree_map) map,
+                       uint64_t key) {
   PMEMoid ret = OID_NULL;
   TX_BEGIN(pop) {
-    BBB(map, D_RW(map)->root, TOID_NULL(struct tree_map_node),
-                          key, 0);
+    BBB(map, D_RW(map)->root, TOID_NULL(struct tree_map_node), key, 0);
   }
   TX_END
 

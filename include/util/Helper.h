@@ -98,6 +98,21 @@ const Stmt* getParentStmt(const Stmt* S, CheckerContext& C) {
   return PS;
 }
 
+const Stmt* getParentStmtUnsafe(const Stmt* S, CheckerContext& C) {
+  ASTContext& AC = C.getASTContext();
+  const auto& parents = AC.getParents(*S);
+  if (parents.empty()) {
+    return nullptr;
+  }
+
+  const Stmt* PS = parents[0].get<Stmt>();
+  if (!PS) {
+    return nullptr;
+  }
+
+  return PS;
+}
+
 const FunctionDecl* getTopFunction(CheckerContext& C) {
   LocationContext* LC = (LocationContext*)C.getLocationContext();
   while (LC && LC->getParent()) {

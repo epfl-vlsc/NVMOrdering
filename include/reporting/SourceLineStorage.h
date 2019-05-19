@@ -10,21 +10,23 @@ private:
   SlRange(SourceRange SR_) : SR(SR_) {}
 
 public:
-  static SlRange getSlRange(SourceRange SR_) {
-    return SlRange(SR_);
-  }
+  static SlRange getSlRange(SourceRange SR_) { return SlRange(SR_); }
 
   SourceRange getSR() { return SR; }
 
   bool operator==(const SlRange& X) const { return SR == (X.SR); }
 
-  void Profile(llvm::FoldingSetNodeID& ID) const {  }
+  bool operator<(const SlRange& X) const {
+    return &SR < &X.SR;
+  }
+
+  void Profile(llvm::FoldingSetNodeID& ID) const {}
 };
 
 } // namespace clang::ento::nvm::SlSpace
 
-REGISTER_LIST_WITH_PROGRAMSTATE(TransitionStore,
-                                clang::ento::nvm::SlSpace::SlRange)
+REGISTER_SET_WITH_PROGRAMSTATE(TransitionStore,
+                               clang::ento::nvm::SlSpace::SlRange)
 
 namespace clang::ento::nvm::SlSpace {
 
@@ -35,6 +37,11 @@ void saveSR(ProgramStateRef& State, const SourceRange& SR) {
 TransitionStoreTy getSRStore(const ProgramStateRef& State) {
   TransitionStoreTy LineStore = State->get<TransitionStore>();
   return LineStore;
+}
+
+bool isSRinStore(const ProgramStateRef& State, const SourceRange& SR) {
+  auto slRange = SlRange::getSlRange(SR);
+  return State->contains<TransitionStore>(slRange);
 }
 
 } // namespace clang::ento::nvm::SlSpace

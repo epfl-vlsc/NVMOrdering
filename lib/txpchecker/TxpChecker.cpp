@@ -33,14 +33,6 @@ void TxpChecker::checkEndFunction(const ReturnStmt* RS,
   addStateTransition(State, nullptr, C, stateChanged);
 }
 
-void TxpChecker::printStates(ProgramStateRef& State, CheckerContext& C) const {
-  DBG("printStates")
-  for (auto& [Param, Arg] : State->get<IpMap>()) {
-    llvm::errs() << Param->getNameAsString() << " " << Arg->getNameAsString()
-                 << "\n";
-  }
-}
-
 void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
   ProgramStateRef State = C.getState();

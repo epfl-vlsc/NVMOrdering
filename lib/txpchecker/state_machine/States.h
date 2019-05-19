@@ -27,10 +27,7 @@ public:
     return Fnc == X.Fnc && Obj == X.Obj && Field == X.Field;
   }
   bool operator<(const VarInfo& X) const {
-    if (Fnc < X.Fnc && Obj < X.Obj && Field < X.Field) {
-      return true;
-    }
-    return false;
+    return Fnc < X.Fnc && Obj < X.Obj && Field < X.Field;
   }
   bool hasField() const { return Field != nullptr; }
 
@@ -59,10 +56,6 @@ public:
 } // namespace clang::ento::nvm
 
 REGISTER_TRAIT_WITH_PROGRAMSTATE(TxCounter, unsigned)
-REGISTER_MAP_WITH_PROGRAMSTATE(LogMap, const clang::NamedDecl*, bool)
-REGISTER_MAP_WITH_PROGRAMSTATE(IpMap, const clang::NamedDecl*,
-                               const clang::NamedDecl*)
-
 REGISTER_SET_WITH_PROGRAMSTATE(LogVarMap, clang::ento::nvm::VarInfo)
 REGISTER_MAP_WITH_PROGRAMSTATE(IpVarMap, clang::ento::nvm::VarInfo,
                                clang::ento::nvm::VarInfo)
