@@ -1,19 +1,18 @@
 #pragma once
 
 #include "Common.h"
+#include "States.h"
 #include "TxpBugReporter.h"
 #include "states/StateInOut.h"
 
 namespace clang::ento::nvm {
 
 struct StateInfo : public StateOut, public StateIn<TxpBugReporter> {
-  const NamedDecl* Obj;
-  const NamedDecl* Field;
+  const VarInfo& VI;
 
   StateInfo(CheckerContext& C_, ProgramStateRef& State_,
-            const TxpBugReporter& BR_, const Stmt* S_,
-            const NamedDecl* Obj_, const NamedDecl* Field_)
-      : StateIn(C_, State_, BR_, S_), Obj(Obj_), Field(Field_) {}
+            const TxpBugReporter& BR_, const Stmt* S_, const VarInfo& VI_)
+      : StateIn(C_, State_, BR_, S_), VI(VI_) {}
 
   void report(const BugPtr& bugPtr, const char* msg) const {
     DBG("report")
@@ -29,7 +28,7 @@ struct StateInfo : public StateOut, public StateIn<TxpBugReporter> {
     report(bugPtr, "access outside tx:");
   }
 
-   void reportDoubleLogBug() const {
+  void reportDoubleLogBug() const {
     auto& bugPtr = BR.DoubleLogBugType;
     report(bugPtr, "log twice:");
   }

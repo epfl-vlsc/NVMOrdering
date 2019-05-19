@@ -25,13 +25,22 @@ public:
   bool operator==(const VarInfo& X) const {
     return Fnc == X.Fnc && LC == X.LC && Obj == X.Obj && Field == X.Field;
   }
+  bool operator<(const VarInfo& X) const {
+    if (Fnc < X.Fnc && LC < X.LC && Obj < X.Obj && Field < X.Field) {
+      return true;
+    }
+    return false;
+  }
+
+  bool isSameFnc(const FunctionDecl* FD) const { return FD == Fnc; }
+
   void Profile(llvm::FoldingSetNodeID& ID) const {
     ID.AddPointer(Fnc);
     ID.AddPointer(Obj);
     ID.AddPointer(Field);
     ID.AddPointer(LC);
   }
-  void dump() {
+  void dump() const {
     llvm::errs() << "VI - fnc:" << Fnc->getNameAsString()
                  << " obj:" << Obj->getNameAsString();
     if (Field) {

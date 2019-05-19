@@ -6,7 +6,7 @@
 namespace clang::ento::nvm::WriteSpace {
 
 // todo handle writeobj
-
+/*
 void writeObj(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
   const bool* ObjLogState = State->get<LogMap>(SI.Obj);
@@ -74,5 +74,5 @@ void logField(StateInfo& SI) {
     SI.stateChanged = true;
   }
 }
-
+*/
 } // namespace clang::ento::nvm::WriteSpace

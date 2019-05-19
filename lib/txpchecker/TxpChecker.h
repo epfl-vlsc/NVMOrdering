@@ -11,7 +11,7 @@ namespace clang::ento::nvm {
 class TxpChecker
     : public Checker<check::BeginFunction, check::EndFunction, check::Bind,
                      check::ASTDecl<FunctionDecl>, check::PostCall,
-                     check::PreCall, check::DeadSymbols, check::BranchCondition,
+                     check::PreCall, check::BranchCondition,
                      eval::Call> {
 public:
   TxpChecker() : BReporter(*this) {}
@@ -32,8 +32,6 @@ public:
   bool evalCall(const CallExpr* CE, CheckerContext& C) const;
 
   void checkBranchCondition(const Stmt* Cond, CheckerContext& C) const;
-
-  void checkDeadSymbols(SymbolReaper& SR, CheckerContext& C) const;
 
 private:
   void addStateTransition(ProgramStateRef& State, const Stmt* S,
