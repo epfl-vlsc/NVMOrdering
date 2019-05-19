@@ -3,6 +3,12 @@
 
 namespace clang::ento::nvm {
 
+template <typename Vector> void dumpVector(const Vector& vector) {
+  for (auto& e : vector) {
+    e.dump();
+  }
+}
+
 void printND(const NamedDecl* ND, const char* msg, bool isQualified = false) {
   llvm::errs() << msg << ":";
   if (!isQualified) {

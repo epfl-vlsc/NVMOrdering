@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "IpTransitions.h"
 #include "StateInfo.h"
 #include "States.h"
 
@@ -9,30 +10,45 @@ void logData(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
 
   auto& VI = SI.getVI();
+  auto vList = IpSpace::getVarBaseList(State, VI);
+  dumpVector(vList);
 
-  if (State->contains<LogVarMap>(VI)) {
-    DBG("obj logged")
-    SI.reportDoubleLogBug();
+  bool reportBug = false;
+
+  // todo not covering node->log, root->log case
+  for (auto& vElement : vList) {
+    if (State->contains<LogVarMap>(vElement)) {
+      DBG("obj logged")
+      SI.reportDoubleLogBug();
+      reportBug = true;
+    }
   }
 
-  DBG("obj not logged")
-  State = State->add<LogVarMap>(VI);
-  SI.stateChanged = true;
+  if (!reportBug) {
+    DBG("obj not logged")
+    State = State->add<LogVarMap>(VI);
+    SI.stateChanged = true;
+  }
 }
 
 void writeData(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
 
   auto& VI = SI.getVI();
+  auto vList = IpSpace::getVarBaseList(State, VI);
+  dumpVector(vList);
 
-  if (!State->contains<LogVarMap>(VI)) {
-    DBG("obj not logged")
-    SI.reportNotLogBeforeWriteBug();
+  bool baseNotLog = true;
+  for (auto& vElement : vList) {
+    if (State->contains<LogVarMap>(vElement)) {
+      baseNotLog = false;
+    }
   }
 
-  DBG("obj not logged")
-  State = State->add<LogVarMap>(VI);
-  SI.stateChanged = true;
+  if (baseNotLog) {
+    DBG("obj logged")
+    SI.reportNotLogBeforeWriteBug();
+  }
 }
 
 // todo handle writeobj

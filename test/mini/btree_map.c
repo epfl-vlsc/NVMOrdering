@@ -111,8 +111,7 @@ static void CCC(TOID(struct tree_map_node) lsb,
 static PMEMoid BBB(TOID(struct btree_map) map,
                                      TOID(struct tree_map_node) node,
                                      TOID(struct tree_map_node) parent,
-                                     uint64_t key, int p) {
-
+                                     uint64_t key, int p) {                                 
   CCC(D_RO(map)->root, node, parent, p);
   return OID_NULL;
 }

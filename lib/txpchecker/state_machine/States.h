@@ -20,6 +20,9 @@ public:
                             const NamedDecl* Field_) {
     return VarInfo(Fnc_, Obj_, Field_);
   }
+  static VarInfo getVarInfo(const VarInfo& VI) {
+    return VarInfo(VI.Fnc, VI.Obj, nullptr);
+  }
   bool operator==(const VarInfo& X) const {
     return Fnc == X.Fnc && Obj == X.Obj && Field == X.Field;
   }
@@ -29,6 +32,7 @@ public:
     }
     return false;
   }
+  bool hasField() const { return Field != nullptr; }
 
   bool isSameFnc(const FunctionDecl* FD) const { return FD == Fnc; }
 

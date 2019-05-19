@@ -5,6 +5,30 @@
 
 namespace clang::ento::nvm::IpSpace {
 
+void recurseAddBase(ProgramStateRef& State, VarInfo Alias,
+                          std::vector<VarInfo>& vList) {
+  vList.push_back(Alias);
+  //in IPA only obj->field and obj->obj are tracked
+  if (Alias.hasField()) {
+    //obj track
+    auto Obj = VarInfo::getVarInfo(Alias);
+    recurseAddBase(State, Obj, vList);
+  } else {
+    // alias track
+    const VarInfo* VarVI = State->get<IpVarMap>(Alias);
+    if (VarVI) {
+      recurseAddBase(State, *VarVI, vList);
+    }
+  }
+}
+
+std::vector<VarInfo> getVarBaseList(ProgramStateRef& State,
+                                          VarInfo Alias) {
+  std::vector<VarInfo> vList;
+  recurseAddBase(State, Alias, vList);
+  return vList;
+}
+
 void addToVarMap(ProgramStateRef& State, VarInfo Alias, VarInfo Var) {
   const VarInfo* TransitiveVar = State->get<IpVarMap>(Var);
   if (TransitiveVar) {
