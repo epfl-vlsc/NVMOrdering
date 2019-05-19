@@ -8,25 +8,23 @@ private:
   const FunctionDecl* Fnc;
   const NamedDecl* Obj;
   const NamedDecl* Field;
-  const LocationContext* LC;
 
   VarInfo(const FunctionDecl* Fnc_, const NamedDecl* Obj_,
-          const NamedDecl* Field_, const LocationContext* LC_)
-      : Fnc(Fnc_), Obj(Obj_), Field(Field_), LC(LC_) {
+          const NamedDecl* Field_)
+      : Fnc(Fnc_), Obj(Obj_), Field(Field_) {
     assert(Fnc && Obj && "Var info not init properly");
   }
 
 public:
   static VarInfo getVarInfo(const FunctionDecl* Fnc_, const NamedDecl* Obj_,
-                            const NamedDecl* Field_,
-                            const LocationContext* LC_) {
-    return VarInfo(Fnc_, Obj_, Field_, LC_);
+                            const NamedDecl* Field_) {
+    return VarInfo(Fnc_, Obj_, Field_);
   }
   bool operator==(const VarInfo& X) const {
-    return Fnc == X.Fnc && LC == X.LC && Obj == X.Obj && Field == X.Field;
+    return Fnc == X.Fnc && Obj == X.Obj && Field == X.Field;
   }
   bool operator<(const VarInfo& X) const {
-    if (Fnc < X.Fnc && LC < X.LC && Obj < X.Obj && Field < X.Field) {
+    if (Fnc < X.Fnc && Obj < X.Obj && Field < X.Field) {
       return true;
     }
     return false;
@@ -38,7 +36,6 @@ public:
     ID.AddPointer(Fnc);
     ID.AddPointer(Obj);
     ID.AddPointer(Field);
-    ID.AddPointer(LC);
   }
   void dump() const {
     llvm::errs() << "VI - fnc:" << Fnc->getNameAsString()
@@ -47,6 +44,11 @@ public:
       llvm::errs() << " field:" << Field->getNameAsString();
     }
     llvm::errs() << "\n";
+  }
+
+  void dump(const char* msg) const {
+    llvm::errs() << msg << " ";
+    dump();
   }
 };
 
@@ -57,6 +59,6 @@ REGISTER_MAP_WITH_PROGRAMSTATE(LogMap, const clang::NamedDecl*, bool)
 REGISTER_MAP_WITH_PROGRAMSTATE(IpMap, const clang::NamedDecl*,
                                const clang::NamedDecl*)
 
-REGISTER_MAP_WITH_PROGRAMSTATE(LogVarMap, clang::ento::nvm::VarInfo, bool)
+REGISTER_SET_WITH_PROGRAMSTATE(LogVarMap, clang::ento::nvm::VarInfo)
 REGISTER_MAP_WITH_PROGRAMSTATE(IpVarMap, clang::ento::nvm::VarInfo,
                                clang::ento::nvm::VarInfo)

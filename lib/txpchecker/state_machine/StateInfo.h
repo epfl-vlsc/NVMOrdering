@@ -8,11 +8,17 @@
 namespace clang::ento::nvm {
 
 struct StateInfo : public StateOut, public StateIn<TxpBugReporter> {
-  const VarInfo& VI;
+  const VarInfo* VI;
 
   StateInfo(CheckerContext& C_, ProgramStateRef& State_,
             const TxpBugReporter& BR_, const Stmt* S_, const VarInfo& VI_)
-      : StateIn(C_, State_, BR_, S_), VI(VI_) {}
+      : StateIn(C_, State_, BR_, S_), VI(&VI_) {}
+
+  StateInfo(CheckerContext& C_, ProgramStateRef& State_,
+            const TxpBugReporter& BR_, const Stmt* S_)
+      : StateIn(C_, State_, BR_, S_), VI(nullptr) {}
+
+  const VarInfo& getVI() const { return *VI; }
 
   void report(const BugPtr& bugPtr, const char* msg) const {
     DBG("report")

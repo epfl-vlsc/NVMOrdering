@@ -3,7 +3,37 @@
 #include "StateInfo.h"
 #include "States.h"
 
-namespace clang::ento::nvm::WriteSpace {
+namespace clang::ento::nvm::LogSpace {
+
+void logData(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+
+  auto& VI = SI.getVI();
+
+  if (State->contains<LogVarMap>(VI)) {
+    DBG("obj logged")
+    SI.reportDoubleLogBug();
+  }
+
+  DBG("obj not logged")
+  State = State->add<LogVarMap>(VI);
+  SI.stateChanged = true;
+}
+
+void writeData(StateInfo& SI) {
+  ProgramStateRef& State = SI.State;
+
+  auto& VI = SI.getVI();
+
+  if (!State->contains<LogVarMap>(VI)) {
+    DBG("obj not logged")
+    SI.reportNotLogBeforeWriteBug();
+  }
+
+  DBG("obj not logged")
+  State = State->add<LogVarMap>(VI);
+  SI.stateChanged = true;
+}
 
 // todo handle writeobj
 /*
@@ -40,7 +70,7 @@ void writeField(StateInfo& SI) {
 
 void logObj(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
-  
+
   const NamedDecl* Obj = SI.Obj;
   const bool* ObjLogState = State->get<LogMap>(Obj);
   if (ObjLogState && *ObjLogState) {
@@ -55,7 +85,7 @@ void logObj(StateInfo& SI) {
 
 void logField(StateInfo& SI) {
   ProgramStateRef& State = SI.State;
-  
+
   const NamedDecl* Obj = SI.Obj;
   const NamedDecl* Field = SI.Field;
 
@@ -75,4 +105,4 @@ void logField(StateInfo& SI) {
   }
 }
 */
-} // namespace clang::ento::nvm::WriteSpace
+} // namespace clang::ento::nvm::LogSpace

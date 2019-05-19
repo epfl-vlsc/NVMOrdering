@@ -48,45 +48,39 @@ void TxpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   DBGS(S, "bind")
 
   const FunctionDecl* FD = getFuncDecl(C);
-  const LocationContext* LC = C.getLocationContext();
 
   AssignmentWalker aw(S, C.getASTContext());
 
   if (aw.isWriteObj()) {
     DBG("write obj")
 
-    /*todo account for field
-    const NamedDecl* ObjND = aw.getObjND();
-    const NamedDecl* AliasND = aw.getRHSFromAss(S);
+    const NamedDecl* AliasND = aw.getObjND();
+    const NamedDecl* ObjND = aw.getRHSFromAss(S);
 
-    auto ObjVI = VarInfo::getVarInfo(FD, ObjND, FieldND, LC);
-    auto ObjVI = VarInfo::getVarInfo(FD, ObjND, FieldND, LC);
-    VI.dump();
-    */
+    auto AliasVI = VarInfo::getVarInfo(FD, AliasND, nullptr);
+    auto ObjVI = VarInfo::getVarInfo(FD, ObjND, nullptr);
 
-    // IpSpace::setIpMap(State, ObjND, AliasND);
+    IpSpace::addToVarMap(State, AliasVI, ObjVI);
   } else if (aw.isWriteField()) {
     const NamedDecl* ObjND = aw.getObjND();
     const NamedDecl* FieldND = aw.getFieldND();
-    auto AliasVI = VarInfo::getVarInfo(FD, ObjND, FieldND, LC);
 
-    auto VarVI = IpSpace::getVarFromMap(State, AliasVI);
-    VarVI.dump();
+    auto FieldVI = VarInfo::getVarInfo(FD, ObjND, FieldND);
+    FieldVI.dump("bind field");
 
-    auto SI = StateInfo(C, State, BReporter, S, VarVI);
-    // TxSpace::checkTx(SI);
-    // WriteSpace::writeField(SI);
+    auto SI = StateInfo(C, State, BReporter, S, FieldVI);
+    TxSpace::checkTx(SI);
+    LogSpace::writeData(SI);
     stateChanged |= SI.stateChanged;
   } else if (aw.isInitObj()) {
     const NamedDecl* ObjND = aw.getObjND();
-    auto AliasVI = VarInfo::getVarInfo(FD, ObjND, nullptr, LC);
 
-    auto VarVI = IpSpace::getVarFromMap(State, AliasVI);
-    VarVI.dump();
+    auto ObjVI = VarInfo::getVarInfo(FD, ObjND, nullptr);
+    ObjVI.dump("bind obj");
 
-    auto SI = StateInfo(C, State, BReporter, S, VarVI);
-    // TxSpace::checkTx(SI);
-    // WriteSpace::writeObj(SI);
+    auto SI = StateInfo(C, State, BReporter, S, ObjVI);
+    TxSpace::checkTx(SI);
+    LogSpace::writeData(SI);
     stateChanged |= SI.stateChanged;
   }
 
@@ -117,11 +111,6 @@ void TxpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
   const FunctionDecl* CallerFD = getCallerFuncDecl(C);
   const FunctionDecl* CalleeFD = getFuncDecl(Call);
 
-  const LocationContext* CallerLC = getCallerLocationContext(C);
-  const LocationContext* CalleeLC = C.getLocationContext();
-
-  assert(isCallerParentOfCallee(CallerLC, CalleeLC) && "stack discipline");
-
   if (!CalleeFD || txpFunctions.isAnyPfnc(CalleeFD) || !Call.getNumArgs()) {
     return;
   }
@@ -146,15 +135,15 @@ void TxpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
       const NamedDecl* FieldArg = ipw.getFieldND();
       const NamedDecl* ObjArg = ipw.getObjND();
 
-      auto CallerVI = VarInfo::getVarInfo(CallerFD, ObjArg, FieldArg, CallerLC);
-      auto CalleeVI = VarInfo::getVarInfo(CalleeFD, Param, nullptr, CalleeLC);
+      auto CallerVI = VarInfo::getVarInfo(CallerFD, ObjArg, FieldArg);
+      auto CalleeVI = VarInfo::getVarInfo(CalleeFD, Param, nullptr);
 
       IpSpace::addToVarMap(State, CalleeVI, CallerVI);
     } else if (ipw.isObj()) {
       const NamedDecl* ObjArg = ipw.getObjND();
 
-      auto CallerVI = VarInfo::getVarInfo(CallerFD, ObjArg, nullptr, CallerLC);
-      auto CalleeVI = VarInfo::getVarInfo(CalleeFD, Param, nullptr, CalleeLC);
+      auto CallerVI = VarInfo::getVarInfo(CallerFD, ObjArg, nullptr);
+      auto CalleeVI = VarInfo::getVarInfo(CalleeFD, Param, nullptr);
 
       IpSpace::addToVarMap(State, CalleeVI, CallerVI);
     }
@@ -186,27 +175,22 @@ void TxpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
 
 void TxpChecker::handleTxRangeDirect(const CallEvent& Call,
                                      CheckerContext& C) const {
+
   SVal Loc = Call.getArgSVal(0);
   const Expr* E = Call.getOriginExpr();
-  const FunctionDecl* FD = getFuncDecl(Call);
-  const LocationContext* LC = C.getLocationContext();
+  const FunctionDecl* FD = getCallerFuncDecl(C);
 
   if (const VarDecl* ObjVD = getVDUsingOrigin(Loc)) {
     ProgramStateRef State = C.getState();
     bool stateChanged = false;
-    // const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
     const NamedDecl* ObjND = ObjVD;
-
-    auto VI = VarInfo::getVarInfo(FD, ObjND, nullptr, LC);
-    VI.dump();
-
-    /*
-    //auto SI = StateInfo(C, State, BReporter, nullptr, ObjND, nullptr);
-    // TxSpace::checkTx(SI);
-    // WriteSpace::logObj(SI);
+    auto ObjVI = VarInfo::getVarInfo(FD, ObjND, nullptr);
+    ObjVI.dump("range direct obj");
+    auto SI = StateInfo(C, State, BReporter, E, ObjVI);
+    TxSpace::checkTx(SI);
+    LogSpace::logData(SI);
     stateChanged |= SI.stateChanged;
     addStateTransition(State, E, C, stateChanged);
-    */
   }
 }
 
@@ -214,8 +198,7 @@ void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
   // get obj
   SVal Loc = Call.getArgSVal(0);
   const VarDecl* ObjVD = getVDUsingLazy(Loc);
-  const FunctionDecl* FD = getFuncDecl(Call);
-  const LocationContext* LC = C.getLocationContext();
+  const FunctionDecl* FD = getCallerFuncDecl(C);
 
   // get field
   const Expr* Param1 = Call.getArgExpr(1);
@@ -233,64 +216,50 @@ void TxpChecker::handleTxRange(const CallEvent& Call, CheckerContext& C) const {
   const Expr* E = Call.getOriginExpr();
 
   if (FieldVD) {
-    // const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
-    // const NamedDecl* FieldND = IpSpace::getRealND(State, FieldVD);
-
     const NamedDecl* ObjND = ObjVD;
     const NamedDecl* FieldND = FieldVD;
 
-    auto VI = VarInfo::getVarInfo(FD, ObjND, FieldND, LC);
-    VI.dump();
-    /*
-    auto SI = StateInfo(C, State, BReporter, nullptr, ObjND, FieldND);
-    // TxSpace::checkTx(SI);
-    // WriteSpace::logField(SI);
+    auto FieldVI = VarInfo::getVarInfo(FD, ObjND, FieldND);
+    FieldVI.dump("range field");
+    auto SI = StateInfo(C, State, BReporter, E, FieldVI);
+    TxSpace::checkTx(SI);
+    LogSpace::logData(SI);
     stateChanged |= SI.stateChanged;
-    */
   } else if (ObjVD) {
-    // const NamedDecl* ObjND = IpSpace::getRealND(State, ObjVD);
-
     const NamedDecl* ObjND = ObjVD;
-
-    auto VI = VarInfo::getVarInfo(FD, ObjND, nullptr, LC);
-    VI.dump();
-    /*
-    auto SI = StateInfo(C, State, BReporter, nullptr, ObjND, nullptr);
-    // TxSpace::checkTx(SI);
-    // WriteSpace::logObj(SI);
+    auto ObjVI = VarInfo::getVarInfo(FD, ObjND, nullptr);
+    ObjVI.dump("range obj");
+    auto SI = StateInfo(C, State, BReporter, E, ObjVI);
+    TxSpace::checkTx(SI);
+    LogSpace::logData(SI);
     stateChanged |= SI.stateChanged;
-    */
   }
 
   addStateTransition(State, E, C, stateChanged);
 }
 
 void TxpChecker::handleTxBegin(const CallEvent& Call, CheckerContext& C) const {
-  /*
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
   const Expr* E = Call.getOriginExpr();
 
-  auto SI = StateInfo(C, State, BReporter, nullptr, nullptr, nullptr);
+  auto SI = StateInfo(C, State, BReporter, E);
   TxSpace::begTx(SI);
   stateChanged |= SI.stateChanged;
 
   addStateTransition(State, E, C, stateChanged);
-  */
 }
 
 void TxpChecker::handleTxEnd(const CallEvent& Call, CheckerContext& C) const {
-  /*
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
   const Expr* E = Call.getOriginExpr();
 
-  auto SI = StateInfo(C, State, BReporter, nullptr, nullptr, nullptr);
+  auto SI = StateInfo(C, State, BReporter, E);
   TxSpace::endTx(SI);
   stateChanged |= SI.stateChanged;
 
   addStateTransition(State, E, C, stateChanged);
-  */
 }
 
 void TxpChecker::checkBranchCondition(const Stmt* Cond,
