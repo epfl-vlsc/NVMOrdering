@@ -59,7 +59,7 @@ class FlushFenceFunction : public NamedFunction {
 public:
   bool checkName(const IdentifierInfo* II) const {
     return II && (II->isStr("flush_range") || II->isStr("clflush") ||
-                  II->isStr("pmemalloc_activate"));
+                  II->isStr("__pmem_persist"));
   }
 };
 

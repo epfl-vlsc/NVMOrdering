@@ -19,6 +19,7 @@ public:
 
   bool VisitFunctionDecl(const FunctionDecl* FD) {
     ptrFncs.insertIfKnown(FD);
+    
 
     // continue traversal
     return true;
@@ -32,6 +33,8 @@ public:
   }
 
   bool shouldVisitTemplateInstantiations() const { return true; }
+
+  //bool shouldVisitImplicitCode() const { return true; }
 };
 
 } // namespace clang::ento::nvm

@@ -81,15 +81,13 @@ class plist {
     // Link it in at the end of the list
     PM_EQU((np->val), (val));
     PM_EQU((np->next), (NULL));
+    __pmem_persist(np, sizeof(*np), 0);
 
     tailp = (*tail);
     PM_EQU(((*tail)), (np));
 
-    if (activate)
-      pmemalloc_activate(np);
-
     PM_EQU((tailp->next), (np));
-    pmem_persist(&tailp->next, sizeof(*np), 0);
+    __pmem_persist(&tailp->next, sizeof(*np), 0);
 
     index = _size;
     PM_EQU((_size), (_size+1));

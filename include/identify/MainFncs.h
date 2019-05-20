@@ -51,7 +51,6 @@ public:
   }
 
   void dump() {
-    llvm::errs() << "functions-------------------\n";
     persistentFnc.dump();
     flushFenceFnc.dump();
     flushOptFnc.dump();
