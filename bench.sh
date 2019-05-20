@@ -20,7 +20,7 @@ TEST_DIR="${BASE_DIR}/test"
 
 # -Xclang -analyzer-display-progress"
 if [ "$MODE" == "run" ] ;then
-    SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2
+    SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2 \
 -Xclang -analyzer-config -Xclang c++-allocator-inlining=true"
     PLUGIN="-fplugin=${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
 -Xclang -analyze -Xclang -analyzer-checker=nvm.${TOOL_NAME}checker"
@@ -102,7 +102,7 @@ fi
 #echo--------------------------------------------------------
 
 #nstore------------------------------------------------------  
-NSTORE_SRCS=(plist_user)
+NSTORE_SRCS=(test_plist)
 array_contains NSTORE_SRCS ${TEST_NAME}
 res=$?
 
@@ -113,10 +113,11 @@ if [ "$res" == "1" ] ;then
 -fsized-deallocation -MT -MD -MP -Wno-unused-variable \
 -Wno-unused-parameter"
     BENCH_DIR="${TEST_DIR}/nstore"
-    SRC_DIR="${BENCH_DIR}/src"
+    INC_DIR="${BENCH_DIR}/src"
+    SRC_DIR="${BENCH_DIR}/test"
     TEST_FILE=${SRC_DIR}/${TEST_NAME}.cpp
-    INCLUDES="-I${BENCH_DIR}/.. -I${SRC_DIR} -I${SRC_DIR}/.. \
--I${SRC_DIR}/common"
+    INCLUDES="-I${BENCH_DIR}/.. -I${INC_DIR} -I${INC_DIR}/.. \
+-I${INC_DIR}/common"
 fi
 
 #nstore------------------------------------------------------

@@ -140,7 +140,7 @@ class plist {
 
   void update(const int index, V val) {
     struct node * np = (*head);
-    unsigned int itr = 0;
+    int itr = 0;
 
     while (np != NULL) {
       if (itr == index) {
