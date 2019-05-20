@@ -94,9 +94,8 @@ void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
 
   ProgramStateRef State = C.getState();
   SVal Loc = Call.getArgSVal(0);
-  const Expr* E = Call.getOriginExpr();
   DBGL(Loc, "flush")
-  DBGS(E, "flush")
+  DBGS(Call.getOriginExpr(), "flush")
 
   DBG("flushPtr")
   ProgramStateRef NewState = Transitions::flushPtr(State, Loc);

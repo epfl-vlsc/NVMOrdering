@@ -117,8 +117,7 @@ void TxpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
     return;
   }
 
-  const Expr* OE = Call.getOriginExpr();
-  DBGS(OE, "checkPreCall")
+  DBGS(Call.getOriginExpr(), "checkPreCall")
 
   ProgramStateRef State = C.getState();
   // interprocedural assignments

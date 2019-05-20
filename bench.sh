@@ -122,7 +122,7 @@ fi
 #nstore------------------------------------------------------
 
 PATCH_DIR="${TEST_DIR}/patch"
-PATCH_FILE="${PATCH_DIR}/${TOOL_NAME}_${PATCH_NO}_${TEST_NAME}.txt"
+PATCH_FILE="${PATCH_DIR}/${TOOL_NAME}_${TEST_NAME}_${PATCH_NO}.txt"
 #initialize info---------------------------------------------
 
 #functions---------------------------------------------------
