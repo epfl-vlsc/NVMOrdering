@@ -87,15 +87,21 @@ public:
     return pdirectFncSet.count(FD);
   }
 
-  bool isPmisc(const FunctionDecl* FD) const {
-    return pmiscFncSet.count(FD);
+  bool isPmisc(const FunctionDecl* FD) const { return pmiscFncSet.count(FD); }
+
+  bool isSkipRealFnc(const FunctionDecl* FD) {
+    const IdentifierInfo* II = FD->getIdentifier();
+    return (II->isStr("btree_map_remove_from_node") ||
+            II->isStr("btree_map_insert_item_at") ||
+            II->isStr("btree_map_merge") ||
+            II->isStr("btree_map_rotate_right"));
   }
 
   void dump() {
     txFnc.dump();
     std::set<const FunctionDecl*>* functionSets[] = {
-        &txBegSet, &txRangeSet,   &txRangeDirectSet,
-        &txEndSet, &pallocFncSet, &pfreeFncSet, &pmiscFncSet};
+        &txBegSet,     &txRangeSet,  &txRangeDirectSet, &txEndSet,
+        &pallocFncSet, &pfreeFncSet, &pmiscFncSet};
     for (auto* fncSet : functionSets) {
       for (const FunctionDecl* FD : *fncSet) {
         llvm::outs() << FD->getQualifiedNameAsString() << "\n";

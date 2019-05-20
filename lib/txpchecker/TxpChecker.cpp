@@ -29,7 +29,6 @@ void TxpChecker::checkEndFunction(const ReturnStmt* RS,
   ProgramStateRef State = C.getState();
   const FunctionDecl* FD = getFuncDecl(C);
 
-
   printND(FD, "checkEndFunction");
   LogSpace::printLogMap(State);
   IpSpace::printVarMap(State);
@@ -102,6 +101,10 @@ bool TxpChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
   }
 
   if (txpFunctions.isAnyPfnc(FD)) {
+    return true;
+  }
+
+  if (txpFunctions.isSkipRealFnc(FD)) {
     return true;
   }
 

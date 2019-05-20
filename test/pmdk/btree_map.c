@@ -514,8 +514,7 @@ btree_map_remove_item(TOID(struct btree_map) map,
 	}
 
 	/* check for deficient nodes walking up */
-	if (!TOID_IS_NULL(parent) && D_RO(node)->n < BTREE_MIN)
-		btree_map_rebalance(map, node, parent, p);
+	btree_map_rebalance(map, node, parent, p);
 
 	return ret;
 }
