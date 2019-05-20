@@ -22,7 +22,7 @@
 #define sentinel __attribute((annotate("sent")))
 
 //ptr checker
-#define pptr __attribute((annotate("pptr")))
+#define pptr __attribute((annotate("persistent_ptr")))
 
 //rec checker
 #define analyze_recovery __attribute((annotate("RecoveryCode")))

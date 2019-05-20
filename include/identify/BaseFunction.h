@@ -17,7 +17,7 @@ public:
 
   void dump() {
     for (const FunctionDecl* FD : functions) {
-      llvm::outs() << FD->getQualifiedNameAsString() << "\n";
+      llvm::errs() << FD->getQualifiedNameAsString() << "\n";
     }
   }
 };

@@ -5,14 +5,14 @@
 
 namespace clang::ento::nvm {
 
-void PtrChecker::checkASTDecl(const FunctionDecl* FD, AnalysisManager& Mgr,
-                              BugReporter& BR) const {
-  ptrFncs.insertIfKnown(FD);
-}
+void PtrChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
+                               AnalysisManager& Mgr, BugReporter& BR) const {
+  TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
+  PtrWalker ptrWalker(ptrFncs, ptrVars);
+  ptrWalker.TraverseDecl(TUD);
 
-void PtrChecker::checkASTDecl(const FieldDecl* FD, AnalysisManager& Mgr,
-                              BugReporter& BR) const {
-  ptrVars.insertIfKnown(FD);
+  ptrFncs.dump();
+  ptrVars.dump();
 }
 
 void PtrChecker::checkBeginFunction(CheckerContext& C) const {
@@ -55,8 +55,24 @@ void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   DBGL(Loc, "bind")
   DBGS(S, "bind")
 
+  const FieldDecl* FD2 = getMemFieldDecl(Loc);
+  if (FD2) {
+    llvm::errs() << FD2 << "\n";
+    printMsg("");
+    printND(FD2, "fd2", true);
+    llvm::errs() << (int)ptrVars.inValues(FD2) << " "
+                 << (int)FD2->isAnonymousStructOrUnion() << "\n";
+
+    const FieldDecl* FD3 = FD2->getFirstDecl();
+    SourceLocation SL = FD2->getLocation();
+    SL.dump(C.getSourceManager());
+    printND(FD3, "fd3", true);
+    ptrVars.dump();
+  }
+
   // check tainted
   if (const FieldDecl* FD = getMemFieldDecl(Loc); ptrVars.inValues(FD)) {
+
     if (Transitions::isPtrWritten(State, Val)) {
       DBG("isPtrWritten")
       if (ExplodedNode* EN = C.generateErrorNode()) {
@@ -99,7 +115,7 @@ void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
 
   DBG("flushPtr")
   ProgramStateRef NewState = Transitions::flushPtr(State, Loc);
-  
+
   if (NewState != State) {
     C.addTransition(NewState);
   }

@@ -16,6 +16,7 @@ public:
 
   void addBasedOnAnnot(const NamedDecl* ND, const AnnotateAttr* AA) {
     StringRef annotation = AA->getAnnotation();
+
     if (annotation.contains(specialAnnot)) {
       valueSet.insert(ND);
     }
@@ -32,8 +33,12 @@ public:
 
   void dump() {
     for (const NamedDecl* ND : valueSet) {
-      llvm::outs() << ND->getQualifiedNameAsString() << "\n";
+      llvm::errs() << ND->getQualifiedNameAsString() << "\n";
     }
+  }
+
+  const char* getSpecialAnnotation() const{
+    return specialAnnot;
   }
 };
 

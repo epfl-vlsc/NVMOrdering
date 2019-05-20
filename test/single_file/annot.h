@@ -11,7 +11,7 @@
 #define sentinel __attribute((annotate("sent")))
 
 //pointer checker
-#define pptr __attribute((annotate("pptr")))
+#define pptr __attribute((annotate("persistent_ptr")))
 
 #define analyze_writes __attribute((annotate("PersistentCode")))
 #define analyze_recovery __attribute((annotate("RecoveryCode")))
