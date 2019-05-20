@@ -28,7 +28,17 @@ void TxpChecker::checkEndFunction(const ReturnStmt* RS,
   // todo becareful during iteration remove
   ProgramStateRef State = C.getState();
   const FunctionDecl* FD = getFuncDecl(C);
+
+
+  printND(FD, "checkEndFunction");
+  LogSpace::printLogMap(State);
+  IpSpace::printVarMap(State);
+
   bool stateChanged = IpSpace::removeVarsFromMap(State, FD);
+  //stateChanged |= SrSpace::removeSRFromMap(State, FD);
+  //stateChanged |= LogSpace::removeLogFromMap(State, FD);
+
+  
 
   addStateTransition(State, nullptr, C, stateChanged);
 }
@@ -284,7 +294,10 @@ void TxpChecker::addStateTransition(ProgramStateRef& State, const Stmt* S,
   if (stateChanged) {
     if (S) {
       SourceRange SR = S->getSourceRange();
+      const FunctionDecl* FD = getFuncDecl(C);
       SlSpace::saveSR(State, SR);
+      printND(FD, "save");
+      SrSpace::addSRToSlStore(State, SR, FD);
     }
     C.addTransition(State);
   }

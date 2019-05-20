@@ -6,11 +6,11 @@
 namespace clang::ento::nvm::IpSpace {
 
 void recurseAddBase(ProgramStateRef& State, VarInfo Alias,
-                          std::vector<VarInfo>& vList) {
+                    std::vector<VarInfo>& vList) {
   vList.push_back(Alias);
-  //in IPA only obj->field and obj->obj are tracked
+  // in IPA only obj->field and obj->obj are tracked
   if (Alias.hasField()) {
-    //obj track
+    // obj track
     auto Obj = VarInfo::getVarInfo(Alias);
     recurseAddBase(State, Obj, vList);
   } else {
@@ -22,20 +22,25 @@ void recurseAddBase(ProgramStateRef& State, VarInfo Alias,
   }
 }
 
-std::vector<VarInfo> getVarBaseList(ProgramStateRef& State,
-                                          VarInfo Alias) {
+std::vector<VarInfo> getVarBaseList(ProgramStateRef& State, VarInfo Alias) {
   std::vector<VarInfo> vList;
   recurseAddBase(State, Alias, vList);
   return vList;
 }
 
-void addToVarMap(ProgramStateRef& State, VarInfo Alias, VarInfo Var) {
-  const VarInfo* TransitiveVar = State->get<IpVarMap>(Var);
-  if (TransitiveVar) {
-    State = State->set<IpVarMap>(Alias, *TransitiveVar);
-  } else {
-    State = State->set<IpVarMap>(Alias, Var);
+VarInfo getTransitiveVar(ProgramStateRef& State, VarInfo Alias) {
+  // in IPA only obj->field and obj->obj are tracked
+  if (!Alias.hasField()) {
+    const VarInfo* VarVI = State->get<IpVarMap>(Alias);
+    if (VarVI) {
+      return getTransitiveVar(State, *VarVI);
+    }
   }
+  return Alias;
+}
+
+void addToVarMap(ProgramStateRef& State, VarInfo Alias, VarInfo Var) {
+  State = State->set<IpVarMap>(Alias, Var);
 }
 
 VarInfo getVarFromMap(ProgramStateRef& State, VarInfo Alias) {

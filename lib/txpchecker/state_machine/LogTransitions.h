@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "IpTransitions.h"
+#include "SrTransitions.h"
 #include "StateInfo.h"
 #include "States.h"
 
@@ -11,7 +12,29 @@ bool seenFirst(StateInfo& SI) {
   const Stmt* S = SI.S;
   SourceRange SR = S->getSourceRange();
 
-  return !SlSpace::isSRinStore(State, SR);
+  /*
+    CheckerContext& C = SI.C;
+    const SourceManager &SM = C.getSourceManager();
+    SR.dump(SM);
+  */
+  return !SrSpace::isSRInSlStore(State, SR);
+}
+
+bool removeLogFromMap(ProgramStateRef& State, const FunctionDecl* FD) {
+  bool stateChanged = false;
+  for (auto& VI : State->get<LogVarMap>()) {
+    if (VI.isSameFnc(FD)) {
+      State = State->remove<LogVarMap>(VI);
+      stateChanged = true;
+    }
+  }
+  return stateChanged;
+}
+
+void printLogMap(ProgramStateRef& State) {
+  for (auto& VI : State->get<LogVarMap>()) {
+    VI.dump("log");
+  }
 }
 
 void logData(StateInfo& SI) {
@@ -36,7 +59,8 @@ void logData(StateInfo& SI) {
 
   if (!reportBug) {
     DBG("obj not logged")
-    State = State->add<LogVarMap>(VI);
+    auto VarVI = IpSpace::getTransitiveVar(State, VI);
+    State = State->add<LogVarMap>(VarVI);
     SI.stateChanged = true;
   }
 }

@@ -66,7 +66,7 @@ struct btree_map {
 /*
  * btree_map_new -- allocates a new btree instance
  */
-int analyze_tx
+int
 btree_map_new(PMEMobjpool *pop, TOID(struct btree_map) *map, void *arg)
 {
 	int ret = 0;
@@ -286,7 +286,7 @@ btree_map_is_empty(PMEMobjpool *pop, TOID(struct btree_map) map)
 /*
  * btree_map_insert -- inserts a new key-value pair into the map
  */
-int analyze_tx 
+int 
 btree_map_insert(PMEMobjpool *pop, TOID(struct btree_map) map,
 	uint64_t key, PMEMoid value)
 {
@@ -635,7 +635,7 @@ btree_map_check(PMEMobjpool *pop, TOID(struct btree_map) map)
 /*
  * btree_map_insert_new -- allocates a new object and inserts it into the tree
  */
-int analyze_tx
+int
 btree_map_insert_new(PMEMobjpool *pop, TOID(struct btree_map) map,
 		uint64_t key, size_t size, unsigned int type_num,
 		void (*constructor)(PMEMobjpool *pop, void *ptr, void *arg),

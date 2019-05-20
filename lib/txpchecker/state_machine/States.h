@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "reporting/SourceLineStorage.h"
 
 namespace clang::ento::nvm {
 
@@ -59,3 +60,5 @@ REGISTER_TRAIT_WITH_PROGRAMSTATE(TxCounter, unsigned)
 REGISTER_SET_WITH_PROGRAMSTATE(LogVarMap, clang::ento::nvm::VarInfo)
 REGISTER_MAP_WITH_PROGRAMSTATE(IpVarMap, clang::ento::nvm::VarInfo,
                                clang::ento::nvm::VarInfo)
+REGISTER_MAP_WITH_PROGRAMSTATE(SlStore, clang::ento::nvm::SlSpace::SlRange,
+                               const clang::FunctionDecl*)
