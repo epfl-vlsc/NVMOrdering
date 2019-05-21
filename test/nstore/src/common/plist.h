@@ -5,6 +5,8 @@
 #include "annot.h"
 namespace storage {
 
+#define pmem_activate __pmem_persist
+
 // Persistent list for storing pointers
 template<typename V>
 class plist {
@@ -81,13 +83,13 @@ class plist {
     // Link it in at the end of the list
     PM_EQU((np->val), (val));
     PM_EQU((np->next), (NULL));
-    __pmem_persist(np, sizeof(*np), 0);
+    pmem_activate(np, sizeof(*np), 0);
 
     tailp = (*tail);
     PM_EQU(((*tail)), (np));
 
     PM_EQU((tailp->next), (np));
-    __pmem_persist(&tailp->next, sizeof(*np), 0);
+    pmem_activate(&tailp->next, sizeof(*np), 0);
 
     index = _size;
     PM_EQU((_size), (_size+1));
