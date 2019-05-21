@@ -6,7 +6,7 @@
 namespace clang::ento::nvm {
 
 void PtrChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
-                               AnalysisManager& Mgr, BugReporter& BR) const {
+                              AnalysisManager& Mgr, BugReporter& BR) const {
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
   PtrWalker ptrWalker(ptrFncs, ptrVars);
   ptrWalker.TraverseDecl(TUD);
@@ -54,16 +54,21 @@ void PtrChecker::checkEndFunction(const ReturnStmt* RS,
 void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
   ProgramStateRef State = C.getState();
-  DBGL(Loc, "bind")
   DBGS(S, "bind")
+  DBGL(Loc, "bindloc")
+  DBGL(Val, "bindval")
+
+  AllocWalker aw;
+  aw.TraverseStmt((Stmt*)S);
 
   // check tainted
   if (const FieldDecl* FD = getMemFieldDecl(Loc); ptrVars.inValues(FD)) {
+    const MemRegion* MRRead = getTopBaseMemRegUnsafe(Val);
+    if (MRRead && Transitions::isPtrWritten(State, MRRead)) {
+      DBGR(MRRead, "bindread")
 
-    if (Transitions::isPtrWritten(State, Val)) {
-      DBG("isPtrWritten")
       if (ExplodedNode* EN = C.generateErrorNode()) {
-        DBG("generate error node")
+        DBG("report error")
         BugReportData BRData{nullptr, State,         C,
                              EN,      "not flushed", BReporter.NotFlushBug};
         BReporter.report(BRData);
@@ -72,11 +77,14 @@ void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   }
 
   // taint written value
-  DBG("writePtr")
-  ProgramStateRef NewState = Transitions::writePtr(State, Val);
-
-  if (NewState != State) {
-    C.addTransition(NewState);
+  
+  const MemRegion* MRWrite = getTopBaseMemRegLOrR(Loc, Val, !aw.isAllocUsed());
+  if (MRWrite) {
+    DBGR(MRWrite, "bindwrite")
+    ProgramStateRef NewState = Transitions::writePtr(State, MRWrite);
+    if (NewState != State) {
+      C.addTransition(NewState);
+    }
   }
 }
 
@@ -97,14 +105,17 @@ void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
 
   ProgramStateRef State = C.getState();
   SVal Loc = Call.getArgSVal(0);
-  DBGL(Loc, "flush")
   DBGS(Call.getOriginExpr(), "flush")
+  DBGL(Loc, "floc")
 
-  DBG("flushPtr")
-  ProgramStateRef NewState = Transitions::flushPtr(State, Loc);
+  const MemRegion* MRFlush = getTopBaseMemRegUnsafe(Loc);
+  if (MRFlush) {
+    DBGR(MRFlush, "flushmr")
 
-  if (NewState != State) {
-    C.addTransition(NewState);
+    ProgramStateRef NewState = Transitions::flushPtr(State, MRFlush);
+    if (NewState != State) {
+      C.addTransition(NewState);
+    }
   }
 }
 

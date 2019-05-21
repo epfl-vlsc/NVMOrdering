@@ -21,6 +21,34 @@
 
 namespace clang::ento::nvm {
 
+const MemRegion* getTopBaseMemRegion(const MemRegion* MR) {
+  assert(MR && "must be valid MemReg");
+  const MemRegion* BMR = MR->getBaseRegion();
+  if (BMR == MR || !BMR) {
+    return MR;
+  } else {
+    return getTopBaseMemRegion(BMR);
+  }
+}
+
+const MemRegion* getTopBaseMemRegUnsafe(const SVal& Loc) {
+  const MemRegion* LocMR = Loc.getAsRegion();
+  if (!LocMR) {
+    return nullptr;
+  }
+
+  const MemRegion* LocBMR = getTopBaseMemRegion(LocMR);
+  return LocBMR;
+}
+
+const MemRegion* getTopBaseMemRegLOrR(const SVal& L, const SVal& R, bool l) {
+  if (l) {
+    return getTopBaseMemRegUnsafe(L);
+  } else {
+    return getTopBaseMemRegUnsafe(R);
+  }
+}
+
 bool isFieldOrObj(const NamedDecl* ND) {
   if (const FieldDecl* FD = dyn_cast_or_null<FieldDecl>(ND)) {
     return true;

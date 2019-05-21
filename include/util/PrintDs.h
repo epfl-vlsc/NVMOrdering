@@ -9,6 +9,14 @@ template <typename Vector> void dumpVector(const Vector& vector) {
   }
 }
 
+void printReg(const MemRegion* MR, const char* msg) {
+  if (MR) {
+    llvm::errs() << msg << ":";
+    MR->dump();
+    llvm::errs() << "\n";
+  }
+}
+
 void printND(const NamedDecl* ND, const char* msg, bool isQualified = false) {
   llvm::errs() << msg << ":";
   if (!isQualified) {
@@ -52,6 +60,35 @@ void printMapSet(const MapSet& ms, const char* msgPtr, const char* msgElement) {
 template <typename Set> void printSet(const Set& s, const char* msgElement) {
   for (auto& element : s) {
     llvm::errs() << msgElement << " " << element->getNameAsString() << "\n";
+  }
+}
+
+void printRegionKind(const MemRegion* MR) {
+  if (!MR)
+    return;
+
+  if (auto* L1 = MR->getAs<SubRegion>()) {
+    printMsg("SubRegion");
+    if (auto* L2 = MR->getAs<AllocaRegion>()) {
+      printMsg("AllocaRegion");
+    } else if (auto* L2 = MR->getAs<SymbolicRegion>()) {
+      printMsg("SymbolicRegion");
+    } else if (auto* L2 = MR->getAs<TypedRegion>()) {
+      printMsg("TypedRegion");
+      if (auto* L3 = MR->getAs<TypedValueRegion>()) {
+        printMsg("TypedValueRegion");
+        if (auto* L4 = MR->getAs<VarRegion>()) {
+          printMsg("VarRegion");
+        } else if (auto* L4 = MR->getAs<ElementRegion>()) {
+          printMsg("ElementRegion");
+        }
+      }
+    }
+  } else if (auto* L1 = MR->getAs<MemSpaceRegion>()) {
+    printMsg("MemSpaceRegion");
+    if (auto* L1 = MR->getAs<HeapSpaceRegion>()) {
+      printMsg("HeapSpaceRegion");
+    }
   }
 }
 
