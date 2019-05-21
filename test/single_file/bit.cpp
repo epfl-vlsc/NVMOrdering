@@ -6,7 +6,6 @@ struct BitField {
 
   void analyze_writes noFence() {
     data = 1;
-    clflush(this);
     valid = 1;
   }
 
