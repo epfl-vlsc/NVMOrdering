@@ -1,7 +1,7 @@
 #include "annot.h"
 
-struct Scl {
-  sentinelp(scl-Scl::valid) int data;
+struct Autocl {
+  sentinelp(Autocl::valid) int data;
   int valid;
 
   void analyze_writes correct() {
@@ -41,13 +41,5 @@ struct Scl {
     vfence();
     data = 1;
     valid = 1;
-  }
-
-  void analyze_writes correctBranch(bool useNvm) {
-    data = 1;
-    if (useNvm) {
-      vfence();
-      valid = 1;
-    }
   }
 };
