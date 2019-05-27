@@ -11,10 +11,7 @@ void ExpChecker::checkASTDecl(const RecordDecl* RD, AnalysisManager& Mgr,
 void ExpChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
                               AnalysisManager& Mgr, BugReporter& BR) const {}
 
-void ExpChecker::checkBeginFunction(CheckerContext& C) const {
-  const LocationContext* LC = C.getLocationContext();
-  const Decl* BD = LC->getDecl();
-}
+void ExpChecker::checkBeginFunction(CheckerContext& C) const {}
 
 void ExpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
@@ -23,8 +20,7 @@ void ExpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
 }
 
 void ExpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
-  const FunctionDecl* FD = getFuncDecl(Call);
-  const Stmt* E = Call.getOriginExpr();
+
 }
 
 void ExpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {}

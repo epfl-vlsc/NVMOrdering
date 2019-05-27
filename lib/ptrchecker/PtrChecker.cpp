@@ -18,38 +18,40 @@ void PtrChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
 }
 
 void PtrChecker::checkBeginFunction(CheckerContext& C) const {
-  bool isAnnotated = ptrFncs.isPersistentFunction(C);
+  bool isSkip = ptrFncs.isSkip(C);
   bool isTopFnc = isTopFunction(C);
 
-  // if not an annotated function, do not analyze
-  if (!isAnnotated && isTopFnc) {
-    handleEnd(C);
+  // skip
+  if (isSkip && isTopFnc) {
+    endExploration(C);
+    return;
   }
 
   DBG("function: " << getFunctionDeclName(C))
-}
 
-void PtrChecker::handleEnd(CheckerContext& C) const {
-  ExplodedNode* ErrNode = C.generateErrorNode();
-  if (!ErrNode)
+  // make params dirty
+  ProgramStateRef State = C.getState();
+  const FunctionDecl* FD = getFuncDecl(C);
+  const LocationContext* LC = C.getLocationContext();
+  if (FD && !isTopFnc) {
     return;
+  }
+
+  for (unsigned idx = 0, e = FD->getNumParams(); idx != e; ++idx) {
+    const ParmVarDecl* Param = FD->getParamDecl(idx);
+    SVal Loc = State->getSVal(State->getRegion(Param, LC));
+    DBGL(Loc, "paramloc")
+    const MemRegion* MRParam = getTopBaseMemRegUnsafe(Loc);
+    if (MRParam) {
+      DBGR(MRParam, "param")
+      ProgramStateRef NewState = Transitions::writePtr(State, MRParam);
+      addNewState(State, NewState, C);
+    }
+  }
 }
 
 void PtrChecker::checkEndFunction(const ReturnStmt* RS,
-                                  CheckerContext& C) const {
-  /*
-  bool isAnnotated = orderFncs.isPersistentFunction(C);
-  bool isTopFnc = isTopFunction(C);
-  if (isAnnotated && isTopFnc) {
-    // ensured it is the top function and annotated
-    ProgramStateRef State = C.getState();
-
-    checkMapStates<CheckMap>(State, C);
-    checkMapStates<DclMap>(State, C);
-    checkMapStates<SclMap>(State, C);
-  }
-  */
-}
+                                  CheckerContext& C) const {}
 
 void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
@@ -77,14 +79,11 @@ void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   }
 
   // taint written value
-  
   const MemRegion* MRWrite = getTopBaseMemRegLOrR(Loc, Val, !aw.isAllocUsed());
   if (MRWrite) {
     DBGR(MRWrite, "bindwrite")
     ProgramStateRef NewState = Transitions::writePtr(State, MRWrite);
-    if (NewState != State) {
-      C.addTransition(NewState);
-    }
+    addNewState(State, NewState, C);
   }
 }
 
@@ -93,6 +92,18 @@ void PtrChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
 
   if (ptrFncs.isFlushFenceFnc(FD)) {
     handleFlushFenceFnc(Call, C);
+  }
+}
+
+void PtrChecker::handleParams(const CallEvent& Call, CheckerContext& C) const {
+  DBG("params")
+  if (Call.getNumArgs() == 0) {
+    return;
+  }
+
+  for (int i = 0; i < Call.getNumArgs(); ++i) {
+    SVal Loc = Call.getArgSVal(i);
+    DBGL(Loc, "param")
   }
 }
 
@@ -113,9 +124,7 @@ void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
     DBGR(MRFlush, "flushmr")
 
     ProgramStateRef NewState = Transitions::flushPtr(State, MRFlush);
-    if (NewState != State) {
-      C.addTransition(NewState);
-    }
+    addNewState(State, NewState, C);
   }
 }
 
@@ -126,11 +135,7 @@ bool PtrChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
     return false;
   }
 
-  if (ptrFncs.isUsedFnc(FD)) {
-    return true;
-  }
-
-  return false;
+  return ptrFncs.isSkip(FD);
 }
 
 void PtrChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {}

@@ -4,32 +4,32 @@ struct Ptr {
   int data;
   pptr Ptr* next;
 
-  void analyze_writes correct() {
+  void correct() {
     Ptr* ptr = new Ptr;
     ptr->data = 5;
     clflush(ptr);
     this->next = ptr;
   }
 
-  void analyze_writes correct2() {
+  void correct2() {
     Ptr* ptr = new Ptr;
     clflush(ptr);
     this->next = ptr;
   }
 
-  void analyze_writes notFlushed() {
+  void notFlushed() {
     Ptr* ptr = new Ptr;
     clflush(ptr);
     ptr->data = 5;
     this->next = ptr;
   }
 
-  void analyze_writes notFlushed2() {
+  void notFlushed2() {
     Ptr* ptr = new Ptr;
     this->next = ptr;
   }
 
-  void analyze_writes correct3() {
+  void correct3() {
     Ptr* ptr = (Ptr*)malloc(sizeof(Ptr));
     ptr->data = 5;
     clflush(ptr);
@@ -37,8 +37,25 @@ struct Ptr {
     ptr->next = ptr;
   }
 
-  void unanalyzed() {
+  void writeParam(Ptr* param, Ptr* param2){
+    param->next = param2;    
+  }
+
+  void writeParam2(Ptr* param, Ptr* param2){
+    clflush(param2);
+    param->next = param2;
+    this->next = param;
+  }
+
+  void correctParam(Ptr* param, Ptr* param2){
+    clflush(param2);
+    param->next = param2;
+    clflush(param);
+    this->next = param;
+  }
+
+  void skip_fnc unanalyzed() {
     Ptr* ptr = new Ptr;
     this->next = ptr;
-  }    
+  }   
 };

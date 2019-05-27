@@ -25,7 +25,8 @@ void MainChecker::checkBeginFunction(CheckerContext& C) const {
   bool isTopFnc = isTopFunction(C);
 
   // skip
-  if (isSkip && isTopFnc && endExploration(C)) {
+  if (isSkip && isTopFnc) {
+    endExploration(C);
     return;
   }
 
@@ -179,8 +180,9 @@ void MainChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
     SVal Val = State->getSVal(S, LC);
     Optional<DefinedOrUnknownSVal> DVal = Val.getAs<DefinedOrUnknownSVal>();
 
-    if (!DVal && endExploration(C)) {
+    if (!DVal) {
       DBG("undef");
+      endExploration(C);
       return;
     }
 
