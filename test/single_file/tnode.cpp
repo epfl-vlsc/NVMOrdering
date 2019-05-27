@@ -14,7 +14,7 @@ public:
   }
 };
 
-void analyze_writes notFlushed() {
+void notFlushed() {
   auto* l = new plist<const char*>;
   l->notFlushed();
 }

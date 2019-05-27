@@ -46,14 +46,12 @@ private:
   void handleFlushFnc(const CallEvent& Call, CheckerContext& C) const;
 
   template <bool pfence>
-  void handleFence(const CallEvent& Call, CheckerContext& C) const;
+  void handleFence(const Expr* E, CheckerContext& C) const;
 
   template <bool fence>
   void handleFlush(const NamedDecl* ND, HandleInfo& HI) const;
 
   void handleWrite(const NamedDecl* ND, HandleInfo& HI) const;
-
-  void handleEnd(CheckerContext& C) const;
 
   const MainBugReporter BReporter;
   mutable MainFncs mainFncs;

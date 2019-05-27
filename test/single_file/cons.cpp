@@ -10,6 +10,6 @@ struct Cons {
   }
 };
 
-void analyze_writes x(){
+void x(){
     Cons cons;
 }

@@ -5,28 +5,39 @@
 namespace clang::ento::nvm {
 
 class MainFncs {
-  static constexpr const char* PERSISTENT = "PersistentCode";
+  static constexpr const char* SKIP_FNC = "SkipCode";
 
-  AnnotFunction persistentFnc;
+  AnnotFunction skipFnc;
   PfenceFunction pfenceFnc;
   VfenceFunction vfenceFnc;
   FlushOptFunction flushOptFnc;
   FlushFenceFunction flushFenceFnc;
 
 public:
-  MainFncs() : persistentFnc(PERSISTENT) {}
+  MainFncs() : skipFnc(SKIP_FNC) {}
 
-  bool isPersistentFunction(CheckerContext& C) const {
-    const FunctionDecl* FD = getFuncDecl(C);
-    return persistentFnc.inFunctions(FD);
+  bool isSkip(CheckerContext& C) const {
+    if (const FunctionDecl* FD = getFuncDecl(C); FD) {
+      return isSkip(FD);
+    }
+    return false;
+  }
+
+  bool isSkip(const FunctionDecl* FD) const {
+    return isSkipFnc(FD) || isFlushFenceFnc(FD) || isFlushOptFnc(FD) ||
+           isVfenceFnc(FD) || isPfenceFnc(FD);
   }
 
   void insertIfKnown(const FunctionDecl* FD) {
-    persistentFnc.insertIfKnown(FD);
+    skipFnc.insertIfKnown(FD);
     pfenceFnc.insertIfKnown(FD);
     vfenceFnc.insertIfKnown(FD);
     flushOptFnc.insertIfKnown(FD);
     flushFenceFnc.insertIfKnown(FD);
+  }
+
+  bool isSkipFnc(const FunctionDecl* FD) const {
+    return skipFnc.inFunctions(FD);
   }
 
   bool isFlushFenceFnc(const FunctionDecl* FD) const {
@@ -45,13 +56,8 @@ public:
     return pfenceFnc.inFunctions(FD);
   }
 
-  bool isUsedFnc(const FunctionDecl* FD) const {
-    return isFlushFenceFnc(FD) || isFlushOptFnc(FD) || isVfenceFnc(FD) ||
-           isPfenceFnc(FD);
-  }
-
   void dump() {
-    persistentFnc.dump();
+    skipFnc.dump();
     flushFenceFnc.dump();
     flushOptFnc.dump();
     pfenceFnc.dump();

@@ -21,37 +21,21 @@ void MainChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
 }
 
 void MainChecker::checkBeginFunction(CheckerContext& C) const {
-  bool isAnnotated = mainFncs.isPersistentFunction(C);
+  bool isSkip = mainFncs.isSkip(C);
   bool isTopFnc = isTopFunction(C);
 
-  // if not an annotated function, do not analyze
-  if (!isAnnotated && isTopFnc) {
-    handleEnd(C);
+  // skip
+  if (isSkip && isTopFnc && endExploration(C)) {
+    return;
   }
 
-  DBG("Function:" << getFunctionDeclName(C))
-}
-
-void MainChecker::handleEnd(CheckerContext& C) const {
-  ExplodedNode* ErrNode = C.generateErrorNode();
-  if (!ErrNode)
-    return;
+  DBG("function: " << getFunctionDeclName(C))
 }
 
 void MainChecker::checkEndFunction(const ReturnStmt* RS,
                                    CheckerContext& C) const {
-  /*
-  bool isAnnotated = orderFncs.isPersistentFunction(C);
-  bool isTopFnc = isTopFunction(C);
-  if (isAnnotated && isTopFnc) {
-    // ensured it is the top function and annotated
-    ProgramStateRef State = C.getState();
-
-    checkMapStates<CheckMap>(State, C);
-    checkMapStates<DclMap>(State, C);
-    checkMapStates<SclMap>(State, C);
-  }
-  */
+  // todo enable, when everything is working, a function end is an implicit
+  // vfence handleFence<false>(RS, C);
 }
 
 void MainChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
@@ -90,15 +74,16 @@ void MainChecker::handleWrite(const NamedDecl* ND, HandleInfo& HI) const {
 
 void MainChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
   const FunctionDecl* FD = getFuncDecl(Call);
+  const Expr* E = Call.getOriginExpr();
 
   if (mainFncs.isFlushFenceFnc(FD)) {
     handleFlushFnc<true>(Call, C);
   } else if (mainFncs.isFlushOptFnc(FD)) {
     handleFlushFnc<false>(Call, C);
   } else if (mainFncs.isVfenceFnc(FD)) {
-    handleFence<false>(Call, C);
+    handleFence<false>(E, C);
   } else if (mainFncs.isPfenceFnc(FD)) {
-    handleFence<true>(Call, C);
+    handleFence<true>(E, C);
   }
 }
 
@@ -109,19 +94,13 @@ bool MainChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
     return false;
   }
 
-  if (mainFncs.isUsedFnc(FD)) {
-    return true;
-  }
-
-  return false;
+  return mainFncs.isSkip(FD);
 }
 
 template <bool pfence>
-void MainChecker::handleFence(const CallEvent& Call, CheckerContext& C) const {
+void MainChecker::handleFence(const Expr* E, CheckerContext& C) const {
   ProgramStateRef State = C.getState();
   bool stateChanged = false;
-
-  const Expr* E = Call.getOriginExpr();
 
   for (auto& [PI, _] : State->get<WriteMap>()) {
     auto SI = StateInfo(C, State, BReporter, E, PI, nullptr);
@@ -200,9 +179,9 @@ void MainChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
     SVal Val = State->getSVal(S, LC);
     Optional<DefinedOrUnknownSVal> DVal = Val.getAs<DefinedOrUnknownSVal>();
 
-    if (!DVal) {
+    if (!DVal && endExploration(C)) {
       DBG("undef");
-      handleEnd(C);
+      return;
     }
 
     State = State->assume(*DVal, true);

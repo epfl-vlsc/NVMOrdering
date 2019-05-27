@@ -4,20 +4,20 @@ struct Obj {
   int data;
   int valid;
 
-  void analyze_writes correct() {
+  void correct() {
     data = 1;
     clflushopt(this);
     pfence();
     valid = 1;
   }
 
-  void analyze_writes notFencedData() {
+  void notFencedData() {
     data = 1;
     clflushopt(this);
     valid = 1;
   }
 
-  void analyze_writes writeDataValid() {
+  void writeDataValid() {
     data = 1;
     valid = 1;
   }

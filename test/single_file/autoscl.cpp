@@ -1,16 +1,16 @@
 #include "annot.h"
 
 struct Autocl {
-  sentinelp(Autocl::valid) int data;
+  sentinelp(scl-Autocl::valid) int data;
   int valid;
 
-  void analyze_writes correct() {
+  void correct() {
     data = 1;
     vfence();
     valid = 1;
   }
 
-  void analyze_writes correctCircular() {
+  void correctCircular() {
     valid = 1;
     vfence();
     data = 1;
@@ -18,25 +18,25 @@ struct Autocl {
     valid = 1;
   }
 
-  void analyze_writes correctPfence() {
+  void correctPfence() {
     data = 1;
     pfence();
     valid = 1;
   }
 
-  void analyze_writes notFencedData() {
+  void notFencedData() {
     data = 1;
     valid = 1;
   }
 
-  void analyze_writes initValid() {
+  void initValid() {
     valid = 1;
     data = 1;
     vfence();
     valid = 1;
   }
 
-  void analyze_writes beforeValidWriteData() {
+  void beforeValidWriteData() {
     data = 1;
     vfence();
     data = 1;
