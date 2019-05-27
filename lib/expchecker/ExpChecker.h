@@ -8,15 +8,12 @@ namespace clang::ento::nvm {
 class ExpChecker
     : public Checker<check::ASTDecl<TranslationUnitDecl>,
                      check::ASTDecl<RecordDecl>, check::BeginFunction,
-                     check::PreCall, check::PostCall, check::Bind,
-                     check::EndFunction> {
+                     check::PreCall, check::PostCall, check::Bind> {
 
 public:
   ExpChecker() {}
 
   void checkBeginFunction(CheckerContext& Ctx) const;
-
-  void checkEndFunction(CheckerContext& C) const;
 
   void checkPreCall(const CallEvent& Call, CheckerContext& C) const;
 
