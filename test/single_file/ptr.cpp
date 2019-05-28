@@ -2,7 +2,7 @@
 
 struct Ptr {
   int data;
-  pptr Ptr* next;
+  p_ptr Ptr* next;
 
   void correct() {
     Ptr* ptr = new Ptr;

@@ -11,7 +11,7 @@
 #define sentinel __attribute((annotate("sent")))
 
 //pointer checker
-#define pptr __attribute((annotate("persistent_ptr")))
+#define p_ptr __attribute((annotate("persistent_ptr")))
 
 #define skip_fnc __attribute((annotate("SkipCode")))
 
