@@ -17,8 +17,8 @@ BUILD_DIR="${BASE_DIR}/build"
 PLUGIN_DIR="${BUILD_DIR}/lib"
 TEST_DIR="${BASE_DIR}/../NvmBenchmarks"
 
-
-SBFLAGS="--force-analyze-debug-code -v -stats -maxloop 2 -o ${OUT_DIR}"
+#SBFLAGS = -v -stats
+SBFLAGS="--force-analyze-debug-code -maxloop 2 -o ${OUT_DIR}"
 PLUGIN="-load-plugin ${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
 -enable-checker nvm.${TOOL_NAME}checker"
 DISPLUGIN="-disable-checker alpha,apiModeling,valist,\
