@@ -15,13 +15,13 @@ void ExpChecker::checkBeginFunction(CheckerContext& C) const {}
 
 void ExpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
                            CheckerContext& C) const {
-  DBGS(S, "bs")
-  DBGL(Loc, "bl")
+  // DBGS(S, "bs")
+  // DBGL(Loc, "bl")
 }
 
 void ExpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
-  const FunctionDecl* FD = getFuncDecl(Call);
-  DBGN(FD, "fd")
+  // const FunctionDecl* FD = getFuncDecl(Call);
+  // DBGN(FD, "fd")
 }
 
 void ExpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {}
@@ -44,12 +44,12 @@ void ExpChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
     DBGL(TrueValue, "truthval")
     DBGS(S, "s")
     NewState = NewState->BindExpr(S, LC, TrueValue);
-    if(NewState == State){
+    if (NewState == State) {
       DBG("fail")
     }
     C.addTransition(NewState);
-    SVal Valx = NewState->getSVal(S, LC);
-    DBGL(Valx, "val")
+    //SVal Valx = NewState->getSVal(S, LC);
+    //DBGL(Valx, "val")
   }
 }
 

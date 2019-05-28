@@ -98,18 +98,6 @@ void PtrChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {
   }
 }
 
-void PtrChecker::handleParams(const CallEvent& Call, CheckerContext& C) const {
-  DBG("params")
-  if (Call.getNumArgs() == 0) {
-    return;
-  }
-
-  for (int i = 0; i < Call.getNumArgs(); ++i) {
-    SVal Loc = Call.getArgSVal(i);
-    DBGL(Loc, "param")
-  }
-}
-
 void PtrChecker::handleFlushFenceFnc(const CallEvent& Call,
                                      CheckerContext& C) const {
   if (Call.getNumArgs() > 3) {
@@ -141,7 +129,30 @@ bool PtrChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
   return ptrFncs.isSkip(FD);
 }
 
-void PtrChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {}
+void PtrChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
+  std::vector<const char*> names{"use_nvm"};
+  printStmt(S,C,"b",true);
+  if (usesNames(S, names)) {
+    ProgramStateRef State = C.getState();
+    const LocationContext* LC = C.getLocationContext();
+    SVal Val = State->getSVal(S, LC);
+    Optional<DefinedOrUnknownSVal> DVal = Val.getAs<DefinedOrUnknownSVal>();
+
+    if (!DVal) {
+      DBG("undef");
+      endExploration(C);
+      return;
+    } 
+    
+    if (ProgramStateRef NewState = State->assume(*DVal, true)) {
+      State = NewState;
+      C.addTransition(NewState);
+    }else{
+      endExploration(C);
+      return;
+    }
+  }
+}
 
 } // namespace clang::ento::nvm
 

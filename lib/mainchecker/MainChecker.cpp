@@ -175,7 +175,7 @@ void MainChecker::handleFlush(const NamedDecl* ND, HandleInfo& HI) const {
 
 void MainChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
   std::vector<const char*> names{"use_nvm"};
-  
+  printStmt(S,C,"b",true);
   if (usesNames(S, names)) {
     ProgramStateRef State = C.getState();
     const LocationContext* LC = C.getLocationContext();
@@ -186,7 +186,12 @@ void MainChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
       DBG("undef");
       endExploration(C);
       return;
-    } else if (State->assume(*DVal, true)) {
+    } 
+    
+    if (ProgramStateRef NewState = State->assume(*DVal, true)) {
+      State = NewState;
+      C.addTransition(NewState);
+    }else{
       endExploration(C);
       return;
     }

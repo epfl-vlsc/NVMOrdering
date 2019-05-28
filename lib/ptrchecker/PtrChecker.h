@@ -33,8 +33,6 @@ public:
 private:
   void handleFlushFenceFnc(const CallEvent& Call, CheckerContext& C) const;
 
-  void handleParams(const CallEvent& Call, CheckerContext& C) const;
-
   const PtrBugReporter BReporter;
   mutable PtrFncs ptrFncs;
   mutable PtrVars ptrVars;
