@@ -1,7 +1,6 @@
 MODE=$1 #run, scan, ast, multi
-TOOL_NAME=$2 #low level(write, read), high level(txm, txp, log)
-TEST_NAME=$3 #any *.cpp file under test directory
-PATCH_NO=$4 #pmdk patch
+TOOL_NAME=$2 # main, ptr, log, txp
+TEST_NAME=$3 #any *.cpp file under `test/single_file` directory
 
 #initialize info---------------------------------------------
 if [ -z "$TEST_NAME" ] ; then
@@ -20,8 +19,6 @@ PLUGIN_DIR="${BUILD_DIR}/lib"
 TEST_DIR="${BASE_DIR}/test"
 SINGLE_FILE_REPO=${TEST_DIR}/single_file
 TEST_FILE=${SINGLE_FILE_REPO}/$TEST_NAME.cpp
-
-PATCH_DIR=${TEST_DIR}
 
 if [ "$MODE" == "run" ] || [ "$MODE" == "mini" ] ;then
     SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2
