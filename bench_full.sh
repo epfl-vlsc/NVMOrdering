@@ -22,7 +22,7 @@ SBFLAGS="--force-analyze-debug-code -v -stats -maxloop 2 -o ${OUT_DIR}"
 PLUGIN="-load-plugin ${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
 -enable-checker nvm.${TOOL_NAME}checker"
 DISPLUGIN="-disable-checker alpha,apiModeling,valist,\
-cplusplus,deadcode,debug,llvm,nullability,optin,security,osx,core,unix"
+cplusplus,deadcode,debug,nullability,optin,security,osx,core,unix"
 
 
 #nvml--------------------------------------------------------
