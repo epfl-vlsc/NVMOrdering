@@ -52,13 +52,16 @@ class MainWalker : public RecursiveASTVisitor<MainWalker> {
 
   using PSIList = std::vector<PairStrInfo>;
   using StrToND = std::map<std::string, const NamedDecl*>;
+  using MESet = std::set<const MemberExpr*>;
 
   MainVars& mainVars;
   MainFncs& mainFncs;
+  ASTContext& AC;
 
   PSIList psiList;
   StrToND strToND;
   AutoCl autoCl;
+  MESet memberExprs;
 
   void addAnnotated(const NamedDecl* ND) {
     std::string dataName = ND->getQualifiedNameAsString();
@@ -110,9 +113,25 @@ class MainWalker : public RecursiveASTVisitor<MainWalker> {
     }
   }
 
+  void fillAnalysisFunctions() {
+    for (const MemberExpr* ME : memberExprs) {
+      const ValueDecl* VD = ME->getMemberDecl();
+      if (!mainVars.isUsedVar(VD)) {
+        continue;
+      }
+
+      const FunctionDecl* FD = getFuncDecl(ME, AC);
+      if (!FD) {
+        continue;
+      }
+
+      mainFncs.insertAnalyze(FD);
+    }
+  }
+
 public:
-  MainWalker(MainVars& mainVars_, MainFncs& mainFncs_, const ASTContext& ASTC_)
-      : mainVars(mainVars_), mainFncs(mainFncs_), autoCl(ASTC_) {}
+  MainWalker(MainVars& mainVars_, MainFncs& mainFncs_, ASTContext& AC_)
+      : mainVars(mainVars_), mainFncs(mainFncs_), AC(AC_), autoCl(AC_) {}
 
   bool VisitFunctionDecl(const FunctionDecl* FD) {
     mainFncs.insertIfKnown(FD);
@@ -135,7 +154,19 @@ public:
     return true;
   }
 
-  void finalize() { fillMainVars(); }
+  bool VisitMemberExpr(const MemberExpr* ME) {
+    memberExprs.insert(ME);
+
+    // continue traversal
+    return true;
+  }
+
+  bool shouldVisitTemplateInstantiations() const { return true; }
+
+  void finalize() {
+    fillMainVars();
+    fillAnalysisFunctions();
+  }
 };
 
 } // namespace clang::ento::nvm

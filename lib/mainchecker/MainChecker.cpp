@@ -11,7 +11,7 @@ void MainChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
   // fill data structures
 
-  const ASTContext& astContext = Mgr.getASTContext();
+  ASTContext& astContext = Mgr.getASTContext();
   MainWalker mainWalker(mainVars, mainFncs, astContext);
   mainWalker.TraverseDecl(TUD);
   mainWalker.finalize();

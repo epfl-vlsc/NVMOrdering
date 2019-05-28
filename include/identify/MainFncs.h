@@ -7,6 +7,7 @@ namespace clang::ento::nvm {
 class MainFncs {
   static constexpr const char* SKIP_FNC = "SkipCode";
 
+  BaseFunction analyzeFnc;
   AnnotFunction skipFnc;
   PfenceFunction pfenceFnc;
   VfenceFunction vfenceFnc;
@@ -15,6 +16,11 @@ class MainFncs {
 
 public:
   MainFncs() : skipFnc(SKIP_FNC) {}
+
+  bool isAnalyzeFnc(CheckerContext& C) {
+    const FunctionDecl* FD = getFuncDecl(C);
+    return analyzeFnc.inFunctions(FD);
+  }
 
   bool isSkip(CheckerContext& C) const {
     if (const FunctionDecl* FD = getFuncDecl(C); FD) {
@@ -27,6 +33,8 @@ public:
     return isSkipFnc(FD) || isFlushFenceFnc(FD) || isFlushOptFnc(FD) ||
            isVfenceFnc(FD) || isPfenceFnc(FD);
   }
+
+  void insertAnalyze(const FunctionDecl* FD) { analyzeFnc.insert(FD); }
 
   void insertIfKnown(const FunctionDecl* FD) {
     skipFnc.insertIfKnown(FD);
@@ -57,6 +65,9 @@ public:
   }
 
   void dump() {
+    printMsg("analyze:");
+    analyzeFnc.dump();
+    printMsg("use:");
     skipFnc.dump();
     flushFenceFnc.dump();
     flushOptFnc.dump();

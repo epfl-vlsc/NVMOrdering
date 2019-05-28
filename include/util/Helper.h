@@ -109,38 +109,6 @@ const AnnotateAttr* getAnnotation(const ValueDecl* VD) {
   return nullptr;
 }
 
-const Stmt* getParentStmt(const Stmt* S, CheckerContext& C) {
-  ASTContext& AC = C.getASTContext();
-  const auto& parents = AC.getParents(*S);
-  if (parents.empty()) {
-    llvm::report_fatal_error("cannot find parent");
-    return nullptr;
-  }
-
-  const Stmt* PS = parents[0].get<Stmt>();
-  if (!PS) {
-    llvm::report_fatal_error("parent does not exist");
-    return nullptr;
-  }
-
-  return PS;
-}
-
-const Stmt* getParentStmtUnsafe(const Stmt* S, CheckerContext& C) {
-  ASTContext& AC = C.getASTContext();
-  const auto& parents = AC.getParents(*S);
-  if (parents.empty()) {
-    return nullptr;
-  }
-
-  const Stmt* PS = parents[0].get<Stmt>();
-  if (!PS) {
-    return nullptr;
-  }
-
-  return PS;
-}
-
 const FunctionDecl* getTopFunction(CheckerContext& C) {
   LocationContext* LC = (LocationContext*)C.getLocationContext();
   while (LC && LC->getParent()) {
@@ -178,6 +146,95 @@ const FunctionDecl* getFuncDecl(const Decl* BD) {
     return D;
   }
   return nullptr;
+}
+
+struct StmtOrDecl {
+  // use this instead of dynamic node
+private:
+  const Stmt* S;
+  const Decl* D;
+
+  bool isS;
+  bool isD;
+
+public:
+  StmtOrDecl(const Stmt* S_) : S(S_), D(nullptr), isS(true), isD(false) {}
+  StmtOrDecl(const Decl* D_) : S(nullptr), D(D_), isS(false), isD(true) {}
+  StmtOrDecl() : S(nullptr), D(nullptr), isS(false), isD(false) {}
+
+  bool isStmt() const { return isS; }
+
+  bool isDecl() const { return isD; }
+
+  const Stmt* getS() const { return S; }
+  const Decl* getD() const { return D; }
+
+  void dump() const {
+    if (isS) {
+      llvm::errs() << "stmt: ";
+      S->dump();
+    } else if (isD) {
+      llvm::errs() << "decl: ";
+      D->dump();
+    } else {
+      llvm::errs() << "nothing";
+    }
+    llvm::errs() << "\n";
+  }
+};
+
+template <typename P> StmtOrDecl getParentStmtOrDecl(P& parents) {
+  if (parents.empty()) {
+    llvm::report_fatal_error("cannot find parent");
+    return StmtOrDecl();
+  } else if (const Stmt* PS = parents[0].template get<Stmt>()) {
+    return StmtOrDecl(PS);
+  } else if (const Decl* PD = parents[0].template get<Decl>()) {
+    return StmtOrDecl(PD);
+  } else {
+    return StmtOrDecl();
+  }
+}
+
+StmtOrDecl getParentStmtOrDecl(StmtOrDecl& SorD, ASTContext& AC) {
+  if (SorD.isStmt()) {
+    const Stmt* S = SorD.getS();
+    const auto& parents = AC.getParents(*S);
+    return getParentStmtOrDecl(parents);
+  } else if (SorD.isDecl()) {
+    const Decl* D = SorD.getD();
+    const auto& parents = AC.getParents(*D);
+    return getParentStmtOrDecl(parents);
+  } else {
+    return StmtOrDecl();
+  }
+}
+
+const FunctionDecl* getFuncDecl(StmtOrDecl& SorD, ASTContext& AC) {
+  StmtOrDecl PSorD = getParentStmtOrDecl(SorD, AC);
+  if (PSorD.isStmt()) {
+    return getFuncDecl(PSorD, AC);
+  } else if (PSorD.isDecl()) {
+    const Decl* D = PSorD.getD();
+    if (const FunctionDecl* FD = dyn_cast_or_null<FunctionDecl>(D)) {
+      // get the first top function
+      return FD;
+    }
+    return getFuncDecl(PSorD, AC);
+  } else {
+    llvm::report_fatal_error("member must be used within function");
+    return nullptr;
+  }
+}
+
+const FunctionDecl* getFuncDecl(const Decl* D, ASTContext& AC) {
+  StmtOrDecl SorD(D);
+  return getFuncDecl(SorD, AC);
+}
+
+const FunctionDecl* getFuncDecl(const Stmt* S, ASTContext& AC) {
+  StmtOrDecl SorD(S);
+  return getFuncDecl(SorD, AC);
 }
 
 const FunctionDecl* getFuncDecl(const CallEvent& Call) {

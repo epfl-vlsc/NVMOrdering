@@ -28,7 +28,7 @@ class AutoCl {
 
   static const constexpr unsigned CACHE_LINE_SIZE = 64;
 
-  const ASTContext& ASTC;
+  ASTContext& AC;
   Records records;
 
   bool recordExists(const RecordDecl* RD) { return records.count(RD); }
@@ -63,7 +63,7 @@ class AutoCl {
       QualType QT = FD->getType();
       const Type* type = QT.getTypePtr();
       if (type->isConstantSizeType()) {
-        uint64_t fieldSize = ASTC.getTypeSizeInChars(type).getQuantity();
+        uint64_t fieldSize = AC.getTypeSizeInChars(type).getQuantity();
         current += fieldSize;
         begCl = endCl;
         endCl = current / CACHE_LINE_SIZE;
@@ -89,7 +89,7 @@ class AutoCl {
   }
 
 public:
-  AutoCl(const ASTContext& ASTC_) : ASTC(ASTC_) {}
+  AutoCl(ASTContext& AC_) : AC(AC_) {}
 
   bool isScl(const NamedDecl* ND1, const NamedDecl* ND2) {
     if (!isFieldOrObj(ND1) || !isFieldOrObj(ND2)) {

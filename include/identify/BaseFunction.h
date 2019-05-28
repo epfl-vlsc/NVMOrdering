@@ -11,15 +11,17 @@ protected:
 public:
   bool inFunctions(const FunctionDecl* D) const { return functions.count(D); }
 
-  size_t size() { return functions.size(); }
+  size_t size() const { return functions.size(); }
 
-  bool empty() { return functions.empty(); }
+  bool empty() const { return functions.empty(); }
 
-  void dump() {
+  void dump() const {
     for (const FunctionDecl* FD : functions) {
       llvm::errs() << FD->getQualifiedNameAsString() << "\n";
     }
   }
+
+  void insert(const FunctionDecl* FD) { functions.insert(FD); }
 };
 
 } // namespace clang::ento::nvm

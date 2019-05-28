@@ -36,13 +36,19 @@ void printLoc(const SVal& Loc, const char* msg) {
   llvm::errs() << "\n";
 }
 
+void printStmt(const Stmt* S, CheckerContext& C, const char* msg) {
+  S->dumpPretty(C.getASTContext());
+}
+
+void printStmt(const Stmt* S, const char* msg) { S->dump(); }
+
 void printStmt(const Stmt* S, CheckerContext& C, const char* msg,
-               bool isPretty = false) {
+               bool isPretty) {
   llvm::errs() << msg << ":";
   if (isPretty) {
-    S->dumpPretty(C.getASTContext());
+    printStmt(S, C, msg);
   } else {
-    S->dump();
+    printStmt(S, msg);
   }
   llvm::errs() << "\n";
 }
