@@ -20,10 +20,38 @@ void ExpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
 }
 
 void ExpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
-
+  const FunctionDecl* FD = getFuncDecl(Call);
+  DBGN(FD, "fd")
 }
 
 void ExpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {}
+
+void ExpChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
+  ProgramStateRef State = C.getState();
+  const LocationContext* LC = C.getLocationContext();
+  SVal Val = State->getSVal(S, LC);
+  Optional<DefinedOrUnknownSVal> DVal = Val.getAs<DefinedOrUnknownSVal>();
+
+  DBGL(Val, "val")
+  if (State->assume(*DVal, true)) {
+    DBG("false")
+  }
+  if (State->assume(*DVal, false)) {
+    DBG("false")
+    ProgramStateRef NewState = C.getState();
+    SValBuilder& SVB = C.getSValBuilder();
+    SVal TrueValue = SVB.makeTruthVal(true);
+    DBGL(TrueValue, "truthval")
+    DBGS(S, "s")
+    NewState = NewState->BindExpr(S, LC, TrueValue);
+    if(NewState == State){
+      DBG("fail")
+    }
+    C.addTransition(NewState);
+    SVal Valx = NewState->getSVal(S, LC);
+    DBGL(Valx, "val")
+  }
+}
 
 } // namespace clang::ento::nvm
 
