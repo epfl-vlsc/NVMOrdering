@@ -12,7 +12,7 @@ public:
   LogVars() : logField(LOG) {}
 
   bool isUsedVar(const NamedDecl* ND) const {
-    return logField.inValues(ND);
+    return logField.isUsedVar(ND);
   }
 
   void insertIfKnown(const NamedDecl* ND) {

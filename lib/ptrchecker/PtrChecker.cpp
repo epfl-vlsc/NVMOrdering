@@ -8,8 +8,11 @@ namespace clang::ento::nvm {
 void PtrChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
                               AnalysisManager& Mgr, BugReporter& BR) const {
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
-  PtrWalker ptrWalker(ptrFncs, ptrVars);
+
+  ASTContext& astContext = Mgr.getASTContext();
+  PtrWalker ptrWalker(ptrFncs, ptrVars, astContext);
   ptrWalker.TraverseDecl(TUD);
+  ptrWalker.finalize();
 
   printMsg("functions");
   ptrFncs.dump();
@@ -18,11 +21,11 @@ void PtrChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
 }
 
 void PtrChecker::checkBeginFunction(CheckerContext& C) const {
-  bool isSkip = ptrFncs.isSkip(C);
+  bool isSkipFnc = ptrFncs.isSkip(C);
   bool isTopFnc = isTopFunction(C);
 
   // skip
-  if (isSkip && isTopFnc) {
+  if (isSkipFnc && isTopFnc) {
     endExploration(C);
     return;
   }
@@ -64,7 +67,7 @@ void PtrChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
   aw.TraverseStmt((Stmt*)S);
 
   // check tainted
-  if (const FieldDecl* FD = getMemFieldDecl(Loc); ptrVars.inValues(FD)) {
+  if (const FieldDecl* FD = getMemFieldDecl(Loc); ptrVars.isUsedVar(FD)) {
     const MemRegion* MRRead = getTopBaseMemRegUnsafe(Val);
     if (MRRead && Transitions::isPtrWritten(State, MRRead)) {
       DBGR(MRRead, "bindread")

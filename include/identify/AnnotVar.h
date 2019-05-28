@@ -29,7 +29,7 @@ public:
     }
   }
 
-  bool inValues(const NamedDecl* ND) const { return valueSet.count(ND); }
+  bool isUsedVar(const NamedDecl* ND) const { return valueSet.count(ND); }
 
   void dump() {
     for (const NamedDecl* ND : valueSet) {

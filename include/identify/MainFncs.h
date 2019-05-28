@@ -17,21 +17,15 @@ class MainFncs {
 public:
   MainFncs() : skipFnc(SKIP_FNC) {}
 
-  bool isAnalyzeFnc(CheckerContext& C) {
-    const FunctionDecl* FD = getFuncDecl(C);
-    return analyzeFnc.inFunctions(FD);
+  bool isSkip(const FunctionDecl* FD) const {
+    return isFlushFenceFnc(FD) || isFlushOptFnc(FD) || isVfenceFnc(FD) ||
+           isPfenceFnc(FD) || skipFnc.inFunctions(FD) ||
+           !analyzeFnc.inFunctions(FD);
   }
 
   bool isSkip(CheckerContext& C) const {
-    if (const FunctionDecl* FD = getFuncDecl(C); FD) {
-      return isSkip(FD);
-    }
-    return false;
-  }
-
-  bool isSkip(const FunctionDecl* FD) const {
-    return isSkipFnc(FD) || isFlushFenceFnc(FD) || isFlushOptFnc(FD) ||
-           isVfenceFnc(FD) || isPfenceFnc(FD);
+    const FunctionDecl* FD = getFuncDecl(C);
+    return isSkip(FD);
   }
 
   void insertAnalyze(const FunctionDecl* FD) { analyzeFnc.insert(FD); }
@@ -42,10 +36,6 @@ public:
     vfenceFnc.insertIfKnown(FD);
     flushOptFnc.insertIfKnown(FD);
     flushFenceFnc.insertIfKnown(FD);
-  }
-
-  bool isSkipFnc(const FunctionDecl* FD) const {
-    return skipFnc.inFunctions(FD);
   }
 
   bool isFlushFenceFnc(const FunctionDecl* FD) const {

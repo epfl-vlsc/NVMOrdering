@@ -21,11 +21,11 @@ void MainChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
 }
 
 void MainChecker::checkBeginFunction(CheckerContext& C) const {
-  bool isSkip = mainFncs.isSkip(C);
+  bool isSkipFnc = mainFncs.isSkip(C);
   bool isTopFnc = isTopFunction(C);
 
   // skip
-  if (isSkip && isTopFnc) {
+  if (isSkipFnc && isTopFnc) {
     endExploration(C);
     return;
   }
