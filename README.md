@@ -75,6 +75,7 @@ git diff > patch/owriteback/pmfs1.patch
 
 ## nstore ## 
 
+    -fno-sized-deallocation
     make > make.txt
 
 ## pmfs

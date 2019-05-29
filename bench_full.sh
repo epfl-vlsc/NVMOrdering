@@ -31,17 +31,33 @@ cplusplus,deadcode,debug,nullability,optin,security,osx,core,unix"
 
 #pmgd--------------------------------------------------------
 
+if [ "$TEST_NAME" == "echo" ] ;then
+    BENCH_DIR="${TEST_DIR}/whisper/kv-echo/echo/src"
+    MAKE="make -j8"
+    CLEAN="make clean"
+fi
+
 #pmgd--------------------------------------------------------
 
 #echo--------------------------------------------------------
 
-if [ "$TEST_NAME" == "echo" ] ;then
-    BENCH_DIR="${TEST_DIR}/whisper/kv-echo/echo/src"
-    MAKE="make"
+if [ "$TEST_NAME" == "pmgd" ] ;then
+    BENCH_DIR="${TEST_DIR}/pmgd"
+    MAKE="make PMOPT=PM -n -j8"
     CLEAN="make clean"
 fi
 
 #echo--------------------------------------------------------
+
+#nstore------------------------------------------------------
+
+if [ "$TEST_NAME" == "nstore" ] ;then
+    BENCH_DIR="${TEST_DIR}/whisper/nstore"
+    MAKE="make"
+    CLEAN="make clean"
+fi
+
+#nstore------------------------------------------------------
 
 PATCH_DIR="${TEST_DIR}/patch"
 PATCH_FILE="${PATCH_DIR}/${TOOL_NAME}_${PATCH_NO}_${TEST_NAME}.txt"
