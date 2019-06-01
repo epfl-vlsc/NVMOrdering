@@ -1,9 +1,21 @@
 #pragma once
 #include "Common.h"
+#include "DfUtil.h"
 
 namespace clang::ento::nvm {
 
+
 class DataFlow {
+  using ContextWorklist = std::vector<ContextFunction>;
+  using ContextFunctionSet = std::set<ContextFunction>;
+  using ContextFunctionMap = std::map<ContextFunction, ContextFunctionSet>;
+
+  using BlockWorklist = std::vector<const CFGBlock*>;
+
+  AllResults allResults;
+  ContextWorklist contextWork;
+  ContextFunctionMap callers;
+  ContextFunctionSet active;
 
 public:
   DataFlow() {}
@@ -17,7 +29,9 @@ public:
 
   void computeDataFlow(const CallExpr* CE, const FunctionContext& context) {}
 
-  AllResults analyze(){}
+  AllResults analyze() {
+    
+  }
 };
 
 } // namespace clang::ento::nvm
