@@ -17,6 +17,12 @@ void printReg(const MemRegion* MR, const char* msg) {
   }
 }
 
+void printD(const Decl* D, const char* msg) {
+  llvm::errs() << msg << ":";
+  D->dump();
+  llvm::errs() << "\n";
+}
+
 void printND(const NamedDecl* ND, const char* msg, bool isQualified = false) {
   llvm::errs() << msg << ":";
   if (!isQualified) {

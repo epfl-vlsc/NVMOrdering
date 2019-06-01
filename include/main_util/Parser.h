@@ -1,3 +1,3 @@
 #pragma once
-#include "MainWalkers.h"
+#include "MainWalker.h"
 #include "parsers/NameWalker.h"

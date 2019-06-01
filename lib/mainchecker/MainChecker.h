@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-#include "parser/Parser.h"
+#include "main_util/Parser.h"
 #include "state_machine/StateMachine.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.mainchecker";
