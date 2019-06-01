@@ -61,7 +61,7 @@ git diff > patch/owriteback/pmfs1.patch
 
     mkdir build
     cd build
-    cmake -DPMEM_BACKEND=Volatile -DCMAKE_BUILD_TYPE=Debug ..
+    cmake -DPMEM_BACKEND=Emu -DCMAKE_BUILD_TYPE=Debug ..
     make VERBOSE=1 > make.txt 
 
 ## kv echo ##

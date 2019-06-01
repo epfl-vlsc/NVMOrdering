@@ -43,11 +43,31 @@ fi
 
 if [ "$TEST_NAME" == "pmgd" ] ;then
     BENCH_DIR="${TEST_DIR}/pmgd"
-    MAKE="make PMOPT=PM -n -j8"
+    MAKE="make PMOPT=PM -j8"
     CLEAN="make clean"
 fi
 
 #echo--------------------------------------------------------
+
+#pmwcas------------------------------------------------------
+
+if [ "$TEST_NAME" == "pmwcas" ] ;then
+    BENCH_DIR="${TEST_DIR}/pmwcas/build"
+    MAKE="make -j8"
+    CLEAN="make clean"
+fi
+
+#pmwcas------------------------------------------------------
+
+#pmfs--------------------------------------------------------
+
+if [ "$TEST_NAME" == "pmfs" ] ;then
+    BENCH_DIR="${TEST_DIR}/whisper/PMFS-new"
+    MAKE="make -j8"
+    CLEAN="make clean"
+fi
+
+#pmfs--------------------------------------------------------
 
 #nstore------------------------------------------------------
 
