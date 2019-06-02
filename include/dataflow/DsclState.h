@@ -9,7 +9,11 @@ class DsclValue {
   enum DsclType { DclType, SclType, BothType };
   enum Dcl { UnseenDcl, WriteDcl, Flush, Pfence };
   enum Scl { UnseenScl, WriteScl, Vfence };
-  
+
+  static const constexpr char* DclStr[] = {"Unseen", "Write", "Flush",
+                                           "Pfence"};
+  static const constexpr char* SclStr[] = {"Unseen", "Write", "Vfence"};
+
   Dcl dcl;
   Scl scl;
 
@@ -32,6 +36,15 @@ class DsclValue {
   }
 
 public:
+  void dump() {
+    if (dsclType == DclType) {
+      llvm::errs() << " dcl:" << DclStr[(int)dcl];
+    }
+    if (dsclType == SclType) {
+      llvm::errs() << " scl:" << SclStr[(int)scl];
+    }
+  }
+
   static DsclValue getInitial(DsclType type) { return DsclValue(type); }
 
   static DsclValue getUnseenDcl(const DsclValue& val) {

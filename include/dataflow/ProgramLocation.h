@@ -22,7 +22,14 @@ union ProgramLocation {
   bool operator==(const ProgramLocation& X) const {
     return function == X.function;
   }
+
+  void dump() { llvm::errs() << function << "\n"; }
 };
+
+raw_ostream& operator<<(raw_ostream& out, const ProgramLocation& pl) {
+  out << pl.function;
+  return out;
+}
 
 /*
 class ProgramLocation {
@@ -57,24 +64,43 @@ class PlContext {
   ProgramLocation callee;
 
 public:
+  PlContext(const CFG* pl) : caller(pl) {}
+
+  bool operator<(const PlContext& X) const {
+    return (caller < X.caller && callee < X.callee);
+  }
+
+  bool operator==(const PlContext& X) const {
+    return (caller == X.caller && callee == X.callee);
+    ;
+  }
+
+  void dump() {
+    llvm::errs() << "caller: " << caller << "callee: " << callee << "\n";
+  }
 };
 
 class Forward {
 public:
-  static auto getInstructions(const CFGBlock* block) {
+  static auto getElements(const CFGBlock* block) {
     return llvm::iterator_range(block->begin(), block->end());
   }
 
-  static auto getBasicBlocks(const CFG* function) {
+  static auto getBlocks(const CFG* function) {
     return llvm::iterator_range(function->rbegin(), function->rend());
   }
 
-  static auto getSuccessors(const CFGBlock* block) {
+  static auto getSuccessorBlocks(const CFGBlock* block) {
     return llvm::iterator_range(block->succ_begin(), block->succ_end());
   }
 
-  static auto getPredecessors(const CFGBlock* block) {
+  static auto getPredecessorBlocks(const CFGBlock* block) {
     return llvm::iterator_range(block->pred_begin(), block->pred_end());
+  }
+
+  static ProgramLocation getEntryBlock(const CFG* function) {
+    const CFGBlock* block = &function->getEntry();
+    return ProgramLocation(block);
   }
 
   static ProgramLocation getEntryKey(const CFGBlock* block) {

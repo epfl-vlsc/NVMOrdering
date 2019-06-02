@@ -7,40 +7,61 @@
 namespace clang::ento::nvm {
 
 class DataFlow {
+  // variables to track
+  using TrackedVars = std::set<const NamedDecl*>;
+
   // result types
-  using AbstractState = std::map<ProgramLocation, DsclValue>;
+  using AbstractState = std::map<const NamedDecl*, DsclValue>;
   using FunctionResults = std::map<ProgramLocation, AbstractState>;
-  using ContextResults = std::map<const CFG*, FunctionResults>;
-  using AllResults = std::map<PlContext, ContextResults>;
+  using AllResults = std::map<PlContext, FunctionResults>;
 
   // context helpers
-  using ContextFunction = std::pair<PlContext, const CFG*>;
-  using ContextFunctionSet = std::set<ContextFunction>;
-  using ContextFunctionMap = std::map<ContextFunction, ContextFunctionSet>;
+  using PlContextSet = std::set<PlContext>;
+  using PlContextMap = std::map<PlContext, PlContextSet>;
 
   // worklist
   template <typename WorkElement> using Worklist = SmallVector<WorkElement, 20>;
-  using ContextWorklist = Worklist<ContextFunction>;
+  using ContextWorklist = Worklist<PlContext>;
   using BlockWorklist = Worklist<const CFGBlock*>;
 
   // data structures
   AllResults allResults;
   ContextWorklist contextWork;
-  ContextFunctionMap callers;
-  ContextFunctionSet active;
+  PlContextMap callers;
+  PlContextSet active;
+
+  void dump() {
+    for (auto& [context, results] : allResults) {
+      context.dump();
+      for (auto& [pl, states] : results) {
+        pl.dump();
+        for (auto& [ND, LV] : states) {
+          printTrackedVar(ND, LV);
+          
+        }
+      }
+    }
+  }
+
+  // top info
+  TrackedVars trackedVars;
 
   FunctionResults& initFunctionResults(const CFG* function,
                                        PlContext& context) {
-    ContextResults& contextResults = allResults[context];
-    FunctionResults& functionResults = contextResults[function];
+    FunctionResults& functionResults = allResults[context];
 
+    // initialize entry
+    const CFGBlock* entryBlock = Forward::getEntryBlock(f);
+    AbstractState& state = functionResults[ProgramLocation(entryBlock)];
+    state =
 
-    return functionResults;
+        return functionResults;
   }
 
 public:
-  DataFlow(const CFG* function) {
-    contextWork.emplace_back(std::pair(PlContext{}, function));
+  DataFlow(const CFG* function, const TrackedVars& trackedVars_)
+      : trackedVars(trackedVars_) {
+    contextWork.emplace_back(PlContext(function));
   }
 
   void applyTransfer(const Stmt* S, AbstractState& state) {}
@@ -63,7 +84,6 @@ public:
     active.insert({context, function});
 
     FunctionResults& results = initFunctionResults(function, context);
-
   }
 
   AllResults analyze() {}

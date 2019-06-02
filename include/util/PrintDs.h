@@ -34,6 +34,13 @@ void printND(const NamedDecl* ND, const char* msg, bool isQualified = false) {
   llvm::errs() << "\n";
 }
 
+template <typename LatticeValue>
+void printTrackedVar(const NamedDecl* ND, const LatticeValue& LV) {
+  llvm::errs() << "tracked:" << ND->getNameAsString();
+  LV.dump();
+  llvm::errs() << "\n";
+}
+
 void printMsg(const char* msg) { llvm::errs() << msg << "\n"; }
 
 void printLoc(const SVal& Loc, const char* msg) {
