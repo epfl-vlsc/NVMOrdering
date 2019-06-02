@@ -15,7 +15,7 @@ class DsclValue {
   Scl scl;
 
   DsclValue(DsclType type) : dcl(UnseenDcl), scl(UnseenScl), dsclType(type) {
-    assert(type > 2);
+    assert(type < 3);
   }
 
   DsclValue(const DsclValue& val) { *this = val; }
