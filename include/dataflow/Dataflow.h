@@ -34,7 +34,6 @@ class DataFlow {
     ContextResults& contextResults = allResults[context];
     FunctionResults& functionResults = contextResults[function];
 
-    llvm::instructions
 
     return functionResults;
   }

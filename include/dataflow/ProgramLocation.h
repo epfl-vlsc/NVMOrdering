@@ -3,60 +3,54 @@
 
 namespace clang::ento::nvm {
 
-class ProgramLocation {
-  enum PlType { FncType, BlockType, BlockEndType, ElementType, None };
-  PlType plType;
+union ProgramLocation {
   const CFG* function;
   const CFGBlock* block;
   const Stmt* blockEnd;
   const CFGElement* element;
 
-public:
-  ProgramLocation(const CFG* function_)
-      : function(function_), plType(FncType) {}
-  ProgramLocation(const CFGBlock* block_) : block(block_), plType(BlockType) {}
-  ProgramLocation(const Stmt* blockEnd_)
-      : blockEnd(blockEnd_), plType(BlockEndType) {}
-  ProgramLocation(const CFGElement* element_)
-      : element(element_), plType(ElementType) {}
-  ProgramLocation() : plType(None) {}
+  ProgramLocation(const CFG* pl) { function = pl; }
+  ProgramLocation(const CFGBlock* pl) { block = pl; }
+  ProgramLocation(const Stmt* pl) { blockEnd = pl; }
+  ProgramLocation(const CFGElement* pl) { element = pl; }
+  ProgramLocation() { function = nullptr; }
 
   bool operator<(const ProgramLocation& X) const {
-    switch (plType) {
-    case FncType:
-      return (function < X.function);
-    case BlockType:
-      return (block < X.block);
-    case BlockEndType:
-      return (blockEnd < X.blockEnd);
-      break;
-    case ElementType:
-      return (element < X.element);
-      break;
-    case None:
-      return X.plType == None;
-      break;
-    }
+    return function < X.function;
   }
 
   bool operator==(const ProgramLocation& X) const {
-    switch (plType) {
-    case FncType:
-      return (function == X.function);
-    case BlockType:
-      return (block == X.block);
-    case BlockEndType:
-      return (blockEnd == X.blockEnd);
-      break;
-    case ElementType:
-      return (element == X.element);
-      break;
-    case None:
-      return X.plType == None;
-      break;
-    }
+    return function == X.function;
   }
-}; // namespace clang::ento::nvm
+};
+
+/*
+class ProgramLocation {
+  enum PlType { FncType, BlockType, BlockEndType, ElementType, None };
+
+  Pl programLocation;
+  PlType plType;
+
+public:
+  ProgramLocation(const CFG* function)
+      : programLocation(function), plType(FncType) {}
+  ProgramLocation(const CFGBlock* block)
+      : programLocation(block), plType(BlockType) {}
+  ProgramLocation(const Stmt* blockEnd)
+      : programLocation(blockEnd), plType(BlockEndType) {}
+  ProgramLocation(const CFGElement* element_)
+      : programLocation(element_), plType(ElementType) {}
+  ProgramLocation() : plType(None) {}
+
+  bool operator<(const ProgramLocation& X) const {
+    return programLocation < X.programLocation;
+  }
+
+  bool operator==(const ProgramLocation& X) const {
+    return programLocation == X.programLocation;
+  }
+};
+*/
 
 class PlContext {
   ProgramLocation caller;
@@ -68,11 +62,19 @@ public:
 class Forward {
 public:
   static auto getInstructions(const CFGBlock* block) {
-    return llvm::iterator_range<decltype(block->begin())>(*block);
+    return llvm::iterator_range(block->begin(), block->end());
   }
 
   static auto getBasicBlocks(const CFG* function) {
-    return llvm::iterator_range<decltype(function->begin())>(*function);
+    return llvm::iterator_range(function->rbegin(), function->rend());
+  }
+
+  static auto getSuccessors(const CFGBlock* block) {
+    return llvm::iterator_range(block->succ_begin(), block->succ_end());
+  }
+
+  static auto getPredecessors(const CFGBlock* block) {
+    return llvm::iterator_range(block->pred_begin(), block->pred_end());
   }
 
   static ProgramLocation getEntryKey(const CFGBlock* block) {
@@ -80,16 +82,9 @@ public:
   }
 
   static ProgramLocation getExitKey(const CFGBlock* block) {
-    const Stmt* blockEnd = block->getTerminatorStmt();
+    CFGTerminator terminator = block->getTerminator();
+    const Stmt* blockEnd = terminator.getStmt();
     return ProgramLocation(blockEnd);
-  }
-
-  static auto getSuccessors(const CFGBlock* block) {
-    return llvm::iterator_range<decltype(block->succ_begin())>(*block);
-  }
-
-  static auto getPredecessors(const CFGBlock* block) {
-    return llvm::iterator_range<decltype(block->pred_begin())>(*block);
   }
 
   /*

@@ -9,10 +9,11 @@ class DsclValue {
   enum DsclType { DclType, SclType, BothType };
   enum Dcl { UnseenDcl, WriteDcl, Flush, Pfence };
   enum Scl { UnseenScl, WriteScl, Vfence };
-
-  DsclType dsclType;
+  
   Dcl dcl;
   Scl scl;
+
+  DsclType dsclType;
 
   DsclValue(DsclType type) : dcl(UnseenDcl), scl(UnseenScl), dsclType(type) {
     assert(type < 3);

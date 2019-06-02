@@ -47,8 +47,10 @@ void DfMainChecker::checkASTCodeBody(const Decl* D, AnalysisManager& mgr,
   }
 
   printMsg("decl");
-  const CFG* cfg = mgr.getCFG(D);
-  traverse(cfg, mgr);
+  const CFG* function = mgr.getCFG(D);
+  for(const CFGBlock* block : Forward::getBasicBlocks(function)){
+    block->dump();
+  }
 }
 
 void DfMainChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
