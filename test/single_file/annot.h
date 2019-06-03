@@ -14,6 +14,7 @@
 #define p_ptr __attribute((annotate("persistent_ptr")))
 
 #define skip_fnc __attribute((annotate("SkipCode")))
+#define nvm_fnc __attribute((annotate("NvmCode")))
 
 #define log_field __attribute((annotate("log")))
 #define analyze_logging __attribute((annotate("LogCode")))
