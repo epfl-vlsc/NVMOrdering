@@ -36,7 +36,7 @@ class DsclValue {
   }
 
 public:
-  void dump() {
+  void dump() const {
     if (dsclType == DclType) {
       llvm::errs() << " dcl:" << DclStr[(int)dcl];
     }
@@ -45,7 +45,16 @@ public:
     }
   }
 
-  static DsclValue getInitial(DsclType type) { return DsclValue(type); }
+  static DsclValue getInit(bool isDcl, bool isScl) {
+    assert(isDcl || isScl);
+    if (isDcl && isScl) {
+      return DsclValue(BothType);
+    } else if (isDcl) {
+      return DsclValue(DclType);
+    } else if (isScl) {
+      return DsclValue(SclType);
+    }
+  }
 
   static DsclValue getUnseenDcl(const DsclValue& val) {
     DsclValue value(val);

@@ -53,6 +53,10 @@ void printStmt(const Stmt* S, CheckerContext& C, const char* msg) {
   S->dumpPretty(C.getASTContext());
 }
 
+void printStmt(const Stmt* S, AnalysisManager& mgr, const char* msg) {
+  S->dumpPretty(mgr.getASTContext());
+}
+
 void printStmt(const Stmt* S, const char* msg) { S->dump(); }
 
 void printStmt(const Stmt* S, CheckerContext& C, const char* msg,

@@ -23,7 +23,12 @@ union ProgramLocation {
     return function == X.function;
   }
 
-  void dump() { llvm::errs() << function << "\n"; }
+  void dump() const { llvm::errs() << function << "\n"; }
+
+  const CFG* getFunction() { return function; }
+  const CFGBlock* getBlock() { return block; }
+  const Stmt* getBlockEnd() { return blockEnd; }
+  const CFGElement* getElement() { return element; }
 };
 
 raw_ostream& operator<<(raw_ostream& out, const ProgramLocation& pl) {
@@ -75,7 +80,7 @@ public:
     ;
   }
 
-  void dump() {
+  void dump() const {
     llvm::errs() << "caller: " << caller << "callee: " << callee << "\n";
   }
 };
