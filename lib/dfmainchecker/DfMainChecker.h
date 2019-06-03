@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-#include "dataflow/ProgramLocation.h"
+#include "dataflow/Dataflow.h"
 #include "main_util/Parser.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.dfmainchecker";

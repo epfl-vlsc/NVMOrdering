@@ -4,7 +4,7 @@
 #include "MainVars.h"
 #include "PairInfo.h"
 #include "identify/MainFncs.h"
-#include "clang/AST/RecursiveASTVisitor.h"
+#include "parsers/NDWalker.h"
 
 namespace clang::ento::nvm {
 
@@ -113,7 +113,7 @@ class MainWalker : public RecursiveASTVisitor<MainWalker> {
     }
   }
 
-  void fillAnalysisFunctions() {
+  void autoFindFunctions() {
     for (const MemberExpr* ME : memberExprs) {
       const ValueDecl* VD = ME->getMemberDecl();
       if (!mainVars.isUsedVar(VD)) {
@@ -125,7 +125,30 @@ class MainWalker : public RecursiveASTVisitor<MainWalker> {
         continue;
       }
 
+      // add function to the analysis list
       mainFncs.insertAnalyze(FD);
+    }
+  }
+
+
+
+  void fillTrackMap() {
+    for (const FunctionDecl* FD : mainFncs) {
+      for (const NamedDecl* ND : NDWalker::getNDs(FD)) {
+        if (!mainVars.isUsedVar(ND)) {
+          continue;
+        }
+
+        bool isDcl = false;
+        bool isScl = false;
+
+        for(PairInfo* PI: mainVars.getPairList(ND)){
+          isDcl = !PI->isSameCl();
+          isScl = PI->isSameCl();
+        }
+
+        mainVars.addTrackVar(FD, {ND, isDcl, isScl});
+      }
     }
   }
 
@@ -165,7 +188,8 @@ public:
 
   void finalize() {
     fillMainVars();
-    fillAnalysisFunctions();
+    autoFindFunctions();
+    fillTrackMap();
   }
 };
 

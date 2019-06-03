@@ -53,6 +53,9 @@ public:
       return DsclValue(DclType);
     } else if (isScl) {
       return DsclValue(SclType);
+    } else {
+      llvm::report_fatal_error("invalid dscl");
+      return DsclValue(BothType);
     }
   }
 

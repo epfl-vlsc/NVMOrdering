@@ -2,7 +2,7 @@
 // ensure main handle functions only add one state
 
 #include "DfMainChecker.h"
-#include "main_util/Parser.h"
+
 
 namespace clang::ento::nvm {
 
@@ -41,6 +41,7 @@ void traverse(const CFG* cfg, AnalysisManager& mgr) {
 
 void DfMainChecker::checkASTCodeBody(const Decl* D, AnalysisManager& mgr,
                                      BugReporter& BR) const {
+  //run data flow analysis and report errors
   const FunctionDecl* FD = dyn_cast<FunctionDecl>(D);
   if (!FD || mainFncs.isSkip(FD)) {
     return;
@@ -48,9 +49,9 @@ void DfMainChecker::checkASTCodeBody(const Decl* D, AnalysisManager& mgr,
 
   printMsg("decl");
   const CFG* function = mgr.getCFG(D);
-  for(const CFGBlock* block : Forward::getBasicBlocks(function)){
-    block->dump();
-  }
+  auto& trackSet = mainVars.getTrackSet(FD);
+  DataFlow dataflow(function, trackSet, mgr);
+  
 }
 
 void DfMainChecker::checkASTDecl(const TranslationUnitDecl* CTUD,

@@ -21,6 +21,14 @@ public:
       }
     }
   }
+
+  auto begin() const{
+    return functions.cbegin();
+  }
+
+  auto end() const{
+    return functions.cend();
+  }
 };
 
 } // namespace clang::ento::nvm

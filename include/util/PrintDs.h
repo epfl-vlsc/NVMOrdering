@@ -70,12 +70,20 @@ void printStmt(const Stmt* S, CheckerContext& C, const char* msg,
   llvm::errs() << "\n";
 }
 
-template <typename MapSet>
-void printMapSet(const MapSet& ms, const char* msgPtr, const char* msgElement) {
-  for (auto& [ptr, list] : ms) {
-    printND(ptr, msgPtr);
-    for (auto& element : list) {
-      llvm::errs() << msgElement << " " << element->getNameAsString() << "\n";
+template <typename T> void dumpPtr(const T* t) { t->dump(); }
+
+template <typename T> void dumpObj(const T& t) { t.dump(); }
+
+template <typename MapSet, typename DumpPrint>
+void printMapSet(const MapSet& ms, DumpPrint dumpPrint, const char* msgPtr,
+                 const char* msgElement) {
+  for (auto& [ptr, set] : ms) {
+    llvm::errs() << msgPtr << " " << ptr->getQualifiedNameAsString() << " "
+                 << set.size() << "\n";
+    for (auto& element : set) {
+      llvm::errs() << msgElement << " ";
+      dumpPrint(element);
+      llvm::errs() << "\n";
     }
   }
 }

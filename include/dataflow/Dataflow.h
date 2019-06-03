@@ -53,16 +53,17 @@ template <typename TrackVar> class DataFlow {
     FunctionResults& functionResults = allResults[context];
 
     // initialize entry
+    /*todo
     ProgramLocation entryBlock = Forward::getEntryBlock(function);
     AbstractState& state = functionResults[entryBlock];
     for (TrackVar trackVar : trackVars) {
       state[trackVar] = DsclValue::getInit(trackVar.isDcl, trackVar.isScl);
     }
-
+    */
     return functionResults;
   }
 
-  void addBlocksToWorklist(const BlockWorklist& blockWorkList,
+  void addBlocksToWorklist(BlockWorklist& blockWorkList,
                            const CFG* function) {
     for (const CFGBlock* block : Forward::getBlocks(function)) {
       blockWorkList.push_back(block);
@@ -76,6 +77,18 @@ template <typename TrackVar> class DataFlow {
   void analyzeCall(const CallExpr* CE, AbstractState& state,
                    const PlContext& context) {}
 
+  void analyzeStmts(const CFGBlock* block, AbstractState& state,
+                    FunctionResults& results, const PlContext& context) {
+    /*
+    for (const CFGElement* element : Forward::getElements(block)) {
+      if (Optional<CFGStmt> CS = element->getAs<CFGStmt>()) {
+        const Stmt* S = CS->getStmt();
+        printStmt(S, mgr, "s");
+      }
+    }
+    */
+  }
+
   void computeDataflow(const CFG* function, PlContext& context) {
     active.insert({context, function});
 
@@ -87,7 +100,7 @@ template <typename TrackVar> class DataFlow {
     addBlocksToWorklist(blockWorklist, function);
 
     while (!blockWorklist.empty()) {
-      const CFGBlock* block = worklist.pop_back_val();
+      const CFGBlock* block = blockWorklist.pop_back_val();
       ProgramLocation plBlock(block);
 
       // get previously computed states
@@ -106,18 +119,24 @@ template <typename TrackVar> class DataFlow {
       // update based on predecessors
       results[plBlock] = state;
 
-      
+      // todo go over statements
+      analyzeStmts(block, state, results, context);
 
+      // skip if state not updated
+      if(state == oldExitState){
+        continue;
+      }
 
+      //todo
     }
   }
 
   AllResults analyze() {}
 
 public:
-  DataFlow(const CFG* function, const TrackedVars& trackedVars_,
+  DataFlow(const CFG* function, const TrackVars& trackVars_,
            AnalysisManager& mgr_)
-      : topFunction(function), trackedVars(trackedVars_), mgr(mgr_) {
+      : topFunction(function), trackVars(trackVars_), mgr(mgr_) {
     contextWork.emplace_back(PlContext(function));
   }
 
