@@ -51,7 +51,7 @@ void DfMainChecker::checkASTCodeBody(const Decl* D, AnalysisManager& mgr,
   const CFG* function = mgr.getCFG(D);
   auto& trackSet = mainVars.getTrackSet(FD);
   DataFlow dataflow(function, trackSet, mgr);
-  
+  dataflow.computeDataFlow();
 }
 
 void DfMainChecker::checkASTDecl(const TranslationUnitDecl* CTUD,

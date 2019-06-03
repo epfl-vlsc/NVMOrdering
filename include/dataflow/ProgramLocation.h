@@ -6,13 +6,11 @@ namespace clang::ento::nvm {
 union ProgramLocation {
   const CFG* function;
   const CFGBlock* block;
-  const Stmt* blockEnd;
-  const CFGElement* element;
+  const Stmt* stmt;
 
   ProgramLocation(const CFG* pl) { function = pl; }
   ProgramLocation(const CFGBlock* pl) { block = pl; }
-  ProgramLocation(const Stmt* pl) { blockEnd = pl; }
-  ProgramLocation(const CFGElement* pl) { element = pl; }
+  ProgramLocation(const Stmt* pl) { stmt = pl; }
   ProgramLocation() { function = nullptr; }
 
   bool operator<(const ProgramLocation& X) const {
@@ -25,10 +23,9 @@ union ProgramLocation {
 
   void dump() const { llvm::errs() << function << "\n"; }
 
-  const CFG* getFunction() { return function; }
-  const CFGBlock* getBlock() { return block; }
-  const Stmt* getBlockEnd() { return blockEnd; }
-  const CFGElement* getElement() { return element; }
+  const CFG* getFunction() const{ return function; }
+  const CFGBlock* getBlock() const { return block; }
+  const Stmt* getStmt() const { return stmt; }
 };
 
 raw_ostream& operator<<(raw_ostream& out, const ProgramLocation& pl) {
@@ -69,8 +66,6 @@ class PlContext {
   ProgramLocation callee;
 
 public:
-  PlContext(const CFG* pl) : caller(pl) {}
-
   bool operator<(const PlContext& X) const {
     return (caller < X.caller && callee < X.callee);
   }
@@ -103,9 +98,19 @@ public:
     return llvm::iterator_range(block->pred_begin(), block->pred_end());
   }
 
+  static auto getPredecessorBlocks(const ProgramLocation& blockLoc) {
+    const CFGBlock* block = blockLoc.getBlock();
+    return getPredecessorBlocks(block);
+  }
+
   static ProgramLocation getEntryBlock(const CFG* function) {
     const CFGBlock* block = &function->getEntry();
     return ProgramLocation(block);
+  }
+
+  static ProgramLocation getSummaryKey(const CFG* function) {
+    // arguments
+    return ProgramLocation(function);
   }
 
   static ProgramLocation getEntryKey(const CFGBlock* block) {

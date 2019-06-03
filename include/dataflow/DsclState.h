@@ -4,26 +4,35 @@
 
 namespace clang::ento::nvm {
 
-class DsclValue {
-  using DsclVector = std::vector<DsclValue>;
-  enum DsclType { DclType, SclType, BothType };
-  enum Dcl { UnseenDcl, WriteDcl, Flush, Pfence };
-  enum Scl { UnseenScl, WriteScl, Vfence };
-
-  static const constexpr char* DclStr[] = {"Unseen", "Write", "Flush",
-                                           "Pfence"};
-  static const constexpr char* SclStr[] = {"Unseen", "Write", "Vfence"};
-
+class DclValue {
+protected:
+  enum Dcl { WriteDcl, Flush, Pfence, UnseenDcl };
+  static const constexpr char* DclStr[] = {"Write", "Flush", "Pfence",
+                                           "Unseen"};
   Dcl dcl;
+
+public:
+  DclValue(Dcl dcl_) : dcl(dcl_) {}
+  DclValue() : dcl(UnseenDcl) {}
+};
+
+class SclValue {
+protected:
+  enum Scl { WriteScl, Vfence, UnseenScl };
+  static const constexpr char* SclStr[] = {"Write", "Vfence", "Unseen"};
+
   Scl scl;
 
+public:
+  SclValue(Scl scl_) : scl(scl_) {}
+  SclValue() : scl(UnseenScl) {}
+};
+
+class DsclValue : public DclValue, public SclValue {
+  using DsclVector = std::vector<DsclValue>;
+  enum DsclType { DclType, SclType, BothType, None };
+
   DsclType dsclType;
-
-  DsclValue(DsclType type) : dcl(UnseenDcl), scl(UnseenScl), dsclType(type) {
-    assert(type < 3);
-  }
-
-  DsclValue(const DsclValue& val) { *this = val; }
 
   void meetValue(const DsclValue& val) {
     DsclType type = val.dsclType;
@@ -36,7 +45,19 @@ class DsclValue {
   }
 
 public:
+  DsclValue(DsclType type)
+      : DclValue(UnseenDcl), SclValue(UnseenScl), dsclType(type) {
+    assert(type < None);
+  }
+
+  DsclValue() : DclValue(UnseenDcl), SclValue(UnseenScl), dsclType(None) {}
+
+  DsclValue(const DsclValue& val) { *this = val; }
+
+  DsclType getDsclType() const { return dsclType; }
+
   void dump() const {
+    assert(dsclType < None);
     if (dsclType == DclType) {
       llvm::errs() << " dcl:" << DclStr[(int)dcl];
     }
@@ -46,7 +67,7 @@ public:
   }
 
   static DsclValue getInit(bool isDcl, bool isScl) {
-    assert(isDcl || isScl);
+    assert((isDcl || isScl));
     if (isDcl && isScl) {
       return DsclValue(BothType);
     } else if (isDcl) {
@@ -102,13 +123,28 @@ public:
   }
 
   static DsclValue meet(const DsclVector& values) {
-    DsclType type = values[0].dsclType;
+    DsclType type = values[0].getDsclType();
     DsclValue newValue(type);
     for (auto value : values) {
       newValue.meetValue(value);
     }
 
     return newValue;
+  }
+
+  static DsclValue meet(const DsclValue& value) {
+    DsclType type = value.getDsclType();
+    DsclValue newValue(type);
+    newValue.meetValue(value);
+    return newValue;
+  }
+
+  bool operator<(const DsclValue& X) const {
+    return dsclType < X.dsclType && dcl < X.dcl && scl < X.scl;
+  }
+
+  bool operator==(const DsclValue& X) const {
+    return dsclType == X.dsclType && dcl == X.dcl && scl == X.scl;
   }
 };
 

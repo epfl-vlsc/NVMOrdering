@@ -16,20 +16,21 @@ template <typename TrackVar> class DataFlow {
   using AllResults = std::map<PlContext, FunctionResults>;
 
   // context helpers
-  using PlContextSet = std::set<PlContext>;
-  using PlContextMap = std::map<PlContext, PlContextSet>;
+  using FunctionContext = std::pair<const CFG*, PlContext>;
+  using FunctionContextSet = std::set<FunctionContext>;
+  using FunctionContextMap = std::map<FunctionContext, FunctionContextSet>;
 
   // worklist
-  template <typename WorkElement>
-  using Worklist = SmallVector<WorkElement, 200>;
-  using ContextWorklist = Worklist<PlContext>;
-  using BlockWorklist = Worklist<const CFGBlock*>;
+  template <typename WorkElement, int N>
+  using Worklist = SmallVector<WorkElement, N>;
+  using ContextWorklist = Worklist<FunctionContext, 100>;
+  using BlockWorklist = Worklist<const CFGBlock*, 200>;
 
   // data structures
   AllResults allResults;
   ContextWorklist contextWork;
-  PlContextMap callers;
-  PlContextSet active;
+  FunctionContextMap callers;
+  FunctionContextSet active;
 
   // top info
   const CFG* topFunction;
@@ -63,8 +64,7 @@ template <typename TrackVar> class DataFlow {
     return functionResults;
   }
 
-  void addBlocksToWorklist(BlockWorklist& blockWorkList,
-                           const CFG* function) {
+  void addBlocksToWorklist(BlockWorklist& blockWorkList, const CFG* function) {
     for (const CFGBlock* block : Forward::getBlocks(function)) {
       blockWorkList.push_back(block);
     }
@@ -72,28 +72,59 @@ template <typename TrackVar> class DataFlow {
 
   void applyTransfer(const Stmt* S, AbstractState& state) {}
 
-  void mergePrevStates(const CFGBlock* block, FunctionResults& results) {}
+  AbstractState mergePrevStates(const ProgramLocation& entryKey,
+                                 FunctionResults& results) {
+    AbstractState mergedState;
+    // start with current entry
+    mergeInState(mergedState, results[entryKey]);
+
+    // get all prev blocks
+    for (const CFGBlock* pred_block : Forward::getPredecessorBlocks(entryKey)) {
+      ProgramLocation exitKey = Forward::getExitKey(pred_block);
+      if (results.count(exitKey)) {
+        AbstractState& predecessorState = results[exitKey];
+        mergeInState(mergedState, predecessorState);
+      }
+    }
+    return mergedState;
+  }
+
+  void mergeInState(AbstractState& out, AbstractState& in) {
+    for (auto& [inVar, inVal] : in) {
+      if (out.count(inVar)) {
+        // if var exists meet
+        auto& outVal = out[inVar];
+        auto meetVal = outVal.meet(inVal);
+        out[inVar] = meetVal;
+      } else {
+        // if var does not exist copy
+        out[inVar] = inVal;
+      }
+    }
+  }
 
   void analyzeCall(const CallExpr* CE, AbstractState& state,
                    const PlContext& context) {}
 
   void analyzeStmts(const CFGBlock* block, AbstractState& state,
                     FunctionResults& results, const PlContext& context) {
-    /*
-    for (const CFGElement* element : Forward::getElements(block)) {
+    for (const CFGElement element : Forward::getElements(block)) {
+
+      /*
       if (Optional<CFGStmt> CS = element->getAs<CFGStmt>()) {
         const Stmt* S = CS->getStmt();
         printStmt(S, mgr, "s");
       }
+      */
     }
-    */
   }
 
   void computeDataflow(const CFG* function, PlContext& context) {
-    active.insert({context, function});
+    active.insert({function, context});
 
     // initialize results
     FunctionResults& results = initFunctionResults(function, context);
+    // todo summary key
 
     // initialize worklist
     BlockWorklist blockWorklist;
@@ -101,14 +132,15 @@ template <typename TrackVar> class DataFlow {
 
     while (!blockWorklist.empty()) {
       const CFGBlock* block = blockWorklist.pop_back_val();
-      ProgramLocation plBlock(block);
+      ProgramLocation entryKey = Forward::getEntryKey(block);
+      ProgramLocation exitKey = Forward::getExitKey(block);
 
       // get previously computed states
-      AbstractState& oldEntryState = results[Forward::getEntryKey(block)];
-      AbstractState& oldExitState = results[Forward::getExitKey(block)];
+      AbstractState& oldEntryState = results[entryKey];
+      AbstractState& oldExitState = results[exitKey];
 
       // get current state
-      AbstractState& state = mergePrevStates(block, results);
+      AbstractState state = mergePrevStates(entryKey, results);
       // todo summary key
 
       // skip block if same result
@@ -116,19 +148,41 @@ template <typename TrackVar> class DataFlow {
         continue;
       }
 
-      // update based on predecessors
-      results[plBlock] = state;
+      // update entry based on predecessors
+      results[entryKey] = state;
 
       // todo go over statements
       analyzeStmts(block, state, results, context);
 
       // skip if state not updated
-      if(state == oldExitState){
+      if (state == oldExitState) {
         continue;
       }
 
-      //todo
+      // update final state
+      results[exitKey] = state;
+
+      // do data flow for successive blocks
+      for (const CFGBlock* succBlock : Forward::getSuccessorBlocks(block)) {
+        blockWorklist.push_back(succBlock);
+      }
+
+      // todo summary
     }
+
+    // data flow over all blocks for the function has finished
+    // update context information
+    // if function changed update all callers
+    FunctionResults& oldResults = allResults[context];
+    if (oldResults != results) {
+      oldResults = results;
+      for (const FunctionContext& caller : callers[{function, context}]) {
+        contextWork.push_back(caller);
+      }
+    }
+
+    // printFunctionResults(results);
+    active.erase({function, context});
   }
 
   AllResults analyze() {}
@@ -137,12 +191,12 @@ public:
   DataFlow(const CFG* function, const TrackVars& trackVars_,
            AnalysisManager& mgr_)
       : topFunction(function), trackVars(trackVars_), mgr(mgr_) {
-    contextWork.emplace_back(PlContext(function));
+    contextWork.push_back({function, PlContext()});
   }
 
   AllResults computeDataFlow() {
     while (!contextWork.empty()) {
-      auto [context, function] = contextWork.pop_back_val();
+      auto [function, context] = contextWork.pop_back_val();
       computeDataflow(function, context);
     }
 
