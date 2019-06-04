@@ -18,7 +18,7 @@ public:
   bool operator<(const TrackVar& X) const { return ND < X.ND; }
 
   void dump() const {
-    llvm::errs() << "track: " << ND->getNameAsString();
+    llvm::errs() << ND->getNameAsString();
 
     if (isDcl) {
       llvm::errs() << " dcl";

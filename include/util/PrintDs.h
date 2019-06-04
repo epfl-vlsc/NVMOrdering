@@ -35,13 +35,19 @@ void printND(const NamedDecl* ND, const char* msg, bool isQualified = false) {
 }
 
 template <typename LatticeValue>
-void printTrackedVar(const NamedDecl* ND, const LatticeValue& LV) {
+void printTrackedVar(const NamedDecl* ND, const LatticeValue& LV,
+                     bool newline = true) {
   llvm::errs() << "tracked:" << ND->getNameAsString();
   LV.dump();
-  llvm::errs() << "\n";
+  if (newline)
+    llvm::errs() << "\n";
 }
 
-void printMsg(const char* msg) { llvm::errs() << msg << "\n"; }
+void printMsg(const char* msg, bool newline = true) {
+  llvm::errs() << msg;
+  if (newline)
+    llvm::errs() << "\n";
+}
 
 void printLoc(const SVal& Loc, const char* msg) {
   llvm::errs() << msg << ":";
@@ -73,8 +79,8 @@ void printStmt(const Stmt* S, CheckerContext& C, const char* msg,
 }
 
 void printBlock(const CFGBlock* block, const char* msg) {
+  // exit is 0, entry is N
   llvm::errs() << msg << ":B" << block->getBlockID() << "\n";
-  printStmt(block->getLabel(), msg);
 }
 
 template <typename T> void dumpPtr(const T* t) { t->dump(); }

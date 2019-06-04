@@ -41,14 +41,23 @@ template <typename TrackVar> class DataFlow {
                                        PlContext& context) {
     FunctionResults& functionResults = allResults[context];
 
-    // initialize entry
-    /*todo
-    ProgramLocation entryBlock = Forward::getEntryBlock(function);
-    AbstractState& state = functionResults[entryBlock];
-    for (TrackVar trackVar : trackVars) {
-      state[trackVar] = DsclValue::getInit(trackVar.isDcl, trackVar.isScl);
+    // initialize blocks
+    const CFG* cfg = mgr.getCFG(function);
+    for (const CFGBlock* block : Forward::getRBlocks(cfg)) {
+      ProgramLocation entryKey = Forward::getEntryKey(block);
+      ProgramLocation exitKey = Forward::getExitKey(block);
+
+      AbstractState& entryState = functionResults[entryKey];
+      AbstractState& exitState = functionResults[exitKey];
+
+      for (TrackVar trackVar : trackVars) {
+        const NamedDecl* var = trackVar.ND;
+        auto lv = DsclValue::getInit(trackVar.isDcl, trackVar.isScl);
+        entryState[var] = lv;
+        exitState[var] = lv;
+      }
     }
-    */
+
     return functionResults;
   }
 
@@ -65,8 +74,10 @@ template <typename TrackVar> class DataFlow {
   AbstractState mergePrevStates(const ProgramLocation& entryKey,
                                 FunctionResults& results) {
     AbstractState mergedState;
+    AbstractState& inState = results[entryKey];
+
     // start with current entry
-    mergeInState(mergedState, results[entryKey]);
+    mergeInState(mergedState, inState);
 
     // get all prev blocks
     for (const CFGBlock* pred_block : Forward::getPredecessorBlocks(entryKey)) {
@@ -98,6 +109,7 @@ template <typename TrackVar> class DataFlow {
 
   void analyzeStmts(const CFGBlock* block, AbstractState& state,
                     FunctionResults& results, const PlContext& context) {
+    /*
     for (const CFGElement element : Forward::getElements(block)) {
       printMsg("lol");
       if (Optional<CFGStmt> CS = element.getAs<CFGStmt>()) {
@@ -106,6 +118,7 @@ template <typename TrackVar> class DataFlow {
         printStmt(S, "s");
       }
     }
+    */
   }
 
   void computeDataflow(const FunctionDecl* function, PlContext& context) {
@@ -130,10 +143,11 @@ template <typename TrackVar> class DataFlow {
 
       // get current state
       AbstractState state = mergePrevStates(entryKey, results);
+
       // todo summary key
 
       // skip block if same result
-      if (state == oldEntryState && !state.empty()) {
+      if (state == oldEntryState) {
         continue;
       }
 
@@ -188,20 +202,29 @@ public:
       auto [function, context] = contextWork.pop_back_val();
       computeDataflow(function, context);
     }
-
     return allResults;
   }
 
-  void dump() {
+  void dumpAS(const AbstractState& state) const {
+    for (auto& [ND, LV] : state) {
+      printTrackedVar(ND, LV, false);
+      printMsg(" - ", false);
+    }
+    printMsg("");
+  }
+
+  void dumpFR(const FunctionResults& results) const {
+    for (auto& [pl, state] : results) {
+      pl.dump(mgr);
+      dumpAS(state);
+    }
+  }
+
+  void dump() const {
     printMsg("-------All results------");
     for (auto& [context, results] : allResults) {
       context.dump();
-      for (auto& [pl, states] : results) {
-        pl.dump();
-        for (auto& [ND, LV] : states) {
-          printTrackedVar(ND, LV);
-        }
-      }
+      dumpFR(results);
     }
   }
 };

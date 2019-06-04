@@ -9,9 +9,18 @@ struct ProgramLocation {
     const CFGBlock* block;
     const Stmt* stmt;
 
-    PtrPl(const FunctionDecl* pl) { function = pl; }
-    PtrPl(const CFGBlock* pl) { block = pl; }
-    PtrPl(const Stmt* pl) { stmt = pl; }
+    PtrPl(const FunctionDecl* pl) {
+      assert(pl != nullptr);
+      function = pl;
+    }
+    PtrPl(const CFGBlock* pl) {
+      assert(pl != nullptr);
+      block = pl;
+    }
+    PtrPl(const Stmt* pl) {
+      assert(pl != nullptr);
+      stmt = pl;
+    }
     PtrPl() { function = nullptr; }
   } ptrPl;
   enum PtrType { CfgPtr, CfgBlockPtr, StmtPtr, None } ptrType;
@@ -45,6 +54,18 @@ struct ProgramLocation {
       break;
     default:
       llvm::report_fatal_error("not possible location");
+      break;
+    }
+  }
+
+  void dump(AnalysisManager& mgr) const {
+    switch (ptrType) {
+    case StmtPtr: {
+      printStmt(ptrPl.stmt, mgr, "stmt");
+      return;
+    } break;
+    default:
+      dump();
       break;
     }
   }
@@ -86,6 +107,10 @@ public:
     return llvm::iterator_range(cfg->begin(), cfg->end());
   }
 
+  static auto getRBlocks(const CFG* cfg) {
+    return llvm::iterator_range(cfg->rbegin(), cfg->rend());
+  }
+
   static auto getSuccessorBlocks(const CFGBlock* block) {
     return llvm::iterator_range(block->succ_begin(), block->succ_end());
   }
@@ -104,19 +129,41 @@ public:
     return ProgramLocation(block);
   }
 
-  static ProgramLocation getSummaryKey(const FunctionDecl* function) {
-    // arguments
-    return ProgramLocation(function);
-  }
-
   static ProgramLocation getEntryKey(const CFGBlock* block) {
     return ProgramLocation(block);
   }
 
+  static bool isEntryExit(const CFGBlock* block) {
+    CFG* cfg = block->getParent();
+    CFGBlock& entryBlock = cfg->front();
+    CFGBlock& exitBlock = cfg->back();
+    return (&entryBlock == block) || (&exitBlock == block);
+  }
+
   static ProgramLocation getExitKey(const CFGBlock* block) {
-    CFGTerminator terminator = block->getTerminator();
-    const Stmt* blockEnd = terminator.getStmt();
-    return ProgramLocation(blockEnd);
+    if (isEntryExit(block)) {
+      return ProgramLocation(block);
+    }
+
+    // process final element in the block
+    const CFGElement& element = block->back();
+    int kind = element.getKind();
+
+    switch (kind) {
+    case CFGElement::Statement: {
+      CFGStmt CS = element.castAs<CFGStmt>();
+      const Stmt* stmt = CS.getStmt();
+      assert(stmt);
+      return ProgramLocation(stmt);
+    } break;
+    default: {
+      llvm::errs() << "kind:" << kind << "\n";
+      block->dump();
+      llvm::report_fatal_error("kind not covered");
+
+      return ProgramLocation();
+    } break;
+    }
   }
 
   /*
