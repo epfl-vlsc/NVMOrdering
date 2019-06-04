@@ -3,63 +3,56 @@
 
 namespace clang::ento::nvm {
 
-union ProgramLocation {
-  const CFG* function;
-  const CFGBlock* block;
-  const Stmt* stmt;
+struct ProgramLocation {
+  union PtrPl {
+    const FunctionDecl* function;
+    const CFGBlock* block;
+    const Stmt* stmt;
 
-  ProgramLocation(const CFG* pl) { function = pl; }
-  ProgramLocation(const CFGBlock* pl) { block = pl; }
-  ProgramLocation(const Stmt* pl) { stmt = pl; }
-  ProgramLocation() { function = nullptr; }
+    PtrPl(const FunctionDecl* pl) { function = pl; }
+    PtrPl(const CFGBlock* pl) { block = pl; }
+    PtrPl(const Stmt* pl) { stmt = pl; }
+    PtrPl() { function = nullptr; }
+  } ptrPl;
+  enum PtrType { CfgPtr, CfgBlockPtr, StmtPtr, None } ptrType;
+
+  ProgramLocation(const FunctionDecl* pl) : ptrPl(pl), ptrType(CfgPtr) {}
+  ProgramLocation(const CFGBlock* pl) : ptrPl(pl), ptrType(CfgBlockPtr) {}
+  ProgramLocation(const Stmt* pl) : ptrPl(pl), ptrType(StmtPtr) {}
+  ProgramLocation() : ptrType(None) {}
 
   bool operator<(const ProgramLocation& X) const {
-    return function < X.function;
+    return ptrPl.function < X.ptrPl.function;
   }
 
   bool operator==(const ProgramLocation& X) const {
-    return function == X.function;
+    return ptrPl.function == X.ptrPl.function;
   }
 
-  void dump() const { llvm::errs() << function << "\n"; }
+  void dump() const {
+    switch (ptrType) {
+    case CfgPtr:
+      printND(ptrPl.function, "function");
+      break;
+    case CfgBlockPtr:
+      printBlock(ptrPl.block, "block");
+      break;
+    case StmtPtr:
+      printStmt(ptrPl.stmt, "stmt");
+      break;
+    case None:
+      printMsg("None");
+      break;
+    default:
+      llvm::report_fatal_error("not possible location");
+      break;
+    }
+  }
 
-  const CFG* getFunction() const{ return function; }
-  const CFGBlock* getBlock() const { return block; }
-  const Stmt* getStmt() const { return stmt; }
+  const FunctionDecl* getFunction() const { return ptrPl.function; }
+  const CFGBlock* getBlock() const { return ptrPl.block; }
+  const Stmt* getStmt() const { return ptrPl.stmt; }
 };
-
-raw_ostream& operator<<(raw_ostream& out, const ProgramLocation& pl) {
-  out << pl.function;
-  return out;
-}
-
-/*
-class ProgramLocation {
-  enum PlType { FncType, BlockType, BlockEndType, ElementType, None };
-
-  Pl programLocation;
-  PlType plType;
-
-public:
-  ProgramLocation(const CFG* function)
-      : programLocation(function), plType(FncType) {}
-  ProgramLocation(const CFGBlock* block)
-      : programLocation(block), plType(BlockType) {}
-  ProgramLocation(const Stmt* blockEnd)
-      : programLocation(blockEnd), plType(BlockEndType) {}
-  ProgramLocation(const CFGElement* element_)
-      : programLocation(element_), plType(ElementType) {}
-  ProgramLocation() : plType(None) {}
-
-  bool operator<(const ProgramLocation& X) const {
-    return programLocation < X.programLocation;
-  }
-
-  bool operator==(const ProgramLocation& X) const {
-    return programLocation == X.programLocation;
-  }
-};
-*/
 
 class PlContext {
   ProgramLocation caller;
@@ -76,7 +69,10 @@ public:
   }
 
   void dump() const {
-    llvm::errs() << "caller: " << caller << "callee: " << callee << "\n";
+    llvm::errs() << "caller: ";
+    caller.dump();
+    llvm::errs() << "callee: ";
+    callee.dump();
   }
 };
 
@@ -86,8 +82,8 @@ public:
     return llvm::iterator_range(block->begin(), block->end());
   }
 
-  static auto getBlocks(const CFG* function) {
-    return llvm::iterator_range(function->rbegin(), function->rend());
+  static auto getBlocks(const CFG* cfg) {
+    return llvm::iterator_range(cfg->begin(), cfg->end());
   }
 
   static auto getSuccessorBlocks(const CFGBlock* block) {
@@ -103,12 +99,12 @@ public:
     return getPredecessorBlocks(block);
   }
 
-  static ProgramLocation getEntryBlock(const CFG* function) {
-    const CFGBlock* block = &function->getEntry();
+  static ProgramLocation getEntryBlock(const CFG* cfg) {
+    const CFGBlock* block = &cfg->getEntry();
     return ProgramLocation(block);
   }
 
-  static ProgramLocation getSummaryKey(const CFG* function) {
+  static ProgramLocation getSummaryKey(const FunctionDecl* function) {
     // arguments
     return ProgramLocation(function);
   }

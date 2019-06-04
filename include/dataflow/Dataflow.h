@@ -16,7 +16,7 @@ template <typename TrackVar> class DataFlow {
   using AllResults = std::map<PlContext, FunctionResults>;
 
   // context helpers
-  using FunctionContext = std::pair<const CFG*, PlContext>;
+  using FunctionContext = std::pair<const FunctionDecl*, PlContext>;
   using FunctionContextSet = std::set<FunctionContext>;
   using FunctionContextMap = std::map<FunctionContext, FunctionContextSet>;
 
@@ -33,23 +33,11 @@ template <typename TrackVar> class DataFlow {
   FunctionContextSet active;
 
   // top info
-  const CFG* topFunction;
+  const FunctionDecl* topFunction;
   const TrackVars& trackVars;
   AnalysisManager& mgr;
 
-  void dump() {
-    for (auto& [context, results] : allResults) {
-      context.dump();
-      for (auto& [pl, states] : results) {
-        pl.dump();
-        for (auto& [ND, LV] : states) {
-          printTrackedVar(ND, LV);
-        }
-      }
-    }
-  }
-
-  FunctionResults& initFunctionResults(const CFG* function,
+  FunctionResults& initFunctionResults(const FunctionDecl* function,
                                        PlContext& context) {
     FunctionResults& functionResults = allResults[context];
 
@@ -64,8 +52,10 @@ template <typename TrackVar> class DataFlow {
     return functionResults;
   }
 
-  void addBlocksToWorklist(BlockWorklist& blockWorkList, const CFG* function) {
-    for (const CFGBlock* block : Forward::getBlocks(function)) {
+  void addBlocksToWorklist(BlockWorklist& blockWorkList,
+                           const FunctionDecl* function) {
+    const CFG* cfg = mgr.getCFG(function);
+    for (const CFGBlock* block : Forward::getBlocks(cfg)) {
       blockWorkList.push_back(block);
     }
   }
@@ -73,7 +63,7 @@ template <typename TrackVar> class DataFlow {
   void applyTransfer(const Stmt* S, AbstractState& state) {}
 
   AbstractState mergePrevStates(const ProgramLocation& entryKey,
-                                 FunctionResults& results) {
+                                FunctionResults& results) {
     AbstractState mergedState;
     // start with current entry
     mergeInState(mergedState, results[entryKey]);
@@ -109,17 +99,16 @@ template <typename TrackVar> class DataFlow {
   void analyzeStmts(const CFGBlock* block, AbstractState& state,
                     FunctionResults& results, const PlContext& context) {
     for (const CFGElement element : Forward::getElements(block)) {
-
-      /*
-      if (Optional<CFGStmt> CS = element->getAs<CFGStmt>()) {
+      printMsg("lol");
+      if (Optional<CFGStmt> CS = element.getAs<CFGStmt>()) {
         const Stmt* S = CS->getStmt();
         printStmt(S, mgr, "s");
+        printStmt(S, "s");
       }
-      */
     }
   }
 
-  void computeDataflow(const CFG* function, PlContext& context) {
+  void computeDataflow(const FunctionDecl* function, PlContext& context) {
     active.insert({function, context});
 
     // initialize results
@@ -188,7 +177,7 @@ template <typename TrackVar> class DataFlow {
   AllResults analyze() {}
 
 public:
-  DataFlow(const CFG* function, const TrackVars& trackVars_,
+  DataFlow(const FunctionDecl* function, const TrackVars& trackVars_,
            AnalysisManager& mgr_)
       : topFunction(function), trackVars(trackVars_), mgr(mgr_) {
     contextWork.push_back({function, PlContext()});
@@ -201,6 +190,19 @@ public:
     }
 
     return allResults;
+  }
+
+  void dump() {
+    printMsg("-------All results------");
+    for (auto& [context, results] : allResults) {
+      context.dump();
+      for (auto& [pl, states] : results) {
+        pl.dump();
+        for (auto& [ND, LV] : states) {
+          printTrackedVar(ND, LV);
+        }
+      }
+    }
   }
 };
 

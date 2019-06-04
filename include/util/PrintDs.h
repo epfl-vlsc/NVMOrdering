@@ -54,7 +54,9 @@ void printStmt(const Stmt* S, CheckerContext& C, const char* msg) {
 }
 
 void printStmt(const Stmt* S, AnalysisManager& mgr, const char* msg) {
+  llvm::errs() << msg << ":";
   S->dumpPretty(mgr.getASTContext());
+  llvm::errs() << "\n";
 }
 
 void printStmt(const Stmt* S, const char* msg) { S->dump(); }
@@ -68,6 +70,11 @@ void printStmt(const Stmt* S, CheckerContext& C, const char* msg,
     printStmt(S, msg);
   }
   llvm::errs() << "\n";
+}
+
+void printBlock(const CFGBlock* block, const char* msg) {
+  llvm::errs() << msg << ":B" << block->getBlockID() << "\n";
+  printStmt(block->getLabel(), msg);
 }
 
 template <typename T> void dumpPtr(const T* t) { t->dump(); }

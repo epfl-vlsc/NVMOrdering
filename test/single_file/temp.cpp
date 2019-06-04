@@ -4,12 +4,18 @@ struct Dcl {
   sentinelp(dcl-Dcl::valid) int data;
   int valid;
 
-  void do_stuff(){
+  void correct(){
+    data = 1;
+    clflush(&data);
+    valid = 1;
+  }
+
+  void skip_fnc do_stuff(){
     clflushopt(&data);
     pfence();
   }
 
-  void correct(bool use_nvm) {
+  void skip_fnc wrongButTrue(bool use_nvm) {
     data = 1;
     if(use_nvm){
       do_stuff();
@@ -20,5 +26,10 @@ struct Dcl {
     }else{
       return;
     }
+  }
+
+  void skip_fnc wrong() {
+    data = 1;
+    valid = 1;
   }
 };
