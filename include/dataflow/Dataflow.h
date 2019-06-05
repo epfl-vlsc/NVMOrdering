@@ -45,16 +45,12 @@ template <typename TrackVar> class DataFlow {
     const CFG* cfg = mgr.getCFG(function);
     for (const CFGBlock* block : Forward::getRBlocks(cfg)) {
       ProgramLocation entryKey = Forward::getEntryKey(block);
-      ProgramLocation exitKey = Forward::getExitKey(block);
-
       AbstractState& entryState = functionResults[entryKey];
-      AbstractState& exitState = functionResults[exitKey];
 
       for (TrackVar trackVar : trackVars) {
         const NamedDecl* var = trackVar.ND;
         auto lv = DsclValue::getInit(trackVar.isDcl, trackVar.isScl);
         entryState[var] = lv;
-        exitState[var] = lv;
       }
     }
 
@@ -109,16 +105,14 @@ template <typename TrackVar> class DataFlow {
 
   void analyzeStmts(const CFGBlock* block, AbstractState& state,
                     FunctionResults& results, const PlContext& context) {
-    /*
+
     for (const CFGElement element : Forward::getElements(block)) {
       printMsg("lol");
       if (Optional<CFGStmt> CS = element.getAs<CFGStmt>()) {
         const Stmt* S = CS->getStmt();
-        printStmt(S, mgr, "s");
         printStmt(S, "s");
       }
     }
-    */
   }
 
   void computeDataflow(const FunctionDecl* function, PlContext& context) {
@@ -184,26 +178,10 @@ template <typename TrackVar> class DataFlow {
       }
     }
 
-    // printFunctionResults(results);
     active.erase({function, context});
   }
 
   AllResults analyze() {}
-
-public:
-  DataFlow(const FunctionDecl* function, const TrackVars& trackVars_,
-           AnalysisManager& mgr_)
-      : topFunction(function), trackVars(trackVars_), mgr(mgr_) {
-    contextWork.push_back({function, PlContext()});
-  }
-
-  AllResults computeDataFlow() {
-    while (!contextWork.empty()) {
-      auto [function, context] = contextWork.pop_back_val();
-      computeDataflow(function, context);
-    }
-    return allResults;
-  }
 
   void dumpAS(const AbstractState& state) const {
     for (auto& [ND, LV] : state) {
@@ -218,6 +196,21 @@ public:
       pl.dump(mgr);
       dumpAS(state);
     }
+  }
+
+public:
+  DataFlow(const FunctionDecl* function, const TrackVars& trackVars_,
+           AnalysisManager& mgr_)
+      : topFunction(function), trackVars(trackVars_), mgr(mgr_) {
+    contextWork.push_back({function, PlContext()});
+  }
+
+  AllResults computeDataFlow() {
+    while (!contextWork.empty()) {
+      auto [function, context] = contextWork.pop_back_val();
+      computeDataflow(function, context);
+    }
+    return allResults;
   }
 
   void dump() const {
