@@ -1,19 +1,15 @@
 #pragma once
 #include "Common.h"
 #include "DfUtil.h"
-#include "DsclState.h"
 #include "ProgramLocation.h"
 
 namespace clang::ento::nvm {
 
-template <typename TrackVar> class DataFlow {
-  // variables to track
-  using TrackVars = std::set<TrackVar>;
-
-  // result types
-  using AbstractState = std::map<const NamedDecl*, DsclValue>;
-  using FunctionResults = std::map<ProgramLocation, AbstractState>;
-  using AllResults = std::map<PlContext, FunctionResults>;
+template <typename Lattice> class DataFlow {
+  // df results
+  using AbstractState = typename Lattice::AbstractState;
+  using FunctionResults = typename Lattice::FunctionResults;
+  using DataflowResults = typename Lattice::DataflowResults;
 
   // context helpers
   using FunctionContext = std::pair<const FunctionDecl*, PlContext>;
@@ -27,34 +23,29 @@ template <typename TrackVar> class DataFlow {
   using BlockWorklist = Worklist<const CFGBlock*, 200>;
 
   // data structures
-  AllResults allResults;
+  DataflowResults allResults;
   ContextWorklist contextWork;
   FunctionContextMap callers;
   FunctionContextSet active;
 
   // top info
   const FunctionDecl* topFunction;
-  const TrackVars& trackVars;
+  Lattice lattice;
   AnalysisManager& mgr;
 
   FunctionResults& initFunctionResults(const FunctionDecl* function,
                                        PlContext& context) {
-    FunctionResults& functionResults = allResults[context];
+    FunctionResults& results = allResults[context];
 
-    // initialize blocks
+    // initialize entry block
     const CFG* cfg = mgr.getCFG(function);
-    for (const CFGBlock* block : Forward::getRBlocks(cfg)) {
-      ProgramLocation entryKey = Forward::getEntryKey(block);
-      AbstractState& entryState = functionResults[entryKey];
+    ProgramLocation entryBlock = Forward::getEntryBlock(cfg);
+    AbstractState& state = results[entryBlock];
 
-      for (TrackVar trackVar : trackVars) {
-        const NamedDecl* var = trackVar.ND;
-        auto lv = DsclValue::getInit(trackVar.isDcl, trackVar.isScl);
-        entryState[var] = lv;
-      }
-    }
+    // initialize all tracked variables for the entry block
+    lattice.initFunction(function, state);
 
-    return functionResults;
+    return results;
   }
 
   void addBlocksToWorklist(BlockWorklist& blockWorkList,
@@ -107,10 +98,11 @@ template <typename TrackVar> class DataFlow {
                     FunctionResults& results, const PlContext& context) {
 
     for (const CFGElement element : Forward::getElements(block)) {
-      printMsg("lol");
       if (Optional<CFGStmt> CS = element.getAs<CFGStmt>()) {
         const Stmt* S = CS->getStmt();
-        printStmt(S, "s");
+        assert(S);
+        // call transfer function or analyze function
+        lattice.handleStmt(S, state, results);
       }
     }
   }
@@ -141,7 +133,7 @@ template <typename TrackVar> class DataFlow {
       // todo summary key
 
       // skip block if same result
-      if (state == oldEntryState) {
+      if (state == oldEntryState && !state.empty()) {
         continue;
       }
 
@@ -181,8 +173,6 @@ template <typename TrackVar> class DataFlow {
     active.erase({function, context});
   }
 
-  AllResults analyze() {}
-
   void dumpAS(const AbstractState& state) const {
     for (auto& [ND, LV] : state) {
       printTrackedVar(ND, LV, false);
@@ -191,21 +181,29 @@ template <typename TrackVar> class DataFlow {
     printMsg("");
   }
 
-  void dumpFR(const FunctionResults& results) const {
+  void dumpFR(const FunctionResults& results, AnalysisManager& mgr) const {
     for (auto& [pl, state] : results) {
       pl.dump(mgr);
       dumpAS(state);
     }
   }
 
+  void dump(const DataflowResults& dataflowResults,
+            AnalysisManager& mgr) const {
+    for (auto& [context, results] : dataflowResults) {
+      context.dump();
+      dumpFR(results, mgr);
+    }
+  }
+
 public:
-  DataFlow(const FunctionDecl* function, const TrackVars& trackVars_,
+  DataFlow(const FunctionDecl* function, Lattice& lattice_,
            AnalysisManager& mgr_)
-      : topFunction(function), trackVars(trackVars_), mgr(mgr_) {
+      : topFunction(function), lattice(lattice_), mgr(mgr_) {
     contextWork.push_back({function, PlContext()});
   }
 
-  AllResults computeDataFlow() {
+  DataflowResults& computeDataFlow() {
     while (!contextWork.empty()) {
       auto [function, context] = contextWork.pop_back_val();
       computeDataflow(function, context);
@@ -215,10 +213,7 @@ public:
 
   void dump() const {
     printMsg("-------All results------");
-    for (auto& [context, results] : allResults) {
-      context.dump();
-      dumpFR(results);
-    }
+    dump(allResults, mgr);
   }
 };
 

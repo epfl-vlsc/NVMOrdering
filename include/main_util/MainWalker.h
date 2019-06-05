@@ -128,6 +128,9 @@ class MainWalker : public RecursiveASTVisitor<MainWalker> {
       // add function to the analysis list
       mainFncs.insertAnalyze(FD);
     }
+
+    //remove all skip from analyze
+    mainFncs.removeSkipFromAnalyze();
   }
 
 

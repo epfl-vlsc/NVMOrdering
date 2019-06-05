@@ -67,7 +67,7 @@ public:
     trackMap[FD].insert(trackVar);
   }
 
-  void dump() {
+  void dump() const {
     llvm::errs() << "vars------------------------\n";
     printMapSet(usedVars, dumpPtr<PairInfo>, "var", "\tpair");
     llvm::errs() << "fnc to vars-----------------\n";

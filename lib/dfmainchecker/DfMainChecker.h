@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "dataflow/Dataflow.h"
-#include "main_util/Parser.h"
+#include "flow/MainLattice.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.dfmainchecker";
 
@@ -20,8 +20,7 @@ public:
                         BugReporter& BR) const;
 
 private:
-  mutable MainFncs mainFncs;
-  mutable MainVars mainVars;
+  mutable MainLattice lattice;
 };
 
 } // namespace clang::ento::nvm

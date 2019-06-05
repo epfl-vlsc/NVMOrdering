@@ -18,6 +18,7 @@ class SclTransfer {
 class DsclTransfer {
   static void write();
   static void flush();
+  static void flushfence();
   static void pfence();
   static void vfence();
 

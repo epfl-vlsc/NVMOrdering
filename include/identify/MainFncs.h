@@ -1,6 +1,6 @@
 #pragma once
-#include "identify/AnnotFunction.h"
-#include "identify/NamedFunctions.h"
+#include "AnnotFunction.h"
+#include "NamedFunctions.h"
 
 namespace clang::ento::nvm {
 
@@ -20,8 +20,11 @@ public:
 
   bool isSkip(const FunctionDecl* FD) const {
     return isFlushFenceFnc(FD) || isFlushOptFnc(FD) || isVfenceFnc(FD) ||
-           isPfenceFnc(FD) || skipFnc.inFunctions(FD) ||
-           !analyzeFnc.inFunctions(FD);
+           isPfenceFnc(FD) || skipFnc.inFunctions(FD) || !isAnalyze(FD);
+  }
+
+  bool isAnalyze(const FunctionDecl* FD) const {
+    return analyzeFnc.inFunctions(FD);
   }
 
   bool isSkip(CheckerContext& C) const {
@@ -40,6 +43,12 @@ public:
     flushFenceFnc.insertIfKnown(FD);
   }
 
+  void removeSkipFromAnalyze() {
+    for (const FunctionDecl* FD : skipFnc) {
+      analyzeFnc.erase(FD);
+    }
+  }
+
   bool isFlushFenceFnc(const FunctionDecl* FD) const {
     return flushFenceFnc.inFunctions(FD);
   }
@@ -56,7 +65,7 @@ public:
     return pfenceFnc.inFunctions(FD);
   }
 
-  void dump() {
+  void dump() const {
     printMsg("analyze:");
     analyzeFnc.dump();
     printMsg("use:");
@@ -67,13 +76,9 @@ public:
     vfenceFnc.dump();
   }
 
-  auto begin() const{
-    return analyzeFnc.begin();
-  }
+  auto begin() const { return analyzeFnc.begin(); }
 
-  auto end() const{
-    return analyzeFnc.end();
-  }
+  auto end() const { return analyzeFnc.end(); }
 };
 
 } // namespace clang::ento::nvm
