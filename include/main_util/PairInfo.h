@@ -43,6 +43,17 @@ public:
   const NamedDecl* getDataND() const { return data; }
 
   const NamedDecl* getCheckND() const { return check; }
+
+  const NamedDecl* getPairND(const NamedDecl* ND) const {
+    if (ND == data) {
+      return check;
+    } else if (ND == check) {
+      return data;
+    } else {
+      llvm::report_fatal_error("not a member of pair");
+      return nullptr;
+    }
+  }
 };
 
 } // namespace clang::ento::nvm

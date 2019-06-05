@@ -56,6 +56,10 @@ public:
 
   DsclType getDsclType() const { return dsclType; }
 
+  bool isWriteFlush() const{
+    return scl == WriteScl || dcl == WriteDcl || dcl == Flush;
+  }
+
   void dump() const {
     assert(dsclType < None);
     if (dsclType == DclType) {

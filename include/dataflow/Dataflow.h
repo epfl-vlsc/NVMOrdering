@@ -32,6 +32,7 @@ template <typename Lattice> class DataFlow {
   const FunctionDecl* topFunction;
   Lattice lattice;
   AnalysisManager& mgr;
+  BugReporter& BR;
 
   FunctionResults& initFunctionResults(const FunctionDecl* function,
                                        PlContext& context) {
@@ -55,8 +56,6 @@ template <typename Lattice> class DataFlow {
       blockWorkList.push_back(block);
     }
   }
-
-  void applyTransfer(const Stmt* S, AbstractState& state) {}
 
   AbstractState mergePrevStates(const ProgramLocation& entryKey,
                                 FunctionResults& results) {
@@ -94,6 +93,8 @@ template <typename Lattice> class DataFlow {
   void analyzeCall(const CallExpr* CE, AbstractState& state,
                    const PlContext& context) {}
 
+  void applyTransfer(const Stmt* S, AbstractState& state) {}
+
   void analyzeStmts(const CFGBlock* block, AbstractState& state,
                     FunctionResults& results, const PlContext& context) {
 
@@ -102,7 +103,18 @@ template <typename Lattice> class DataFlow {
         const Stmt* S = CS->getStmt();
         assert(S);
         // call transfer function or analyze function
-        lattice.handleStmt(S, state, results);
+
+        bool stateChanged = false;
+        if (lattice.isIpaCall(S)) {
+
+        } else {
+          stateChanged = lattice.handleStmt(S, state);
+        }
+
+        if (stateChanged) {
+          ProgramLocation plStmt(S);
+          results[plStmt] = state;
+        }
       }
     }
   }
@@ -198,8 +210,8 @@ template <typename Lattice> class DataFlow {
 
 public:
   DataFlow(const FunctionDecl* function, Lattice& lattice_,
-           AnalysisManager& mgr_)
-      : topFunction(function), lattice(lattice_), mgr(mgr_) {
+           AnalysisManager& mgr_, BugReporter& BR_)
+      : topFunction(function), lattice(lattice_), mgr(mgr_), BR(BR_) {
     contextWork.push_back({function, PlContext()});
   }
 
@@ -215,6 +227,8 @@ public:
     printMsg("-------All results------");
     dump(allResults, mgr);
   }
+
+  void reportBugs() { lattice.reportBugs(allResults, mgr, BR); }
 };
 
 } // namespace clang::ento::nvm

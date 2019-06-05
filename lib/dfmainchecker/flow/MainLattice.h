@@ -1,7 +1,6 @@
 #pragma once
 #include "Common.h"
 #include "DsclState.h"
-#include "DsclTransfer.h"
 #include "main_util/Parser.h"
 
 namespace clang::ento::nvm {
@@ -9,6 +8,7 @@ namespace clang::ento::nvm {
 class MainLattice {
   MainFncs mainFncs;
   MainVars mainVars;
+  
 
 public:
   using LatVar = const NamedDecl*;
@@ -39,46 +39,117 @@ public:
     mainVars.dump();
   }
 
-  void handleStmt(const Stmt* S, AbstractState& state, FunctionResults& results) {
-    if (const BinaryOperator* BO = dyn_cast<BinaryOperator>(S)) {
-      printStmt(S, "bo");
-      if (BO->isAssignmentOp()) {
-        Expr* LHS = BO->getLHS();
-        if (const MemberExpr* ME = dyn_cast<MemberExpr>(LHS)) {
-          const ValueDecl* VD = ME->getMemberDecl();
-
-          state[VD] = DsclValue::getWrite(state[VD]);
-          ProgramLocation plStmt(BO);
-          results[plStmt] = state;
-        }
-      }
-    } else if (const CallExpr* CE = dyn_cast<CallExpr>(S)) {
-      printStmt(S, "ce");
+  bool isIpaCall(const Stmt* S) {
+    if (const CallExpr* CE = dyn_cast<CallExpr>(S)) {
       const FunctionDecl* calleeFD = CE->getDirectCallee();
       if (!calleeFD)
-        return;
+        return false;
 
-      IdentifierInfo* FnInfo = calleeFD->getIdentifier();
+      return !mainFncs.isSkip(calleeFD);
+    }
 
-      if (FnInfo->isStr("clflush")) {
-        printMsg("clflush");
-        const Expr* arg0 = CE->getArg(0);
+    return false;
+  }
 
-        if (const ImplicitCastExpr* ICE = dyn_cast<ImplicitCastExpr>(arg0)) {
-          const Stmt* Child1 = getNthChild(ICE, 0);
-          if (const UnaryOperator* UO = dyn_cast<UnaryOperator>(Child1)) {
-            const Stmt* expr = UO->getSubExpr();
-            if (const MemberExpr* ME = dyn_cast<MemberExpr>(expr)) {
-              const ValueDecl* VD = ME->getMemberDecl();
+  bool handleWrite(const BinaryOperator* BO, AbstractState& state) {
+    Expr* LHS = BO->getLHS();
+    if (const MemberExpr* ME = dyn_cast<MemberExpr>(LHS)) {
+      const ValueDecl* VD = ME->getMemberDecl();
+      if (mainVars.isUsedVar(VD)) {
+        state[VD] = DsclValue::getWrite(state[VD]);
+        return true;
+      }
+    }
 
-              state[VD] = DsclValue::getPfence(state[VD]);
-              ProgramLocation plStmt(CE);
-              results[plStmt] = state;
+    return false;
+  }
+
+  bool handleFence(const CallExpr* CE, AbstractState& state, bool isPfence) {
+    llvm::report_fatal_error("not implemented");
+    return false;
+  }
+
+  bool handleFlush(const CallExpr* CE, AbstractState& state, bool isPfence) {
+    const Expr* arg0 = CE->getArg(0);
+    if (const ImplicitCastExpr* ICE = dyn_cast<ImplicitCastExpr>(arg0)) {
+      const Stmt* Child1 = getNthChild(ICE, 0);
+      if (const UnaryOperator* UO = dyn_cast<UnaryOperator>(Child1)) {
+        const Stmt* expr = UO->getSubExpr();
+        if (const MemberExpr* ME = dyn_cast<MemberExpr>(expr)) {
+          const ValueDecl* VD = ME->getMemberDecl();
+          if (!mainVars.isUsedVar(VD)) {
+            return false;
+          }
+
+          if (isPfence) {
+            state[VD] = DsclValue::getPfence(state[VD]);
+          } else {
+            state[VD] = DsclValue::getFlush(state[VD]);
+          }
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool handleCall(const CallExpr* CE, AbstractState& state) {
+    const FunctionDecl* FD = CE->getDirectCallee();
+    if (!FD)
+      return false;
+
+    if (mainFncs.isFlushFenceFnc(FD)) {
+      return handleFlush(CE, state, true);
+    } else if (mainFncs.isFlushOptFnc(FD)) {
+      return handleFlush(CE, state, false);
+    } else if (mainFncs.isVfenceFnc(FD)) {
+      return handleFence(CE, state, false);
+    } else if (mainFncs.isPfenceFnc(FD)) {
+      return handleFence(CE, state, true);
+    }
+
+    return false;
+  }
+
+  bool handleStmt(const Stmt* S, AbstractState& state) {
+    if (const BinaryOperator* BO = dyn_cast<BinaryOperator>(S)) {
+      printStmt(S, "bo");
+      return handleWrite(BO, state);
+    } else if (const CallExpr* CE = dyn_cast<CallExpr>(S)) {
+      printStmt(S, "ce");
+      return handleCall(CE, state);
+    }
+
+    return false;
+  }
+
+  void reportBugs(const DataflowResults& allResults, AnalysisManager& mgr,
+                  BugReporter& BR) {
+    for (auto& [context, results] : allResults) {
+      for (auto& [pl, state] : results) {
+        std::set<LatVar> seenVars;
+        for (auto& [latVar, latVal] : state) {
+          if (seenVars.count(latVar)) {
+            continue;
+          }
+
+          seenVars.insert(latVar);
+
+          auto PL = mainVars.getPairList(latVar);
+          for (auto PI : PL) {
+            LatVar pairLatVar = PI->getPairND(latVar);
+            if (!state.count(pairLatVar)) {
+              continue;
+            }
+
+            seenVars.insert(pairLatVar);
+            LatVal pairLatVal = state.find(pairLatVar)->second;
+
+            if (pairLatVal.isWriteFlush() && latVal.isWriteFlush()) {
+              llvm::errs() << "bug\n";
             }
           }
         }
-
-        printStmt(arg0, "arg");
       }
     }
   }

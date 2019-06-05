@@ -14,9 +14,10 @@ void DfMainChecker::checkASTCodeBody(const Decl* D, AnalysisManager& mgr,
   }
 
   // analyze single function inter-procedurally
-  DataFlow dataflow(FD, lattice, mgr);
+  DataFlow dataflow(FD, lattice, mgr, BR);
   dataflow.computeDataFlow();
   dataflow.dump();
+  dataflow.reportBugs();
 }
 
 void DfMainChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
