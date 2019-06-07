@@ -1,42 +1,52 @@
 #pragma once
 #include "Common.h"
-#include "DsclState.h"
-#include "main_util/Parser.h"
+#include "LatticeValue.h"
+#include "dataflow_util/ProgramLocation.h"
+#include "../preprocess/PairFunctions.h"
+#include "../preprocess/PairVariables.h"
 
 namespace clang::ento::nvm {
 
-class MainLattice {
-  MainFncs mainFncs;
-  MainVars mainVars;
-  
+class PairAnalyzer {
+  using FunctionInfo = typename PairFunctions::FunctionInfo;
+
+  // whole program data structures
+  PairVariables pairVars;
+  PairFunctions pairFuncs;
+
+  // convenient data structure per unit analysis
+  FunctionInfo* activeFunction;
 
 public:
   using LatVar = const NamedDecl*;
-  using LatVal = DsclValue;
+  using LatVal = LatticeValue;
   using AbstractState = std::map<LatVar, LatVal>;
   using FunctionResults = std::map<ProgramLocation, AbstractState>;
   using DataflowResults = std::map<PlContext, FunctionResults>;
 
-  void initFunction(const FunctionDecl* FD, AbstractState& state) {
-    auto& trackSet = mainVars.getTrackSet(FD);
-    for (auto trackVar : trackSet) {
-      const NamedDecl* var = trackVar.ND;
-      auto lv = DsclValue::getInit(trackVar.isDcl, trackVar.isScl);
-      state[var] = lv;
+  void initFunction(const FunctionDecl* FD) {
+    activeFunction = &pairFuncs.getUnitInfo(FD);
+  }
+
+  PairVariables& getMainVars() { return pairVars; }
+
+  PairFunctions& getMainFncs() { return pairFuncs; }
+
+  void initLatticeValues(AbstractState& state) {
+    for (auto usedVar : activeFunction->getUsedVars()) {
+      auto& [isDcl, isScl] = pairVars.getDsclInfo(usedVar);
+      auto lv = LatticeValue::getInit(isDcl, isScl);
+      state[usedVar] = lv;
     }
   }
 
-  MainFncs& getMainFncs() { return mainFncs; }
-
-  MainVars& getMainVars() { return mainVars; }
-
-  bool isAnalyze(const FunctionDecl* FD) const {
-    return mainFncs.isAnalyze(FD);
+  bool isAnalyzedFunction(const FunctionDecl* FD) const {
+    return pairFuncs.isAnalyzedFunction(FD);
   }
 
   void dump() const {
-    mainFncs.dump();
-    mainVars.dump();
+    pairFuncs.dump();
+    pairVars.dump();
   }
 
   bool isIpaCall(const Stmt* S) {
@@ -45,7 +55,7 @@ public:
       if (!calleeFD)
         return false;
 
-      return !mainFncs.isSkip(calleeFD);
+      return !pairFuncs.isSkipFunction(calleeFD);
     }
 
     return false;
@@ -55,8 +65,8 @@ public:
     Expr* LHS = BO->getLHS();
     if (const MemberExpr* ME = dyn_cast<MemberExpr>(LHS)) {
       const ValueDecl* VD = ME->getMemberDecl();
-      if (mainVars.isUsedVar(VD)) {
-        state[VD] = DsclValue::getWrite(state[VD]);
+      if (pairVars.isUsedVar(VD)) {
+        state[VD] = LatticeValue::getWrite(state[VD]);
         return true;
       }
     }
@@ -77,14 +87,14 @@ public:
         const Stmt* expr = UO->getSubExpr();
         if (const MemberExpr* ME = dyn_cast<MemberExpr>(expr)) {
           const ValueDecl* VD = ME->getMemberDecl();
-          if (!mainVars.isUsedVar(VD)) {
+          if (!pairVars.isUsedVar(VD)) {
             return false;
           }
 
           if (isPfence) {
-            state[VD] = DsclValue::getPfence(state[VD]);
+            state[VD] = LatticeValue::getPfence(state[VD]);
           } else {
-            state[VD] = DsclValue::getFlush(state[VD]);
+            state[VD] = LatticeValue::getFlush(state[VD]);
           }
           return true;
         }
@@ -98,13 +108,13 @@ public:
     if (!FD)
       return false;
 
-    if (mainFncs.isFlushFenceFnc(FD)) {
+    if (pairFuncs.isFlushFenceFunction(FD)) {
       return handleFlush(CE, state, true);
-    } else if (mainFncs.isFlushOptFnc(FD)) {
+    } else if (pairFuncs.isFlushOptFunction(FD)) {
       return handleFlush(CE, state, false);
-    } else if (mainFncs.isVfenceFnc(FD)) {
+    } else if (pairFuncs.isVfenceFunction(FD)) {
       return handleFence(CE, state, false);
-    } else if (mainFncs.isPfenceFnc(FD)) {
+    } else if (pairFuncs.isPfenceFunction(FD)) {
       return handleFence(CE, state, true);
     }
 
@@ -125,6 +135,8 @@ public:
 
   void reportBugs(const DataflowResults& allResults, AnalysisManager& mgr,
                   BugReporter& BR) {
+
+    /*
     for (auto& [context, results] : allResults) {
       for (auto& [pl, state] : results) {
         std::set<LatVar> seenVars;
@@ -135,7 +147,7 @@ public:
 
           seenVars.insert(latVar);
 
-          auto PL = mainVars.getPairList(latVar);
+          auto PL = pairVars.getPairSet(latVar);
           for (auto PI : PL) {
             LatVar pairLatVar = PI->getPairND(latVar);
             if (!state.count(pairLatVar)) {
@@ -152,6 +164,7 @@ public:
         }
       }
     }
+    */
   }
 };
 

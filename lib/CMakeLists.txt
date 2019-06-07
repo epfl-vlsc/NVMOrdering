@@ -7,4 +7,4 @@
 #add_subdirectory(mainchecker)
 #add_subdirectory(ptrchecker)
 #add_subdirectory(logchecker)
-add_subdirectory(dfmainchecker)
+add_subdirectory(pairchecker)

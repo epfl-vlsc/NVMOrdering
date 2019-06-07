@@ -5,25 +5,41 @@
 namespace clang::ento::nvm {
 
 class DirectAnalysis {
-  using VarSet = std::set<const NamedDecl*>;
-  using FuncSet = std::set<const FunctionDecl*>;
 
-  class FunctionInfo {
-    VarSet usedVars;
-    FuncSet usedFuncs;
+  template<typename VS, typename FS>
+  class FunctionInfoT {
+    VS usedVars;
+    FS usedFuncs;
 
   public:
-    VarSet& getUsedVars() { return usedVars; }
-    FuncSet& usedFuncs() { return usedFuncs; }
+    VS& getUsedVars() { return usedVars; }
+    FS& getUsedFuncs() { return usedFuncs; }
 
-    FunctionInfo(VarSet& usedVars_, FuncSet& usedFuncs_) {
+    FunctionInfoT(VS& usedVars_, FS& usedFuncs_) {
       usedVars = std::move(usedVars_);
       usedFuncs = std::move(usedFuncs_);
     }
+
+    FunctionInfoT() {}
+
+    bool isUsedVar(const NamedDecl* ND) const {
+      assert(ND);
+      return usedVars.count(ND);
+    }
+
+    bool isUsedFunc(const FunctionDecl* FD) const {
+      assert(FD);
+      return usedFuncs.count(FD);
+    }
   };
 
+public:
+  using VarSet = std::set<const NamedDecl*>;
+  using FuncSet = std::set<const FunctionDecl*>;
+  using FunctionInfo = FunctionInfoT<VarSet, FuncSet>;
   using FunctionInfoMap = std::map<const FunctionDecl*, FunctionInfo>;
 
+private:
   FunctionInfoMap functionInfoMap;
 
 public:
@@ -34,6 +50,7 @@ public:
   void addFunctionInfo(const FunctionDecl* FD, VarSet& usedVars,
                        FuncSet& usedFuncs) {
     FunctionInfo functionInfo(usedVars, usedFuncs);
+    functionInfoMap[FD] = functionInfo;
   }
 };
 

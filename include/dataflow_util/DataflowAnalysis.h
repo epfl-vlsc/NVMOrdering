@@ -1,11 +1,10 @@
 #pragma once
 #include "Common.h"
-#include "DfUtil.h"
 #include "ProgramLocation.h"
 
 namespace clang::ento::nvm {
 
-template <typename Lattice> class DataFlow {
+template <typename Lattice> class DataflowAnalysis {
   // df results
   using AbstractState = typename Lattice::AbstractState;
   using FunctionResults = typename Lattice::FunctionResults;
@@ -209,10 +208,11 @@ template <typename Lattice> class DataFlow {
   }
 
 public:
-  DataFlow(const FunctionDecl* function, Lattice& lattice_,
+  DataflowAnalysis(const FunctionDecl* function, Lattice& lattice_,
            AnalysisManager& mgr_, BugReporter& BR_)
       : topFunction(function), lattice(lattice_), mgr(mgr_), BR(BR_) {
     contextWork.push_back({function, PlContext()});
+    lattice.initFunction(function);
   }
 
   DataflowResults& computeDataFlow() {

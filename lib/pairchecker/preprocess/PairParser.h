@@ -1,14 +1,13 @@
 #pragma once
-#include "util/AutoCl.h"
 #include "Common.h"
-#include "MainVars.h"
-#include "PairInfo.h"
-#include "identify/MainFncs.h"
-#include "parsers/NDWalker.h"
+#include "PairFunctions.h"
+#include "PairVariables.h"
+#include "analysis_util/AutoCl.h"
+#include "parser_util/NamedDeclParser.h"
 
 namespace clang::ento::nvm {
 
-class MainWalker : public RecursiveASTVisitor<MainWalker> {
+class PairParser : public RecursiveASTVisitor<PairParser> {
   static constexpr const char* PAIR = "pair";
   static constexpr const char KEY_SEP = '-';
   static constexpr const char* SCL_STR = "scl";
@@ -54,10 +53,12 @@ class MainWalker : public RecursiveASTVisitor<MainWalker> {
   using StrToND = std::map<std::string, const NamedDecl*>;
   using MESet = std::set<const MemberExpr*>;
 
-  MainVars& mainVars;
-  MainFncs& mainFncs;
+  // whole program data structures
+  PairVariables pairVariables;
+  PairFunctions pairFunctions;
   ASTContext& AC;
 
+  // temporary structures
   PSIList psiList;
   StrToND strToND;
   AutoCl autoCl;
@@ -108,15 +109,15 @@ class MainWalker : public RecursiveASTVisitor<MainWalker> {
 
       // create Pair info
       PairInfo* pi = new PairInfo(dataND, checkND, isScl);
-      mainVars.addUsedVar(dataND, pi);
-      mainVars.addUsedVar(checkND, pi);
+      pairVariables.addUsedVar(dataND, pi);
+      pairVariables.addUsedVar(checkND, pi);
     }
   }
 
   void autoFindFunctions() {
     for (const MemberExpr* ME : memberExprs) {
       const ValueDecl* VD = ME->getMemberDecl();
-      if (!mainVars.isUsedVar(VD)) {
+      if (!pairVariables.isUsedVar(VD)) {
         continue;
       }
 
@@ -126,41 +127,41 @@ class MainWalker : public RecursiveASTVisitor<MainWalker> {
       }
 
       // add function to the analysis list
-      mainFncs.insertAnalyze(FD);
+      pairFunctions.insertAnalyzeFunction(FD);
     }
 
-    //remove all skip from analyze
-    mainFncs.removeSkipFromAnalyze();
+    // remove all skip from analyze
+    pairFunctions.removeSkipFromAnalyze();
   }
 
-
-
   void fillTrackMap() {
-    for (const FunctionDecl* FD : mainFncs) {
-      for (const NamedDecl* ND : NDWalker::getNDs(FD)) {
-        if (!mainVars.isUsedVar(ND)) {
-          continue;
+    for (const FunctionDecl* FD : pairFunctions) {
+      std::set<const NamedDecl*> varSet;
+      std::set<const FunctionDecl*> funcSet;
+
+      NamedDeclParser NDP(FD);
+
+      for (const NamedDecl* ND : NDP.getVarSet()) {
+        if (pairVariables.isUsedVar(ND)) {
+          varSet.insert(ND);
         }
-
-        bool isDcl = false;
-        bool isScl = false;
-
-        for(PairInfo* PI: mainVars.getPairList(ND)){
-          isDcl = !PI->isSameCl();
-          isScl = PI->isSameCl();
-        }
-
-        mainVars.addTrackVar(FD, {ND, isDcl, isScl});
       }
+
+      for (const FunctionDecl* FD : NDP.getFuncSet()) {
+        if (pairFunctions.isSkipFunction(FD)) {
+          funcSet.insert(FD);
+        }
+      }
+
+      pairFunctions.addUnitInfo(FD, varSet, funcSet);
     }
   }
 
 public:
-  MainWalker(MainVars& mainVars_, MainFncs& mainFncs_, ASTContext& AC_)
-      : mainVars(mainVars_), mainFncs(mainFncs_), AC(AC_), autoCl(AC_) {}
+  PairParser(ASTContext& AC_) : AC(AC_), autoCl(AC_) {}
 
   bool VisitFunctionDecl(const FunctionDecl* FD) {
-    mainFncs.insertIfKnown(FD);
+    pairFunctions.insertIfKnown(FD);
 
     // continue traversal
     return true;
@@ -193,6 +194,14 @@ public:
     fillMainVars();
     autoFindFunctions();
     fillTrackMap();
+  }
+
+  PairVariables& getPairVariables(){
+    return pairVariables;
+  }
+
+  PairFunctions getPairFunctions(){
+    return pairFunctions;
   }
 };
 

@@ -23,15 +23,16 @@ void printD(const Decl* D, const char* msg) {
   llvm::errs() << "\n";
 }
 
-void printND(const NamedDecl* ND, const char* msg, bool isQualified = false) {
+void printND(const NamedDecl* ND, const char* msg, bool isQualified = false,
+             bool newline = true) {
   llvm::errs() << msg << ":";
-  if (!isQualified) {
+  if (!isQualified)
     llvm::errs() << ND->getNameAsString();
-  } else {
+  else
     llvm::errs() << ND->getQualifiedNameAsString();
-  }
 
-  llvm::errs() << "\n";
+  if (newline)
+    llvm::errs() << "\n";
 }
 
 template <typename LatticeValue>
