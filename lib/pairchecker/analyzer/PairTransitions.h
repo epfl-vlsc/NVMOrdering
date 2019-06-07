@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "LatticeValue.h"
+#include "parser_util/ParseUtils.h"
 
 namespace clang::ento::nvm {
 
@@ -10,23 +11,25 @@ template <typename Variables, typename Functions> class PairTransitions {
   using LatVal = LatticeValue;
   using AbstractState = std::map<LatVar, LatVal>;
 
-  //useful structures
+  // useful structures
   Variables* vars;
   Functions* funcs;
   FunctionInfo* activeUnitInfo;
   AnalysisManager* Mgr;
 
   bool handleWrite(const BinaryOperator* BO, AbstractState& state) {
-    Expr* LHS = BO->getLHS();
-    if (const MemberExpr* ME = dyn_cast<MemberExpr>(LHS)) {
-      const ValueDecl* VD = ME->getMemberDecl();
-      if (activeUnitInfo->isUsedVar(VD)) {
-        state[VD] = LatticeValue::getWrite(state[VD]);
-        return true;
-      }
+    const MemberExpr* ME = ParseUtils::getME(BO);
+    if (!ME) {
+      return false;
     }
 
-    return false;
+    const ValueDecl* VD = ME->getMemberDecl();
+    if (!activeUnitInfo->isUsedVar(VD)) {
+      return false;
+    }
+
+    state[VD] = LatticeValue::getWrite(state[VD]);
+    return true;
   }
 
   bool handleFence(const CallExpr* CE, AbstractState& state, bool isPfence) {
@@ -35,27 +38,22 @@ template <typename Variables, typename Functions> class PairTransitions {
   }
 
   bool handleFlush(const CallExpr* CE, AbstractState& state, bool isPfence) {
-    const Expr* arg0 = CE->getArg(0);
-    if (const ImplicitCastExpr* ICE = dyn_cast<ImplicitCastExpr>(arg0)) {
-      const Stmt* Child1 = getNthChild(ICE, 0);
-      if (const UnaryOperator* UO = dyn_cast<UnaryOperator>(Child1)) {
-        const Stmt* expr = UO->getSubExpr();
-        if (const MemberExpr* ME = dyn_cast<MemberExpr>(expr)) {
-          const ValueDecl* VD = ME->getMemberDecl();
-          if (!activeUnitInfo->isUsedVar(VD)) {
-            return false;
-          }
-
-          if (isPfence) {
-            state[VD] = LatticeValue::getPfence(state[VD]);
-          } else {
-            state[VD] = LatticeValue::getFlush(state[VD]);
-          }
-          return true;
-        }
-      }
+    const MemberExpr* ME = ParseUtils::getME(CE);
+    if (!ME) {
+      return false;
     }
-    return false;
+
+    const ValueDecl* VD = ME->getMemberDecl();
+    if (!activeUnitInfo->isUsedVar(VD)) {
+      return false;
+    }
+
+    if (isPfence) {
+      state[VD] = LatticeValue::getPfence(state[VD]);
+    } else {
+      state[VD] = LatticeValue::getFlush(state[VD]);
+    }
+    return true;
   }
 
   bool handleCall(const CallExpr* CE, AbstractState& state) {
