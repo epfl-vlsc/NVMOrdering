@@ -19,7 +19,7 @@ private:
   AnnotFunction skipFnc;
   PfenceFunction pfenceFnc;
   VfenceFunction vfenceFnc;
-  FlushOptFunction flushOptFnc;
+  FlushFunction flushFnc;
   FlushFenceFunction flushFenceFnc;
 
   DirectAnalysis allUnitsInfo;
@@ -58,7 +58,7 @@ public:
     skipFnc.insertIfKnown(FD);
     pfenceFnc.insertIfKnown(FD);
     vfenceFnc.insertIfKnown(FD);
-    flushOptFnc.insertIfKnown(FD);
+    flushFnc.insertIfKnown(FD);
     flushFenceFnc.insertIfKnown(FD);
   }
 
@@ -73,7 +73,7 @@ public:
   }
 
   bool isFlushOptFunction(const FunctionDecl* FD) const {
-    return flushOptFnc.inFunctions(FD);
+    return flushFnc.inFunctions(FD);
   }
 
   bool isVfenceFunction(const FunctionDecl* FD) const {
@@ -85,12 +85,10 @@ public:
   }
 
   void dump() const {
-    printMsg("analyze:");
     analyzedFnc.dump();
-    printMsg("use:");
     skipFnc.dump();
     flushFenceFnc.dump();
-    flushOptFnc.dump();
+    flushFnc.dump();
     pfenceFnc.dump();
     vfenceFnc.dump();
   }

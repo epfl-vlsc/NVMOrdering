@@ -27,6 +27,11 @@ public:
   auto begin() const { return functions.cbegin(); }
 
   auto end() const { return functions.cend(); }
+
+  void dump() const{
+    llvm::errs() << annotation << " ";
+    BaseFunction::dump();
+  }
 };
 
 } // namespace clang::ento::nvm

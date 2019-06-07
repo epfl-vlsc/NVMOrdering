@@ -17,8 +17,9 @@ public:
 
   void dump() const {
     for (const FunctionDecl* FD : functions) {
-      llvm::errs() << FD->getQualifiedNameAsString() << "\n";
+      llvm::errs() << FD->getQualifiedNameAsString() << ",";
     }
+    llvm::errs() << "\n";
   }
 
   void insert(const FunctionDecl* FD) { functions.insert(FD); }
