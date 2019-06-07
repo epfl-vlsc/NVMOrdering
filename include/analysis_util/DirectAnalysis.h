@@ -6,8 +6,7 @@ namespace clang::ento::nvm {
 
 class DirectAnalysis {
 
-  template<typename VS, typename FS>
-  class FunctionInfoT {
+  template <typename VS, typename FS> class FunctionInfoT {
     VS usedVars;
     FS usedFuncs;
 
@@ -30,6 +29,18 @@ class DirectAnalysis {
     bool isUsedFunc(const FunctionDecl* FD) const {
       assert(FD);
       return usedFuncs.count(FD);
+    }
+
+    void dump() {
+      printMsg("used vars", false);
+      for (auto& var : usedVars) {
+        llvm::errs() << var->getQualifiedNameAsString() << ", ";
+      }
+      printMsg("- used funcs", false);
+      for (auto& func : usedFuncs) {
+        llvm::errs() << func->getQualifiedNameAsString() << ", ";
+      }
+      llvm::errs() << "\n";
     }
   };
 

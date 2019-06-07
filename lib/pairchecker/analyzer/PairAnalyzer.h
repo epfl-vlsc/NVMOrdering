@@ -23,13 +23,8 @@ class PairAnalyzer {
   PairFunctions pairFuncs;
 
   // convenient data structure per unit analysis
-  FunctionInfo* activeFunction;
-
-public:
-  void dump() const {
-    pairFuncs.dump();
-    pairVars.dump();
-  }
+  FunctionInfo* activeUnitInfo;
+  DataflowResults* dataflowResults;
 
   void parseTUD(TranslationUnitDecl* TUD) {
     ASTContext& astContext = Mgr->getASTContext();
@@ -37,8 +32,29 @@ public:
     pairParser.TraverseDecl(TUD);
     pairParser.fillStructures();
     // pairParser.createGraphs();
+
+    pairFuncs.dump();
+    pairVars.dump();
   }
 
+  void doDataflowFD(const FunctionDecl* FD){
+    printND(FD, "***analyzing function***");
+
+    //get unit info
+    activeUnitInfo = &pairFuncs.getUnitInfo(FD);
+    activeUnitInfo->dump();
+
+    //DataFlow dataflow(FD, *this, mgr, BR);
+  }
+
+  void doDataflowTUD(){
+    for(const FunctionDecl* FD: pairFuncs){
+      doDataflowFD(FD);
+    }
+  }
+
+public:
+  
   void analyzeTUD(TranslationUnitDecl* TUD, AnalysisManager& Mgr_,
                   BugReporter& BR_) {
     // init program helpers
@@ -47,17 +63,10 @@ public:
 
     // parse entire program
     parseTUD(TUD);
-    dump();
+    
 
-    /*
-          // find vars and functions to track and analyze
-
-      MainWalker mainWalker(mainVars, mainFncs, astContext);
-      mainWalker.TraverseDecl(TUD);
-      mainWalker.finalize();
-
-      lattice.dump();
-    */
+    //run data flow analysis on units
+    doDataflowTUD();
 
     /*
      // run data flow analysis and report errors
@@ -74,16 +83,14 @@ public:
      */
   }
 
-  void initFunction(const FunctionDecl* FD) {
-    activeFunction = &pairFuncs.getUnitInfo(FD);
-  }
+  
 
   PairVariables& getMainVars() { return pairVars; }
 
   PairFunctions& getMainFncs() { return pairFuncs; }
 
   void initLatticeValues(AbstractState& state) {
-    for (auto usedVar : activeFunction->getUsedVars()) {
+    for (auto usedVar : activeUnitInfo->getUsedVars()) {
       auto& [isDcl, isScl] = pairVars.getDsclInfo(usedVar);
       auto lv = LatticeValue::getInit(isDcl, isScl);
       state[usedVar] = lv;

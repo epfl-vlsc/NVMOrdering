@@ -184,28 +184,7 @@ template <typename Lattice> class DataflowAnalysis {
     active.erase({function, context});
   }
 
-  void dumpAS(const AbstractState& state) const {
-    for (auto& [ND, LV] : state) {
-      printTrackedVar(ND, LV, false);
-      printMsg(" - ", false);
-    }
-    printMsg("");
-  }
-
-  void dumpFR(const FunctionResults& results, AnalysisManager& mgr) const {
-    for (auto& [pl, state] : results) {
-      pl.dump(mgr);
-      dumpAS(state);
-    }
-  }
-
-  void dump(const DataflowResults& dataflowResults,
-            AnalysisManager& mgr) const {
-    for (auto& [context, results] : dataflowResults) {
-      context.dump();
-      dumpFR(results, mgr);
-    }
-  }
+  
 
 public:
   DataflowAnalysis(const FunctionDecl* function, Lattice& lattice_,
@@ -222,13 +201,6 @@ public:
     }
     return allResults;
   }
-
-  void dump() const {
-    printMsg("-------All results------");
-    dump(allResults, mgr);
-  }
-
-  void reportBugs() { lattice.reportBugs(allResults, mgr, BR); }
 };
 
 } // namespace clang::ento::nvm

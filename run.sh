@@ -21,12 +21,11 @@ SINGLE_FILE_REPO=${TEST_DIR}/single_file
 TEST_FILE=${SINGLE_FILE_REPO}/$TEST_NAME.cpp
 
 if [ "$MODE" == "run" ] || [ "$MODE" == "mini" ] ;then
-    SBFLAGS="-fsyntax-only -Xclang -analyzer-max-loop -Xclang 2
--Xclang -analyzer-display-progress -Xclang -analyzer-config -Xclang c++-allocator-inlining=true"
+    SBFLAGS="-fsyntax-only"
     PLUGIN="-fplugin=${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
     -Xclang -analyze -Xclang -analyzer-checker=nvm.${TOOL_NAME}checker"
 elif [ "$MODE" == "scan" ] || [ "$MODE" == "multi" ] ;then
-    SBFLAGS="--force-analyze-debug-code -v -stats -maxloop 2 -o ${OUT_DIR}"
+    SBFLAGS="--force-analyze-debug-code -v -stats -o ${OUT_DIR}"
     PLUGIN="-load-plugin ${PLUGIN_DIR}/lib${TOOL_NAME}checker.so \
     -enable-checker nvm.${TOOL_NAME}checker"
     DISPLUGIN="-disable-checker alpha,apiModeling,valist,\
