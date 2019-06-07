@@ -54,8 +54,8 @@ class PairParser : public RecursiveASTVisitor<PairParser> {
   using MESet = std::set<const MemberExpr*>;
 
   // whole program data structures
-  PairVariables pairVariables;
-  PairFunctions pairFunctions;
+  PairVariables& pairVariables;
+  PairFunctions& pairFunctions;
   ASTContext& AC;
 
   // temporary structures
@@ -158,7 +158,10 @@ class PairParser : public RecursiveASTVisitor<PairParser> {
   }
 
 public:
-  PairParser(ASTContext& AC_) : AC(AC_), autoCl(AC_) {}
+  PairParser(PairVariables& pairVariables_, PairFunctions& pairFunctions_,
+             ASTContext& AC_)
+      : pairVariables(pairVariables_), pairFunctions(pairFunctions_), AC(AC_),
+        autoCl(AC_) {}
 
   bool VisitFunctionDecl(const FunctionDecl* FD) {
     pairFunctions.insertIfKnown(FD);
@@ -190,18 +193,10 @@ public:
 
   bool shouldVisitTemplateInstantiations() const { return true; }
 
-  void finalize() {
+  void fillStructures() {
     fillMainVars();
     autoFindFunctions();
     fillTrackMap();
-  }
-
-  PairVariables& getPairVariables(){
-    return pairVariables;
-  }
-
-  PairFunctions getPairFunctions(){
-    return pairFunctions;
   }
 };
 

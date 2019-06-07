@@ -1,14 +1,22 @@
 #pragma once
+#include "../preprocess/PairParser.h"
 #include "Common.h"
 #include "LatticeValue.h"
 #include "dataflow_util/ProgramLocation.h"
-#include "../preprocess/PairFunctions.h"
-#include "../preprocess/PairVariables.h"
 
 namespace clang::ento::nvm {
 
 class PairAnalyzer {
   using FunctionInfo = typename PairFunctions::FunctionInfo;
+  using LatVar = const NamedDecl*;
+  using LatVal = LatticeValue;
+  using AbstractState = std::map<LatVar, LatVal>;
+  using FunctionResults = std::map<ProgramLocation, AbstractState>;
+  using DataflowResults = std::map<PlContext, FunctionResults>;
+
+  // program helpers
+  AnalysisManager* Mgr;
+  BugReporter* BR;
 
   // whole program data structures
   PairVariables pairVars;
@@ -18,11 +26,53 @@ class PairAnalyzer {
   FunctionInfo* activeFunction;
 
 public:
-  using LatVar = const NamedDecl*;
-  using LatVal = LatticeValue;
-  using AbstractState = std::map<LatVar, LatVal>;
-  using FunctionResults = std::map<ProgramLocation, AbstractState>;
-  using DataflowResults = std::map<PlContext, FunctionResults>;
+  void dump() const {
+    pairFuncs.dump();
+    pairVars.dump();
+  }
+
+  void parseTUD(TranslationUnitDecl* TUD) {
+    ASTContext& astContext = Mgr->getASTContext();
+    PairParser pairParser(pairVars, pairFuncs, astContext);
+    pairParser.TraverseDecl(TUD);
+    pairParser.fillStructures();
+    // pairParser.createGraphs();
+  }
+
+  void analyzeTUD(TranslationUnitDecl* TUD, AnalysisManager& Mgr_,
+                  BugReporter& BR_) {
+    // init program helpers
+    Mgr = &Mgr_;
+    BR = &BR_;
+
+    // parse entire program
+    parseTUD(TUD);
+    dump();
+
+    /*
+          // find vars and functions to track and analyze
+
+      MainWalker mainWalker(mainVars, mainFncs, astContext);
+      mainWalker.TraverseDecl(TUD);
+      mainWalker.finalize();
+
+      lattice.dump();
+    */
+
+    /*
+     // run data flow analysis and report errors
+     const FunctionDecl* FD = dyn_cast<FunctionDecl>(D);
+     if (!FD || !analyzer.isAnalyzedFunction(FD)) {
+       return;
+     }
+
+     // analyze single function inter-procedurally
+     DataFlow dataflow(FD, lattice, mgr, BR);
+     dataflow.computeDataFlow();
+     dataflow.dump();
+     dataflow.reportBugs();
+     */
+  }
 
   void initFunction(const FunctionDecl* FD) {
     activeFunction = &pairFuncs.getUnitInfo(FD);
@@ -42,11 +92,6 @@ public:
 
   bool isAnalyzedFunction(const FunctionDecl* FD) const {
     return pairFuncs.isAnalyzedFunction(FD);
-  }
-
-  void dump() const {
-    pairFuncs.dump();
-    pairVars.dump();
   }
 
   bool isIpaCall(const Stmt* S) {
