@@ -30,4 +30,14 @@ void dumpDataflowResults(const DataflowResults& dataflowResults,
   }
 }
 
+template <typename DataflowResults>
+void dumpDataflowResults(const DataflowResults* dataflowResults,
+                         AnalysisManager* mgr) {
+  printMsg("---All results---");
+  for (auto& [context, results] : *dataflowResults) {
+    context.dump();
+    dumpFunctionResults(results, *mgr);
+  }
+}
+
 }

@@ -6,7 +6,7 @@ struct Dcl {
 
   void correct(){
     data = 1;
-    //clflush(&data);
+    clflush(&data);
     valid = 1;
   }
 

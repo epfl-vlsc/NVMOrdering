@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "ProgramLocation.h"
+#include "DataflowPrint.h"
 
 namespace clang::ento::nvm {
 
@@ -103,13 +104,11 @@ template <typename Analyzer> class DataflowAnalysis {
         // call transfer function or analyze function
 
         bool stateChanged = false;
-        /*
         if (analyzer.isIpaCall(S)) {
 
         } else {
           stateChanged = analyzer.handleStmt(S, state);
         }
-        */
 
         if (stateChanged) {
           ProgramLocation plStmt(S);
@@ -192,12 +191,12 @@ public:
     contextWork.push_back({function, PlContext()});
   }
 
-  DataflowResults& computeDataflow() {
+  DataflowResults* computeDataflow() {
     while (!contextWork.empty()) {
       auto [function, context] = contextWork.pop_back_val();
       computeDataflow(function, context);
     }
-    return allResults;
+    return &allResults;
   }
 };
 
