@@ -4,11 +4,11 @@
 
 namespace clang::ento::nvm {
 
-template <typename Lattice> class DataflowAnalysis {
+template <typename Analyzer> class DataflowAnalysis {
   // df results
-  using AbstractState = typename Lattice::AbstractState;
-  using FunctionResults = typename Lattice::FunctionResults;
-  using DataflowResults = typename Lattice::DataflowResults;
+  using AbstractState = typename Analyzer::AbstractState;
+  using FunctionResults = typename Analyzer::FunctionResults;
+  using DataflowResults = typename Analyzer::DataflowResults;
 
   // context helpers
   using FunctionContext = std::pair<const FunctionDecl*, PlContext>;
@@ -29,28 +29,27 @@ template <typename Lattice> class DataflowAnalysis {
 
   // top info
   const FunctionDecl* topFunction;
-  Lattice lattice;
-  AnalysisManager& mgr;
-  BugReporter& BR;
+  AnalysisManager* mgr;
+  Analyzer analyzer;
 
   FunctionResults& initFunctionResults(const FunctionDecl* function,
                                        PlContext& context) {
     FunctionResults& results = allResults[context];
 
     // initialize entry block
-    const CFG* cfg = mgr.getCFG(function);
+    const CFG* cfg = mgr->getCFG(function);
     ProgramLocation entryBlock = Forward::getEntryBlock(cfg);
     AbstractState& state = results[entryBlock];
 
     // initialize all tracked variables for the entry block
-    lattice.initFunction(function, state);
+    analyzer.initLatticeValues(state);
 
     return results;
   }
 
   void addBlocksToWorklist(BlockWorklist& blockWorkList,
                            const FunctionDecl* function) {
-    const CFG* cfg = mgr.getCFG(function);
+    const CFG* cfg = mgr->getCFG(function);
     for (const CFGBlock* block : Forward::getBlocks(cfg)) {
       blockWorkList.push_back(block);
     }
@@ -104,11 +103,13 @@ template <typename Lattice> class DataflowAnalysis {
         // call transfer function or analyze function
 
         bool stateChanged = false;
-        if (lattice.isIpaCall(S)) {
+        /*
+        if (analyzer.isIpaCall(S)) {
 
         } else {
-          stateChanged = lattice.handleStmt(S, state);
+          stateChanged = analyzer.handleStmt(S, state);
         }
+        */
 
         if (stateChanged) {
           ProgramLocation plStmt(S);
@@ -184,17 +185,14 @@ template <typename Lattice> class DataflowAnalysis {
     active.erase({function, context});
   }
 
-  
-
 public:
-  DataflowAnalysis(const FunctionDecl* function, Lattice& lattice_,
-           AnalysisManager& mgr_, BugReporter& BR_)
-      : topFunction(function), lattice(lattice_), mgr(mgr_), BR(BR_) {
+  DataflowAnalysis(const FunctionDecl* function, Analyzer& analyzer_)
+      : topFunction(function), analyzer(analyzer_) {
+    mgr = analyzer.getMgr();
     contextWork.push_back({function, PlContext()});
-    lattice.initFunction(function);
   }
 
-  DataflowResults& computeDataFlow() {
+  DataflowResults& computeDataflow() {
     while (!contextWork.empty()) {
       auto [function, context] = contextWork.pop_back_val();
       computeDataflow(function, context);

@@ -1,8 +1,6 @@
 #pragma once
 #include "Common.h"
-#include "dataflow_util/DataflowAnalysis.h"
 #include "analyzer/PairAnalyzer.h"
-#include "preprocess/PairParser.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.pairchecker";
 
