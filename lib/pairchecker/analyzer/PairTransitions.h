@@ -12,18 +12,44 @@ template <typename Variables, typename Functions> class PairTransitions {
   using AbstractState = std::map<LatVar, LatVal>;
 
   class PairTransitionInfo {
-    bool useND;
+  public:
+    enum TransferFunction {
+      WriteFunc,
+      FlushFunc,
+      FlushFenceFunc,
+      VfenceFunc,
+      PfenceFunc,
+      NoFunc
+    };
+
+  private:
+    TransferFunction transferFunc;
     const NamedDecl* ND;
 
   public:
-    PairTransitionInfo(bool useND_) : useND(useND_), ND(nullptr) {}
-    PairTransitionInfo(const NamedDecl* ND_) : useND(true), ND(ND_) {
+    PairTransitionInfo() : transferFunc(NoFunc), ND(nullptr) {}
+    PairTransitionInfo(TransferFunction transferFunc_, const NamedDecl* ND_)
+        : transferFunc(transferFunc_), ND(ND_) {
       assert(ND);
     }
 
-    bool use() const { return useND; }
-
     const NamedDecl* getND() const { return ND; }
+
+    TransferFunction getTransferFunction() const { return transferFunc; }
+
+    bool isPfence() const {
+      return transferFunc == FlushFenceFunc || transferFunc == PfenceFunc;
+    }
+
+    static TransferFunction getWriteFunction() { return WriteFunc; }
+
+    static TransferFunction getFlushFunction(bool isPfence) {
+      return (isPfence) ? FlushFenceFunc : FlushFunc;
+    }
+
+    static TransferFunction getFenceFunction(bool isPfence) {
+      return (isPfence) ? PfenceFunc : VfenceFunc;
+    }
   };
 
   // useful structures
@@ -36,65 +62,68 @@ template <typename Variables, typename Functions> class PairTransitions {
   PairTransitionInfo parseWrite(const BinaryOperator* BO) {
     const MemberExpr* ME = ParseUtils::getME(BO);
     if (!ME) {
-      return PairTransitionInfo(false);
+      return PairTransitionInfo();
     }
 
     const ValueDecl* VD = ME->getMemberDecl();
     if (!activeUnitInfo->isUsedVar(VD)) {
-      return PairTransitionInfo(false);
+      return PairTransitionInfo();
     }
 
-    return PairTransitionInfo(VD);
+    auto transferFunction = PairTransitionInfo::getWriteFunction();
+    return PairTransitionInfo(transferFunction, VD);
   }
 
-  PairTransitionInfo parseFlush(const CallExpr* CE) {
+  PairTransitionInfo parseFlush(const CallExpr* CE, bool isPfence) {
     const MemberExpr* ME = ParseUtils::getME(CE);
     if (!ME) {
-      return PairTransitionInfo(false);
+      return PairTransitionInfo();
     }
 
     const ValueDecl* VD = ME->getMemberDecl();
     if (!activeUnitInfo->isUsedVar(VD)) {
-      return PairTransitionInfo(false);
+      return PairTransitionInfo();
     }
 
-    return PairTransitionInfo(VD);
+    auto transferFunction = PairTransitionInfo::getFlushFunction(isPfence);
+    return PairTransitionInfo(transferFunction, VD);
+  }
+
+  PairTransitionInfo parseFence(const CallExpr* CE, bool isPfence) {
+    llvm::report_fatal_error("not implemented");
+    return PairTransitionInfo();
+  }
+
+  PairTransitionInfo parseCall(const CallExpr* CE) {
+    const FunctionDecl* FD = CE->getDirectCallee();
+    if (!FD)
+      return PairTransitionInfo();
+
+    if (funcs->isFlushFenceFunction(FD)) {
+      return parseFlush(CE, true);
+    } else if (funcs->isFlushOptFunction(FD)) {
+      return parseFlush(CE, false);
+    } else if (funcs->isPfenceFunction(FD)) {
+      return parseFence(CE, true);
+    } else if (funcs->isVfenceFunction(FD)) {
+      return parseFence(CE, false);
+    }
+
+    return PairTransitionInfo();
   }
 
   // handle----------------------------------------------------
-  bool handleWrite(const BinaryOperator* BO, AbstractState& state) {
-    auto PTI = parseWrite(BO);
-
-    return PTI.use() && transferWrite(PTI.getND(), state);
+  bool handleWrite(const PairTransitionInfo& PTI, AbstractState& state) {
+    return transferWrite(PTI.getND(), state);
   }
 
-  bool handleFence(const CallExpr* CE, AbstractState& state, bool isPfence) {
+  bool handleFence(const PairTransitionInfo& PTI, AbstractState& state) {
     llvm::report_fatal_error("not implemented");
     return false;
   }
 
-  bool handleFlush(const CallExpr* CE, AbstractState& state, bool isPfence) {
-    auto PTI = parseFlush(CE);
-
-    return PTI.use() && transferFlush(PTI.getND(), state, isPfence);
-  }
-
-  bool handleCall(const CallExpr* CE, AbstractState& state) {
-    const FunctionDecl* FD = CE->getDirectCallee();
-    if (!FD)
-      return false;
-
-    if (funcs->isFlushFenceFunction(FD)) {
-      return handleFlush(CE, state, true);
-    } else if (funcs->isFlushOptFunction(FD)) {
-      return handleFlush(CE, state, false);
-    } else if (funcs->isVfenceFunction(FD)) {
-      return handleFence(CE, state, false);
-    } else if (funcs->isPfenceFunction(FD)) {
-      return handleFence(CE, state, true);
-    }
-
-    return false;
+  bool handleFlush(const PairTransitionInfo& PTI, AbstractState& state) {
+    return transferFlush(PTI.getND(), state, PTI.isPfence());
   }
 
 public:
@@ -116,16 +145,36 @@ public:
     }
   }
 
-  bool handleStmt(const Stmt* S, AbstractState& state) {
+  PairTransitionInfo parseStmt(const Stmt* S) {
     if (const BinaryOperator* BO = dyn_cast<BinaryOperator>(S)) {
       printStmt(S, *Mgr, "bo");
-      return handleWrite(BO, state);
+      return parseWrite(BO);
     } else if (const CallExpr* CE = dyn_cast<CallExpr>(S)) {
       printStmt(S, *Mgr, "ce");
-      return handleCall(CE, state);
+      return parseCall(CE);
     }
 
-    return false;
+    return PairTransitionInfo();
+  }
+
+  bool handleStmt(const Stmt* S, AbstractState& state) {
+    auto PTI = parseStmt(S);
+
+    switch (PTI.getTransferFunction()) {
+    case PairTransitionInfo::WriteFunc:
+      return handleWrite(PTI, state);
+      break;
+    case PairTransitionInfo::FlushFunc:
+      return handleFlush(PTI, state);
+    case PairTransitionInfo::FlushFenceFunc:
+      return handleFlush(PTI, state);
+    case PairTransitionInfo::VfenceFunc:
+      return handleFence(PTI, state);
+    case PairTransitionInfo::PfenceFunc:
+      return handleFence(PTI, state);
+    default:
+      return false;
+    }
   }
 };
 
