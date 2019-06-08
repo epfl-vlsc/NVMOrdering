@@ -4,8 +4,12 @@ struct Dcl {
   sentinelp(dcl-Dcl::valid) int data;
   int valid;
 
-  void correct(){
+  void x(){
     data = 1;
+  }
+
+  void correct(){
+    x();
     clflush(&data);
     valid = 1;
   }

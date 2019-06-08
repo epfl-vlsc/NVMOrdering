@@ -80,6 +80,12 @@ class PlContext {
   ProgramLocation callee;
 
 public:
+  PlContext() {}
+  PlContext(const PlContext& X, const ProgramLocation& Callee) {
+    caller = X.callee;
+    callee = Callee;
+  }
+
   bool operator<(const PlContext& X) const {
     return (caller < X.caller && callee < X.callee);
   }
@@ -94,6 +100,13 @@ public:
     caller.dump();
     llvm::errs() << "callee: ";
     callee.dump();
+  }
+
+  void dump(AnalysisManager* mgr) const {
+    llvm::errs() << "caller: ";
+    caller.dump(*mgr);
+    llvm::errs() << "callee: ";
+    callee.dump(*mgr);
   }
 };
 
@@ -125,8 +138,23 @@ public:
   }
 
   static ProgramLocation getEntryBlock(const CFG* cfg) {
-    const CFGBlock* block = &cfg->getEntry();
-    return ProgramLocation(block);
+    const CFGBlock* entryBlock = &cfg->getEntry();
+    return ProgramLocation(entryBlock);
+  }
+
+  static ProgramLocation getStmtKey(const Stmt* S) {
+    return ProgramLocation(S);
+  }
+
+  static ProgramLocation getFunctionEntryKey(const FunctionDecl* function) {
+    return ProgramLocation(function);
+  }
+
+  static ProgramLocation getFunctionExitKey(const FunctionDecl* function,
+                                         AnalysisManager* mgr) {
+    const CFG* cfg = mgr->getCFG(function);
+    const CFGBlock* exitBlock = &cfg->getExit();
+    return ProgramLocation(exitBlock);
   }
 
   static ProgramLocation getEntryKey(const CFGBlock* block) {
@@ -165,30 +193,6 @@ public:
     } break;
     }
   }
-
-  /*
-  template <class State, class Transfer, class Meet>
-  static bool prepareSummaryState(llvm::CallSite cs, llvm::Function* callee,
-                                  State& state, State& summaryState,
-                                  Transfer& transfer, Meet& meet) {
-    unsigned index = 0;
-    bool needsUpdate = false;
-    for (auto& functionArg : callee->args()) {
-      auto* passedConcrete = cs.getArgument(index);
-      auto passedAbstract = state.find(passedConcrete);
-      if (passedAbstract == state.end()) {
-        transfer(*passedConcrete, state);
-        passedAbstract = state.find(passedConcrete);
-      }
-      auto& arg = summaryState[&functionArg];
-      auto newState = meet({passedAbstract->second, arg});
-      needsUpdate |= !(newState == arg);
-      arg = newState;
-      ++index;
-    }
-    return needsUpdate;
-  }
-  */
 };
 
 } // namespace clang::ento::nvm

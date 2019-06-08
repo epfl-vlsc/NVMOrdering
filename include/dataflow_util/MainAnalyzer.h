@@ -35,7 +35,7 @@ protected:
     pairParser.fillStructures();
     // pairParser.createGraphs();
 
-    //initialize transitions
+    // initialize transitions
     transitions.initAll(vars, funcs, Mgr);
     funcs.dump();
     vars.dump();
@@ -83,16 +83,18 @@ public:
 
   AnalysisManager* getMgr() { return Mgr; }
 
-  bool isIpaCall(const Stmt* S) {
+  const CallExpr* getIpaCall(const Stmt* S) {
     if (const CallExpr* CE = dyn_cast<CallExpr>(S)) {
       const FunctionDecl* calleeFD = CE->getDirectCallee();
       if (!calleeFD)
-        return false;
+        return nullptr;
 
-      return !funcs.isSkipFunction(calleeFD);
+      if (!funcs.isSkipFunction(calleeFD)) {
+        return CE;
+      }
     }
 
-    return false;
+    return nullptr;
   }
 
   void initLatticeValues(AbstractState& state) {

@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
-#include "ProgramLocation.h"
 #include "DataflowPrint.h"
+#include "ProgramLocation.h"
 
 namespace clang::ento::nvm {
 
@@ -33,10 +33,7 @@ template <typename Analyzer> class DataflowAnalysis {
   AnalysisManager* mgr;
   Analyzer analyzer;
 
-  FunctionResults& initFunctionResults(const FunctionDecl* function,
-                                       PlContext& context) {
-    FunctionResults& results = allResults[context];
-
+  void initEntryValues(const FunctionDecl* function, FunctionResults& results) {
     // initialize entry block
     const CFG* cfg = mgr->getCFG(function);
     ProgramLocation entryBlock = Forward::getEntryBlock(cfg);
@@ -44,6 +41,15 @@ template <typename Analyzer> class DataflowAnalysis {
 
     // initialize all tracked variables for the entry block
     analyzer.initLatticeValues(state);
+  }
+
+  FunctionResults& getFunctionResults(const FunctionDecl* function,
+                                      PlContext& context) {
+    FunctionResults& results = allResults[context];
+    ProgramLocation functionEntryKey = Forward::getFunctionEntryKey(function);
+    if (!results.count(functionEntryKey)) {
+      initEntryValues(function, results);
+    }
 
     return results;
   }
@@ -89,13 +95,52 @@ template <typename Analyzer> class DataflowAnalysis {
     }
   }
 
-  void analyzeCall(const CallExpr* CE, AbstractState& state,
-                   const PlContext& context) {}
+  void analyzeCall(const CallExpr* CE, AbstractState& callerState,
+                   const FunctionDecl* caller, const PlContext& context) {
+    PlContext newContext(context, CE);
+    const FunctionDecl* callee = CE->getDirectCallee();
+    if (!callee)
+      return;
 
-  void applyTransfer(const Stmt* S, AbstractState& state) {}
+    // prepare function contexts for caller and callee
+    FunctionContext toCall = std::pair(callee, newContext);
+    FunctionContext toUpdate = std::pair(caller, context);
+
+    //get keys
+    ProgramLocation calleeEntryKey = Forward::getFunctionEntryKey(callee);
+    ProgramLocation calleeExitKey = Forward::getFunctionExitKey(callee, mgr);
+
+    // get previously computed states in the context
+    auto& callerResults = allResults[context];
+    auto& calleeResults = allResults[newContext];
+    AbstractState& calleeEntryState = calleeResults[calleeEntryKey];
+
+    if (active.count(toCall) || callerState == calleeEntryState) {
+      return;
+    }
+
+    // do dataflow inter-procedurally
+    computeDataflow(callee, newContext);
+
+    //get exit state
+    AbstractState& calleeExitState = calleeResults[calleeExitKey];
+    ProgramLocation calleeKey = Forward::getStmtKey(CE);
+    
+    //update current state
+    callerState = calleeExitState;
+    callers[toCall].insert(toUpdate);
+  }
+
+  void applyTransfer(const Stmt* S, AbstractState& state) {
+    if (analyzer.handleStmt(S, state)) {
+      ProgramLocation stmtKey = Forward::getStmtKey(S);
+      results[stmtKey] = state;
+    }
+  }
 
   void analyzeStmts(const CFGBlock* block, AbstractState& state,
-                    FunctionResults& results, const PlContext& context) {
+                    FunctionResults& results, const FunctionDecl* caller,
+                    const PlContext& context) {
 
     for (const CFGElement element : Forward::getElements(block)) {
       if (Optional<CFGStmt> CS = element.getAs<CFGStmt>()) {
@@ -103,16 +148,10 @@ template <typename Analyzer> class DataflowAnalysis {
         assert(S);
         // call transfer function or analyze function
 
-        bool stateChanged = false;
-        if (analyzer.isIpaCall(S)) {
-
+        if (const CallExpr* CE = analyzer.getIpaCall(S)) {
+          analyzeCall(CE, state, caller, context);
         } else {
-          stateChanged = analyzer.handleStmt(S, state);
-        }
-
-        if (stateChanged) {
-          ProgramLocation plStmt(S);
-          results[plStmt] = state;
+          applyTransfer(S, state, results);
         }
       }
     }
@@ -122,7 +161,7 @@ template <typename Analyzer> class DataflowAnalysis {
     active.insert({function, context});
 
     // initialize results
-    FunctionResults& results = initFunctionResults(function, context);
+    FunctionResults& results = getFunctionResults(function, context);
     // todo summary key
 
     // initialize worklist
@@ -135,13 +174,11 @@ template <typename Analyzer> class DataflowAnalysis {
       ProgramLocation exitKey = Forward::getExitKey(block);
 
       // get previously computed states
-      AbstractState& oldEntryState = results[entryKey];
-      AbstractState& oldExitState = results[exitKey];
+      AbstractState oldEntryState = results[entryKey];
+      AbstractState oldExitState = results[exitKey];
 
       // get current state
       AbstractState state = mergePrevStates(entryKey, results);
-
-      // todo summary key
 
       // skip block if same result
       if (state == oldEntryState && !state.empty()) {
@@ -152,7 +189,7 @@ template <typename Analyzer> class DataflowAnalysis {
       results[entryKey] = state;
 
       // todo go over statements
-      analyzeStmts(block, state, results, context);
+      analyzeStmts(block, state, results, function, context);
 
       // skip if state not updated
       if (state == oldExitState) {
