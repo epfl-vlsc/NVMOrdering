@@ -50,13 +50,14 @@ public:
     assert(type < None);
   }
 
-  LatticeValue() : DclValue(UnseenDcl), SclValue(UnseenScl), latticeType(None) {}
+  LatticeValue()
+      : DclValue(UnseenDcl), SclValue(UnseenScl), latticeType(None) {}
 
   LatticeValue(const LatticeValue& val) { *this = val; }
 
   LatticeType getLatticeType() const { return latticeType; }
 
-  bool isWriteFlush() const{
+  bool isWriteFlush() const {
     return scl == WriteScl || dcl == WriteDcl || dcl == Flush;
   }
 
@@ -132,6 +133,10 @@ public:
     newValue.meetValue(value);
     return newValue;
   }
+
+  bool isWrite() const { return dcl == WriteDcl || scl == WriteScl; }
+
+  bool isFlush() const { return dcl == Flush; }
 
   bool operator<(const LatticeValue& X) const {
     return latticeType < X.latticeType && dcl < X.dcl && scl < X.scl;

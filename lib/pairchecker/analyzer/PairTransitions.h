@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-#include "LatticeValue.h"
+#include "PairTransfer.h"
 #include "parser_util/ParseUtils.h"
 
 namespace clang::ento::nvm {
@@ -28,8 +28,7 @@ template <typename Variables, typename Functions> class PairTransitions {
       return false;
     }
 
-    state[VD] = LatticeValue::getWrite(state[VD]);
-    return true;
+    return transferWrite(VD, state);
   }
 
   bool handleFence(const CallExpr* CE, AbstractState& state, bool isPfence) {
@@ -47,13 +46,8 @@ template <typename Variables, typename Functions> class PairTransitions {
     if (!activeUnitInfo->isUsedVar(VD)) {
       return false;
     }
-
-    if (isPfence) {
-      state[VD] = LatticeValue::getPfence(state[VD]);
-    } else {
-      state[VD] = LatticeValue::getFlush(state[VD]);
-    }
-    return true;
+    
+    return transferFlush(VD, state, isPfence);
   }
 
   bool handleCall(const CallExpr* CE, AbstractState& state) {
