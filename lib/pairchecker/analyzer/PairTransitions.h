@@ -11,24 +11,61 @@ template <typename Variables, typename Functions> class PairTransitions {
   using LatVal = LatticeValue;
   using AbstractState = std::map<LatVar, LatVal>;
 
+  class PairTransitionInfo {
+    bool useND;
+    const NamedDecl* ND;
+
+  public:
+    PairTransitionInfo(bool useND_) : useND(useND_), ND(nullptr) {}
+    PairTransitionInfo(const NamedDecl* ND_) : useND(true), ND(ND_) {
+      assert(ND);
+    }
+
+    bool use() const { return useND; }
+
+    const NamedDecl* getND() const { return ND; }
+  };
+
   // useful structures
   Variables* vars;
   Functions* funcs;
   FunctionInfo* activeUnitInfo;
   AnalysisManager* Mgr;
 
-  bool handleWrite(const BinaryOperator* BO, AbstractState& state) {
+  // parse-------------------------------------------------------
+  PairTransitionInfo parseWrite(const BinaryOperator* BO) {
     const MemberExpr* ME = ParseUtils::getME(BO);
     if (!ME) {
-      return false;
+      return PairTransitionInfo(false);
     }
 
     const ValueDecl* VD = ME->getMemberDecl();
     if (!activeUnitInfo->isUsedVar(VD)) {
-      return false;
+      return PairTransitionInfo(false);
     }
 
-    return transferWrite(VD, state);
+    return PairTransitionInfo(VD);
+  }
+
+  PairTransitionInfo parseFlush(const CallExpr* CE) {
+    const MemberExpr* ME = ParseUtils::getME(CE);
+    if (!ME) {
+      return PairTransitionInfo(false);
+    }
+
+    const ValueDecl* VD = ME->getMemberDecl();
+    if (!activeUnitInfo->isUsedVar(VD)) {
+      return PairTransitionInfo(false);
+    }
+
+    return PairTransitionInfo(VD);
+  }
+
+  // handle----------------------------------------------------
+  bool handleWrite(const BinaryOperator* BO, AbstractState& state) {
+    auto PTI = parseWrite(BO);
+
+    return PTI.use() && transferWrite(PTI.getND(), state);
   }
 
   bool handleFence(const CallExpr* CE, AbstractState& state, bool isPfence) {
@@ -37,17 +74,9 @@ template <typename Variables, typename Functions> class PairTransitions {
   }
 
   bool handleFlush(const CallExpr* CE, AbstractState& state, bool isPfence) {
-    const MemberExpr* ME = ParseUtils::getME(CE);
-    if (!ME) {
-      return false;
-    }
+    auto PTI = parseFlush(CE);
 
-    const ValueDecl* VD = ME->getMemberDecl();
-    if (!activeUnitInfo->isUsedVar(VD)) {
-      return false;
-    }
-    
-    return transferFlush(VD, state, isPfence);
+    return PTI.use() && transferFlush(PTI.getND(), state, isPfence);
   }
 
   bool handleCall(const CallExpr* CE, AbstractState& state) {
