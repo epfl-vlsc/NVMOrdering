@@ -32,11 +32,11 @@ class DirectAnalysis {
     }
 
     void dump() {
-      printMsg("used vars", false);
+      printMsg("used vars ", false);
       for (auto& var : usedVars) {
         llvm::errs() << var->getQualifiedNameAsString() << ", ";
       }
-      printMsg("- used funcs", false);
+      printMsg("- used funcs ", false);
       for (auto& func : usedFuncs) {
         llvm::errs() << func->getQualifiedNameAsString() << ", ";
       }

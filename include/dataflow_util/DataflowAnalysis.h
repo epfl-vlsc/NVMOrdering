@@ -33,7 +33,8 @@ template <typename Analyzer> class DataflowAnalysis {
   AnalysisManager* mgr;
   Analyzer analyzer;
 
-  void initEntryValues(const FunctionDecl* function, FunctionResults& results) {
+  void initTopEntryValues(const FunctionDecl* function,
+                          FunctionResults& results) {
     // initialize entry block
     const CFG* cfg = mgr->getCFG(function);
     ProgramLocation entryBlock = Forward::getEntryBlock(cfg);
@@ -43,12 +44,28 @@ template <typename Analyzer> class DataflowAnalysis {
     analyzer.initLatticeValues(state);
   }
 
+  void initCalleeEntryValues(const FunctionDecl* function,
+                             FunctionResults& results) {
+    const CFG* cfg = mgr->getCFG(function);
+    ProgramLocation entryBlock = Forward::getEntryBlock(cfg);
+    AbstractState& state = results[entryBlock];
+
+    // initialize from the function entry state
+    ProgramLocation functionEntryKey = Forward::getFunctionEntryKey(function);
+    state = results[functionEntryKey];
+  }
+
   FunctionResults& getFunctionResults(const FunctionDecl* function,
                                       PlContext& context) {
     FunctionResults& results = allResults[context];
     ProgramLocation functionEntryKey = Forward::getFunctionEntryKey(function);
+
     if (!results.count(functionEntryKey)) {
-      initEntryValues(function, results);
+      printMsg("tol");
+      initTopEntryValues(function, results);
+    } else {
+      printMsg("xol");
+      initCalleeEntryValues(function, results);
     }
 
     return results;
@@ -95,46 +112,59 @@ template <typename Analyzer> class DataflowAnalysis {
     }
   }
 
-  void analyzeCall(const CallExpr* CE, AbstractState& callerState,
+  bool analyzeCall(const CallExpr* CE, AbstractState& callerState,
                    const FunctionDecl* caller, const PlContext& context) {
     PlContext newContext(context, CE);
     const FunctionDecl* callee = CE->getDirectCallee();
     if (!callee)
-      return;
+      return false;
 
     // prepare function contexts for caller and callee
     FunctionContext toCall = std::pair(callee, newContext);
     FunctionContext toUpdate = std::pair(caller, context);
 
-    //get keys
+    // get keys
     ProgramLocation calleeEntryKey = Forward::getFunctionEntryKey(callee);
     ProgramLocation calleeExitKey = Forward::getFunctionExitKey(callee, mgr);
 
     // get previously computed states in the context
-    auto& callerResults = allResults[context];
     auto& calleeResults = allResults[newContext];
     AbstractState& calleeEntryState = calleeResults[calleeEntryKey];
 
     if (active.count(toCall) || callerState == calleeEntryState) {
-      return;
+      return false;
     }
+
+    // update function entry
+    calleeEntryState = callerState;
 
     // do dataflow inter-procedurally
     computeDataflow(callee, newContext);
 
-    //get exit state
+    // get exit state
     AbstractState& calleeExitState = calleeResults[calleeExitKey];
-    ProgramLocation calleeKey = Forward::getStmtKey(CE);
-    
-    //update current state
+
+    // if same result do not update
+    if (callerState == calleeExitState) {
+      return false;
+    }
+
+    // update caller state
     callerState = calleeExitState;
     callers[toCall].insert(toUpdate);
+    return true;
   }
 
-  void applyTransfer(const Stmt* S, AbstractState& state) {
-    if (analyzer.handleStmt(S, state)) {
-      ProgramLocation stmtKey = Forward::getStmtKey(S);
-      results[stmtKey] = state;
+  bool applyTransfer(const Stmt* S, AbstractState& state) {
+    return analyzer.handleStmt(S, state);
+  }
+
+  bool analyzeStmt(const Stmt* S, AbstractState& state,
+                   const FunctionDecl* caller, const PlContext& context) {
+    if (const CallExpr* CE = analyzer.getIpaCall(S)) {
+      return analyzeCall(CE, state, caller, context);
+    } else {
+      return applyTransfer(S, state);
     }
   }
 
@@ -146,12 +176,10 @@ template <typename Analyzer> class DataflowAnalysis {
       if (Optional<CFGStmt> CS = element.getAs<CFGStmt>()) {
         const Stmt* S = CS->getStmt();
         assert(S);
-        // call transfer function or analyze function
 
-        if (const CallExpr* CE = analyzer.getIpaCall(S)) {
-          analyzeCall(CE, state, caller, context);
-        } else {
-          applyTransfer(S, state, results);
+        if (analyzeStmt(S, state, caller, context)) {
+          ProgramLocation stmtKey = Forward::getStmtKey(S);
+          results[stmtKey] = state;
         }
       }
     }
@@ -162,7 +190,6 @@ template <typename Analyzer> class DataflowAnalysis {
 
     // initialize results
     FunctionResults& results = getFunctionResults(function, context);
-    // todo summary key
 
     // initialize worklist
     BlockWorklist blockWorklist;
@@ -174,7 +201,7 @@ template <typename Analyzer> class DataflowAnalysis {
       ProgramLocation exitKey = Forward::getExitKey(block);
 
       // get previously computed states
-      AbstractState oldEntryState = results[entryKey];
+      AbstractState& oldEntryState = results[entryKey];
       AbstractState oldExitState = results[exitKey];
 
       // get current state
