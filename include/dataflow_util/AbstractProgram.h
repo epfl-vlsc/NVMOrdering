@@ -4,17 +4,66 @@
 
 namespace clang::ento::nvm {
 
-class AbstractCfg;
+class AbstractStmt;
+class AbstractBlock;
+class AbstractFunction;
 
-class AbstractBlock {
+struct AbstractLocation {
 protected:
+  enum LocationType {
+    FunctionLocation,
+    BlockLocation,
+    StmtLocation,
+    NoneLocation
+  };
+  LocationType locationType;
+
+  AbstractLocation() : locationType(NoneLocation) {}
+  AbstractLocation(LocationType locationType_) : locationType(locationType_) {}
+
+public:
+  virtual void dump() const = 0;
+  virtual void fullDump(AnalysisManager* Mgr) const = 0;
+  virtual ~AbstractLocation() {}
+};
+
+class AbstractStmt : public AbstractLocation {
+  const Stmt* S;
+  size_t no;
+  AbstractBlock* parent;
+
+public:
+  AbstractStmt(const Stmt* S_, size_t no_, AbstractBlock* parent_)
+      : AbstractLocation(StmtLocation), S(S_), no(no_), parent(parent_) {}
+
+  AbstractBlock& getParent() { return *parent; }
+
+  AbstractStmt* getStmtKey() { return this; }
+
+  void dump() const { llvm::errs() << "S:" << no << "\n"; }
+
+  void fullDump(AnalysisManager* Mgr) const {
+    llvm::errs() << "S:" << no << " ";
+    printStmt(S, *Mgr, "\ts");
+  }
+
+  const Stmt* getStmt() const {
+    assert(S && "non valid stmt");
+    return S;
+  }
+
+  ~AbstractStmt() {}
+};
+
+class AbstractBlock : public AbstractLocation {
+private:
   enum BlockType { EntryBlock, ExitBlock, NormalBlock };
-  using Stmts = std::vector<const Stmt*>;
+  using Stmts = std::vector<AbstractStmt>;
   using Blocks = std::vector<AbstractBlock*>;
 
   // block data
   const CFGBlock* block;
-  AbstractCfg& parent;
+  AbstractFunction* function;
   size_t blockNo;
   BlockType blockType;
 
@@ -39,10 +88,11 @@ protected:
 
 public:
   // normal constructor
-  AbstractBlock(const CFGBlock* block_, AbstractCfg& parent_)
-      : block(block_), parent(parent_) {
+  AbstractBlock(const CFGBlock* block_, AbstractFunction* function_)
+      : block(block_), function(function_) {
     blockType = getBlockType(block_);
     blockNo = getBlockId(block_);
+    locationType = BlockLocation;
   }
 
   static size_t getBlockId(const CFGBlock* block_) {
@@ -51,34 +101,40 @@ public:
     return numBlocks - block_->getBlockID() - 1;
   }
 
-  AbstractCfg& getParent() { return parent; }
+  AbstractFunction& getParent() { return *function; }
 
   bool isEntryExit() const { return blockType != NormalBlock; }
+
+  bool isLastStmt(const Stmt* S) {
+    auto& lastStmt = stmts.back();
+    return lastStmt.getStmt() == S;
+  }
 
   void insertStmt(const Stmt* S) {
     if (isEntryExit()) {
       llvm::report_fatal_error("disable adding stmt to entry exit block");
     }
-    stmts.push_back(S);
+    size_t no = stmts.size();
+    stmts.emplace_back(S, no, this);
   }
 
-  void insertSucc(AbstractBlock& block_) { succs.push_back(&block_); }
+  void insertSucc(AbstractBlock* block_) { succs.push_back(block_); }
 
-  void insertPred(AbstractBlock& block_) { preds.push_back(&block_); }
+  void insertPred(AbstractBlock* block_) { preds.push_back(block_); }
+
+  CFGElement getLastElement() { return block->back(); }
 
   auto getCFGElements() const {
     return llvm::iterator_range(block->begin(), block->end());
   }
 
-  auto getStmts() const {
-    return llvm::iterator_range(stmts.begin(), stmts.end());
-  }
+  auto getStmts() { return llvm::iterator_range(stmts.begin(), stmts.end()); }
 
   auto getCFGSuccessors() const {
     return llvm::iterator_range(block->succ_begin(), block->succ_end());
   }
 
-  auto getSuccessors() const {
+  auto getSuccessors() {
     return llvm::iterator_range(succs.begin(), succs.end());
   }
 
@@ -86,19 +142,19 @@ public:
     return llvm::iterator_range(block->pred_begin(), block->pred_end());
   }
 
-  auto getPredecessors() const {
+  auto getPredecessors() {
     return llvm::iterator_range(preds.begin(), preds.end());
   }
 
-  const Stmt* getEntryStmt() { return stmts[0]; }
+  AbstractBlock* getBlockEntryKey() { return this; }
 
-  const Stmt* getExitStmt() { return stmts[numStmts() - 1]; }
+  AbstractStmt* getBlockExitKey() { return &stmts.back(); }
 
   size_t numStmts() const { return stmts.size(); }
 
-  void dump() const { llvm::errs() << "B" << blockNo; }
+  void dump() const { llvm::errs() << "B:" << blockNo; }
 
-  void dump(AnalysisManager* Mgr) const {
+  void fullDump(AnalysisManager* Mgr) const {
     switch (blockType) {
     case EntryBlock:
       llvm::errs() << "entry ";
@@ -110,11 +166,7 @@ public:
       break;
     }
 
-    llvm::errs() << "B" << blockNo << "\n";
-    for (auto stmt : stmts) {
-      printStmt(stmt, *Mgr, "\ts");
-    }
-
+    llvm::errs() << "B:" << blockNo << "\n";
     printMsg("successors:", false);
     for (auto succ : succs) {
       succ->dump();
@@ -128,23 +180,36 @@ public:
       llvm::errs() << " ";
     }
     llvm::errs() << "\n";
+
+    for (auto stmt : stmts) {
+      stmt.dump();
+    }
   }
+
+  ~AbstractBlock() {}
 };
 
-class AbstractCfg {
+class AbstractFunction : public AbstractLocation {
   using Blocks = std::vector<AbstractBlock>;
 
   const FunctionDecl* function;
+  const CFG* cfg;
+
   Blocks blocks;
 
 public:
+  void initFunction(const FunctionDecl* function_, AnalysisManager* Mgr) {
+    function = function_;
+    cfg = Mgr->getCFG(function);
+    locationType = FunctionLocation;
+  }
+
   AbstractBlock& insertBlock(const CFGBlock* block) {
-    blocks.emplace_back(block, *this);
+    blocks.emplace_back(block, this);
     return blocks.back();
   }
 
-  auto getCFGBlocks(AnalysisManager* Mgr) const {
-    const CFG* cfg = Mgr->getCFG(function);
+  auto getCFGBlocks() const {
     return llvm::iterator_range(cfg->rbegin(), cfg->rend());
   }
 
@@ -152,56 +217,55 @@ public:
     return llvm::iterator_range(blocks.begin(), blocks.end());
   }
 
-  auto begin() const { return blocks.begin(); }
+  AbstractBlock* getBlock(size_t no) { return &blocks[no]; }
 
-  auto end() const { return blocks.end(); }
+  AbstractBlock* getEntryBlockKey() { return &blocks.front(); }
 
-  AbstractBlock& getBlock(size_t no) { return blocks[no]; }
+  AbstractFunction* getFunctionEntryKey() { return this; }
 
-  AbstractBlock& getEntryBlock() { return blocks.front(); }
-
-  AbstractBlock& getExitBlock() { return blocks.back(); }
+  AbstractStmt* getFunctionExitKey() {
+    auto& lastBlock = blocks.back();
+    return lastBlock.getBlockExitKey();
+  }
 
   size_t numBlocks() const { return blocks.size(); }
 
-  // normal constructor
-  AbstractCfg() {}
+  const FunctionDecl* getFunction() const { return function; }
 
-  void setFunction(const FunctionDecl* function_) { function = function_; }
-
-  void dump(AnalysisManager* Mgr) const {
-    printND(function, "*****function*****");
-    for (auto block : blocks) {
-      block.dump(Mgr);
+  void fullDump(AnalysisManager* Mgr) const {
+    printND(function, "F:");
+    for (auto& block : blocks) {
+      block.fullDump(Mgr);
     }
   }
+
+  void dump() const { printND(function, "F:"); }
 };
 
 class AbstractProgram {
-  using FunctionCfgMap = std::map<const FunctionDecl*, AbstractCfg>;
+  using AbstractFunctionMap = std::map<const FunctionDecl*, AbstractFunction>;
 
-  FunctionCfgMap functionCfgMap;
+  AbstractFunctionMap abstractFunctionMap;
 
 public:
-  AbstractCfg& insertAbstractCfg(const FunctionDecl* function) {
-    auto& abstractCfg = functionCfgMap[function];
-    abstractCfg.setFunction(function);
-    return abstractCfg;
+  AbstractFunction& insertAbstractFunction(const FunctionDecl* function,
+                                           AnalysisManager* Mgr) {
+    auto& abstractFunction = abstractFunctionMap[function];
+    abstractFunction.initFunction(function, Mgr);
+    return abstractFunction;
   }
 
-  AbstractCfg& getFunctionGraph(const FunctionDecl* function) {
-    assert(functionCfgMap.count(function));
-    return functionCfgMap[function];
+  AbstractFunction& getAbstractFunction(const FunctionDecl* function) {
+    assert(abstractFunctionMap.count(function));
+    return abstractFunctionMap[function];
   }
 
-  size_t numFunctions() const { return functionCfgMap.size(); }
-
-  AbstractProgram() {}
+  size_t numFunctions() const { return abstractFunctionMap.size(); }
 
   void dump(AnalysisManager* Mgr) const {
     llvm::errs() << "Num functions: " << numFunctions() << "\n";
-    for (auto& [_, abstractCfg] : functionCfgMap) {
-      abstractCfg.dump(Mgr);
+    for (auto& [_, abstractFunction] : abstractFunctionMap) {
+      abstractFunction.fullDump(Mgr);
     }
   }
 };
@@ -210,6 +274,29 @@ template <typename Transitions> class AbstractProgramBuilder {
   // useful structures
   Transitions& transitions;
   AnalysisManager* Mgr;
+
+  void addLastStmt(AbstractBlock& abstractBlock) {
+    // must not be entry nor exit block
+    CFGElement element = abstractBlock.getLastElement();
+    int kind = element.getKind();
+
+    switch (kind) {
+    case CFGElement::Statement: {
+      CFGStmt CS = element.castAs<CFGStmt>();
+      const Stmt* S = CS.getStmt();
+      assert(S);
+      if (!abstractBlock.isLastStmt(S)) {
+        abstractBlock.insertStmt(S);
+      }
+
+    } break;
+    default: {
+      llvm::errs() << "kind:" << kind << "\n";
+      abstractBlock.fullDump(Mgr);
+      llvm::report_fatal_error("kind not covered");
+    } break;
+    }
+  }
 
   void buildAbstractBlock(AbstractBlock& abstractBlock) {
     // skip if entry or exit block
@@ -230,35 +317,38 @@ template <typename Transitions> class AbstractProgramBuilder {
         }
       }
     }
+
+    // get final stmt
+    addLastStmt(abstractBlock);
   }
 
-  void buildSuccPred(AbstractCfg& parent, AbstractBlock& abstractBlock) {
+  void buildSuccPred(AbstractFunction& parent, AbstractBlock& abstractBlock) {
     for (const CFGBlock* predBlock : abstractBlock.getCFGPredecessors()) {
       size_t no = AbstractBlock::getBlockId(predBlock);
-      auto& predAbstractBlock = parent.getBlock(no);
+      auto* predAbstractBlock = parent.getBlock(no);
       abstractBlock.insertPred(predAbstractBlock);
     }
 
     for (const CFGBlock* succBlock : abstractBlock.getCFGSuccessors()) {
       size_t no = AbstractBlock::getBlockId(succBlock);
-      auto& succAbstractBlock = parent.getBlock(no);
+      auto* succAbstractBlock = parent.getBlock(no);
       abstractBlock.insertSucc(succAbstractBlock);
     }
   }
 
-  void buildAbstractCfg(AbstractCfg& abstractCfg) {
+  void buildAbstractFunction(AbstractFunction& absFunction) {
     // per function abstract cfg
 
     // iterate cfg
-    for (const CFGBlock* block : abstractCfg.getCFGBlocks(Mgr)) {
+    for (const CFGBlock* block : absFunction.getCFGBlocks()) {
       // per block abstract block
-      auto& abstractBlock = abstractCfg.insertBlock(block);
+      auto& abstractBlock = absFunction.insertBlock(block);
       buildAbstractBlock(abstractBlock);
     }
 
-    for (auto& abstractBlock : abstractCfg.getBlocks()) {
+    for (auto& abstractBlock : absFunction.getBlocks()) {
       // nuild succ and pred
-      buildSuccPred(abstractCfg, abstractBlock);
+      buildSuccPred(absFunction, abstractBlock);
     }
   }
 
@@ -274,8 +364,8 @@ public:
   void buildProgram(AbstractProgram& abstractProgram) {
     // create abstract control flow graphs for each function
     for (const FunctionDecl* function : transitions.getAnalysisFunctions()) {
-      auto& abstractCfg = abstractProgram.insertAbstractCfg(function);
-      buildAbstractCfg(abstractCfg);
+      auto& abstractCfg = abstractProgram.insertAbstractFunction(function, Mgr);
+      buildAbstractFunction(abstractCfg);
     }
   }
 };

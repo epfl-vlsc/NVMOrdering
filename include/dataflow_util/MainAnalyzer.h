@@ -12,7 +12,7 @@ public:
   using FunctionInfo = typename Functions::FunctionInfo;
   using LatVar = const NamedDecl*;
   using AbstractState = std::map<LatVar, LatVal>;
-  using FunctionResults = std::map<ProgramLocation, AbstractState>;
+  using FunctionResults = std::map<AbstractLocation*, AbstractState>;
   using DataflowResults = std::map<PlContext, FunctionResults>;
 
 protected:
@@ -44,10 +44,6 @@ protected:
     programBuilder.buildProgram(abstractProgram);
 
     abstractProgram.dump(Mgr);
-    /*
-    funcs.dump();
-    vars.dump();
-    */
   }
 
   void doDataflowFD(const FunctionDecl* FD) {
@@ -112,6 +108,10 @@ public:
 
   bool handleStmt(const Stmt* S, AbstractState& state) {
     return transitions.handleStmt(S, state);
+  }
+
+  AbstractFunction& getAbstractFunction(const FunctionDecl* function) {
+    return abstractProgram.getAbstractFunction(function);
   }
 
   virtual SubClass& getAnalyzer() = 0;

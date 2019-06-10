@@ -15,8 +15,8 @@ void dumpAbstractState(const AbstractState& state) {
 
 template <typename FunctionResults>
 void dumpFunctionResults(const FunctionResults& results, AnalysisManager& mgr) {
-  for (auto& [pl, state] : results) {
-    pl.dump(mgr);
+  for (auto& [al, state] : results) {
+    al->dump();
     dumpAbstractState(state);
   }
 }
