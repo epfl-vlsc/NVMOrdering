@@ -1,6 +1,5 @@
 #pragma once
 #include "Common.h"
-#include "ProgramLocation.h"
 
 namespace clang::ento::nvm {
 
@@ -40,7 +39,7 @@ public:
 
   AbstractStmt* getStmtKey() { return this; }
 
-  void dump() const { llvm::errs() << "S:" << no << "\n"; }
+  void dump() const { llvm::errs() << "\tS:" << no << "\n"; }
 
   void fullDump(AnalysisManager* Mgr) const {
     llvm::errs() << "S:" << no << " ";
@@ -155,18 +154,18 @@ public:
   void dump() const { llvm::errs() << "B:" << blockNo; }
 
   void fullDump(AnalysisManager* Mgr) const {
+    llvm::errs() << "B:" << blockNo << " ";
     switch (blockType) {
     case EntryBlock:
-      llvm::errs() << "entry ";
+      llvm::errs() << "entry\n";
       break;
     case ExitBlock:
-      llvm::errs() << "exit ";
+      llvm::errs() << "exit\n";
       break;
     default:
       break;
     }
 
-    llvm::errs() << "B:" << blockNo << "\n";
     printMsg("successors:", false);
     for (auto succ : succs) {
       succ->dump();
@@ -182,7 +181,7 @@ public:
     llvm::errs() << "\n";
 
     for (auto stmt : stmts) {
-      stmt.dump();
+      stmt.fullDump(Mgr);
     }
   }
 
@@ -233,7 +232,7 @@ public:
   const FunctionDecl* getFunction() const { return function; }
 
   void fullDump(AnalysisManager* Mgr) const {
-    printND(function, "F:");
+    printND(function, "F");
     for (auto& block : blocks) {
       block.fullDump(Mgr);
     }
@@ -367,6 +366,44 @@ public:
       auto& abstractCfg = abstractProgram.insertAbstractFunction(function, Mgr);
       buildAbstractFunction(abstractCfg);
     }
+  }
+};
+
+class AbstractContext {
+  const CallExpr* caller;
+  const CallExpr* callee;
+
+public:
+  AbstractContext() : caller(nullptr), callee(nullptr) {}
+  AbstractContext(const AbstractContext& X, const CallExpr* Callee) {
+    caller = X.callee;
+    callee = Callee;
+  }
+
+  bool operator<(const AbstractContext& X) const {
+    return (caller < X.caller && callee < X.callee);
+  }
+
+  bool operator==(const AbstractContext& X) const {
+    return (caller == X.caller && callee == X.callee);
+  }
+
+  void fullDump(AnalysisManager* Mgr) const {
+    auto& ASTC = Mgr->getASTContext();
+    llvm::errs() << "caller:";
+    if (caller) {
+      caller->dumpPretty(ASTC);
+    } else {
+      llvm::errs() << "none";
+    }
+
+    llvm::errs() << "callee:";
+    if (callee) {
+      callee->dumpPretty(ASTC);
+    } else {
+      llvm::errs() << "none";
+    }
+    llvm::errs() << "\n";
   }
 };
 

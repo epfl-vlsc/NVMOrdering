@@ -13,7 +13,7 @@ public:
   using LatVar = const NamedDecl*;
   using AbstractState = std::map<LatVar, LatVal>;
   using FunctionResults = std::map<AbstractLocation*, AbstractState>;
-  using DataflowResults = std::map<PlContext, FunctionResults>;
+  using DataflowResults = std::map<AbstractContext, FunctionResults>;
 
 protected:
   // program helpers

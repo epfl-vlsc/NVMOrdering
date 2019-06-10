@@ -12,7 +12,7 @@ template <typename Analyzer> class DataflowAnalysis {
   using DataflowResults = typename Analyzer::DataflowResults;
 
   // context helpers
-  using FunctionContext = std::pair<const FunctionDecl*, PlContext>;
+  using FunctionContext = std::pair<const FunctionDecl*, AbstractContext>;
   using FunctionContextSet = std::set<FunctionContext>;
   using FunctionContextMap = std::map<FunctionContext, FunctionContextSet>;
 
@@ -54,7 +54,7 @@ template <typename Analyzer> class DataflowAnalysis {
   }
 
   FunctionResults& getFunctionResults(AbstractFunction& absFunction,
-                                      PlContext& context) {
+                                      AbstractContext& context) {
     FunctionResults& results = allResults[context];
     auto* functionEntryKey = absFunction.getFunctionEntryKey();
 
@@ -109,8 +109,8 @@ template <typename Analyzer> class DataflowAnalysis {
   }
 
   bool analyzeCall(const CallExpr* CE, AbstractState& callerState,
-                   AbstractFunction& absCaller, const PlContext& context) {
-    PlContext newContext(context, CE);
+                   AbstractFunction& absCaller, const AbstractContext& context) {
+    AbstractContext newContext(context, CE);
     const FunctionDecl* caller = absCaller.getFunction();
     const FunctionDecl* callee = CE->getDirectCallee();
     if (!callee)
@@ -159,7 +159,7 @@ template <typename Analyzer> class DataflowAnalysis {
   }
 
   bool analyzeStmt(const Stmt* S, AbstractState& state,
-                   AbstractFunction& absCaller, const PlContext& context) {
+                   AbstractFunction& absCaller, const AbstractContext& context) {
     if (const CallExpr* CE = analyzer.getIpaCall(S)) {
       return analyzeCall(CE, state, absCaller, context);
     } else {
@@ -169,7 +169,7 @@ template <typename Analyzer> class DataflowAnalysis {
 
   void analyzeStmts(AbstractBlock& absBlock, AbstractState& state,
                     FunctionResults& results, AbstractFunction& absCaller,
-                    const PlContext& context) {
+                    const AbstractContext& context) {
 
     for (auto& absStmt : absBlock.getStmts()) {
       const Stmt* S = absStmt.getStmt();
@@ -181,7 +181,7 @@ template <typename Analyzer> class DataflowAnalysis {
     }
   }
 
-  void computeDataflow(const FunctionDecl* function, PlContext& context) {
+  void computeDataflow(const FunctionDecl* function, AbstractContext& context) {
     auto& absFunction = analyzer.getAbstractFunction(function);
 
     active.insert({function, context});
@@ -250,7 +250,7 @@ public:
   DataflowAnalysis(const FunctionDecl* function, Analyzer& analyzer_)
       : topFunction(function), analyzer(analyzer_) {
     mgr = analyzer.getMgr();
-    contextWork.push_back({function, PlContext()});
+    contextWork.push_back({function, AbstractContext()});
   }
 
   DataflowResults* computeDataflow() {

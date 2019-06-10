@@ -35,7 +35,7 @@ void dumpDataflowResults(const DataflowResults* dataflowResults,
                          AnalysisManager* mgr) {
   printMsg("---All results---");
   for (auto& [context, results] : *dataflowResults) {
-    context.dump();
+    context.fullDump(mgr);
     dumpFunctionResults(results, *mgr);
   }
 }
