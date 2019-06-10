@@ -6,8 +6,7 @@
 namespace clang::ento::nvm {
 
 
-template <typename Lattice>
-class SimpleGraph{
+class AbstractCfb{
 
 
 public:
@@ -15,8 +14,29 @@ public:
 
 };
 
+
+class AbstractCfg{
+
+
+public:
+
+
+};
+
+
+
 template <typename Lattice>
-class SimpleGraphs{
+class AbstractCfg{
+
+
+public:
+
+
+};
+
+
+class AbstractProgram{
+    using FunctionCfg = std::map<const FunctionDecl*, AbstractCfg>;
 
 };
 
