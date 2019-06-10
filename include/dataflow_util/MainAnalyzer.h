@@ -38,13 +38,16 @@ protected:
 
     // initialize transitions
     transitions.initAll(vars, funcs, Mgr);
-    
-    //create abstract graphs
+
+    // create abstract graphs
     AbstractProgramBuilder programBuilder(transitions);
-    abstractProgram = std::move(programBuilder.buildProgram());
-    
+    programBuilder.buildProgram(abstractProgram);
+
+    abstractProgram.dump(Mgr);
+    /*
     funcs.dump();
     vars.dump();
+    */
   }
 
   void doDataflowFD(const FunctionDecl* FD) {

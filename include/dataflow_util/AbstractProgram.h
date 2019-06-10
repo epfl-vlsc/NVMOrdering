@@ -4,115 +4,177 @@
 
 namespace clang::ento::nvm {
 
-class AbstractCfgBlock {
-  using PlVec = std::vector<ProgramLocation>;
+class AbstractCfg;
 
-  PlVec plStmts;
-  PlVec predecessors;
-  PlVec successors;
+class AbstractBlock {
+protected:
+  enum BlockType { EntryBlock, ExitBlock, NormalBlock };
+  using Stmts = std::vector<const Stmt*>;
+  using Blocks = std::vector<AbstractBlock*>;
 
-public:
-  void insertStmt(const Stmt* S) { plStmts.emplace_back(ProgramLocation(S)); }
+  // block data
+  const CFGBlock* block;
+  AbstractCfg& parent;
+  size_t blockNo;
+  BlockType blockType;
 
-  auto getPlStmts() const {
-    return llvm::iterator_range(plStmts.begin(), plStmts.begin());
+  // structures
+  Stmts stmts;
+  Blocks succs;
+  Blocks preds;
+
+  BlockType getBlockType(const CFGBlock* block) {
+    CFG* cfg = block->getParent();
+    CFGBlock& entryBlock = cfg->back();
+    CFGBlock& exitBlock = cfg->front();
+
+    if (&entryBlock == block) {
+      return EntryBlock;
+    } else if (&exitBlock == block) {
+      return ExitBlock;
+    } else {
+      return NormalBlock;
+    }
   }
 
-  auto getPredecessors() const {
-    return llvm::iterator_range(predecessors.begin(), predecessors.begin());
+public:
+  // normal constructor
+  AbstractBlock(const CFGBlock* block_, AbstractCfg& parent_)
+      : block(block_), parent(parent_) {
+    blockType = getBlockType(block_);
+    blockNo = getBlockId(block_);
+  }
+
+  static size_t getBlockId(const CFGBlock* block_) {
+    const CFG* cfg = block_->getParent();
+    size_t numBlocks = cfg->size();
+    return numBlocks - block_->getBlockID() - 1;
+  }
+
+  AbstractCfg& getParent() { return parent; }
+
+  bool isEntryExit() const { return blockType != NormalBlock; }
+
+  void insertStmt(const Stmt* S) {
+    if (isEntryExit()) {
+      llvm::report_fatal_error("disable adding stmt to entry exit block");
+    }
+    stmts.push_back(S);
+  }
+
+  void insertSucc(AbstractBlock& block_) { succs.push_back(&block_); }
+
+  void insertPred(AbstractBlock& block_) { preds.push_back(&block_); }
+
+  auto getCFGElements() const {
+    return llvm::iterator_range(block->begin(), block->end());
+  }
+
+  auto getStmts() const {
+    return llvm::iterator_range(stmts.begin(), stmts.end());
+  }
+
+  auto getCFGSuccessors() const {
+    return llvm::iterator_range(block->succ_begin(), block->succ_end());
   }
 
   auto getSuccessors() const {
-    return llvm::iterator_range(successors.begin(), successors.begin());
+    return llvm::iterator_range(succs.begin(), succs.end());
   }
 
-  ProgramLocation& getEntryPlStmt() { return plStmts[0]; }
-
-  ProgramLocation& getExitPlStmt() { return plStmts[numStmts() - 1]; }
-
-  size_t numStmts() const { return plStmts.size(); }
-
-  // normal constructor
-  AbstractCfgBlock() {}
-
-  // Move constructor
-  AbstractCfgBlock(AbstractCfgBlock&& X) noexcept
-      : plStmts(std::move(X.plStmts)), predecessors(std::move(X.predecessors)),
-        successors(std::move(X.successors)) {}
-
-  // move assignment operator
-  AbstractCfgBlock& operator=(AbstractCfgBlock&& X) noexcept {
-    plStmts = std::move(X.plStmts);
-    predecessors = std::move(X.predecessors);
-    successors = std::move(X.successors);
-    return *this;
+  auto getCFGPredecessors() const {
+    return llvm::iterator_range(block->pred_begin(), block->pred_end());
   }
 
-  // Copy operator
-  AbstractCfgBlock(const AbstractCfgBlock& X)
-      : plStmts(X.plStmts), predecessors(X.predecessors),
-        successors(X.successors) {}
-
-  // assignment operator
-  AbstractCfgBlock& operator=(const AbstractCfgBlock& X) {
-    plStmts = X.plStmts;
-    predecessors = X.predecessors;
-    successors = X.successors;
-    return *this;
+  auto getPredecessors() const {
+    return llvm::iterator_range(preds.begin(), preds.end());
   }
 
-  // destructor
-  ~AbstractCfgBlock() noexcept {
-    plStmts.clear();
-    predecessors.clear();
-    successors.clear();
+  const Stmt* getEntryStmt() { return stmts[0]; }
+
+  const Stmt* getExitStmt() { return stmts[numStmts() - 1]; }
+
+  size_t numStmts() const { return stmts.size(); }
+
+  void dump() const { llvm::errs() << "B" << blockNo; }
+
+  void dump(AnalysisManager* Mgr) const {
+    switch (blockType) {
+    case EntryBlock:
+      llvm::errs() << "entry ";
+      break;
+    case ExitBlock:
+      llvm::errs() << "exit ";
+      break;
+    default:
+      break;
+    }
+
+    llvm::errs() << "B" << blockNo << "\n";
+    for (auto stmt : stmts) {
+      printStmt(stmt, *Mgr, "\ts");
+    }
+
+    printMsg("successors:", false);
+    for (auto succ : succs) {
+      succ->dump();
+      llvm::errs() << " ";
+    }
+    llvm::errs() << "\n";
+
+    printMsg("predecessors:", false);
+    for (auto pred : preds) {
+      pred->dump();
+      llvm::errs() << " ";
+    }
+    llvm::errs() << "\n";
   }
 };
 
 class AbstractCfg {
-  using PlVec = std::vector<ProgramLocation>;
+  using Blocks = std::vector<AbstractBlock>;
 
-  PlVec plBlocks;
+  const FunctionDecl* function;
+  Blocks blocks;
 
 public:
-  void insertBlock(const CFGBlock* block) {
-    plBlocks.emplace_back(ProgramLocation(block));
+  AbstractBlock& insertBlock(const CFGBlock* block) {
+    blocks.emplace_back(block, *this);
+    return blocks.back();
   }
 
-  auto getPlBlocks() const {
-    return llvm::iterator_range(plBlocks.begin(), plBlocks.begin());
+  auto getCFGBlocks(AnalysisManager* Mgr) const {
+    const CFG* cfg = Mgr->getCFG(function);
+    return llvm::iterator_range(cfg->rbegin(), cfg->rend());
   }
 
-  ProgramLocation& getEntryPlBlock() { return plBlocks[0]; }
+  auto getBlocks() {
+    return llvm::iterator_range(blocks.begin(), blocks.end());
+  }
 
-  ProgramLocation& getExitPlBlock() { return plBlocks[numBlocks() - 1]; }
+  auto begin() const { return blocks.begin(); }
 
-  size_t numBlocks() const { return plBlocks.size(); }
+  auto end() const { return blocks.end(); }
+
+  AbstractBlock& getBlock(size_t no) { return blocks[no]; }
+
+  AbstractBlock& getEntryBlock() { return blocks.front(); }
+
+  AbstractBlock& getExitBlock() { return blocks.back(); }
+
+  size_t numBlocks() const { return blocks.size(); }
 
   // normal constructor
   AbstractCfg() {}
 
-  // Move constructor
-  AbstractCfg(AbstractCfg&& X) noexcept : plBlocks(std::move(X.plBlocks)) {}
+  void setFunction(const FunctionDecl* function_) { function = function_; }
 
-  // move assignment operator
-  AbstractCfg& operator=(AbstractCfg&& X) noexcept {
-    plBlocks = std::move(X.plBlocks);
-    return *this;
+  void dump(AnalysisManager* Mgr) const {
+    printND(function, "*****function*****");
+    for (auto block : blocks) {
+      block.dump(Mgr);
+    }
   }
-
-  // Copy operator
-  AbstractCfg(const AbstractCfg& X) : plBlocks(X.plBlocks) {}
-
-  // assignment operator
-  AbstractCfg& operator=(const AbstractCfg& X) {
-    plBlocks = X.plBlocks;
-
-    return *this;
-  }
-
-  // destructor
-  ~AbstractCfg() noexcept { plBlocks.clear(); }
 };
 
 class AbstractProgram {
@@ -121,36 +183,27 @@ class AbstractProgram {
   FunctionCfgMap functionCfgMap;
 
 public:
-  void addFunction(const FunctionDecl* FD, AbstractCfg& abstractCfg) {
-    functionCfgMap[FD] = std::move(abstractCfg);
+  AbstractCfg& insertAbstractCfg(const FunctionDecl* function) {
+    auto& abstractCfg = functionCfgMap[function];
+    abstractCfg.setFunction(function);
+    return abstractCfg;
+  }
+
+  AbstractCfg& getFunctionGraph(const FunctionDecl* function) {
+    assert(functionCfgMap.count(function));
+    return functionCfgMap[function];
   }
 
   size_t numFunctions() const { return functionCfgMap.size(); }
 
   AbstractProgram() {}
 
-  // Move constructor
-  AbstractProgram(AbstractProgram&& X) noexcept
-      : functionCfgMap(std::move(X.functionCfgMap)) {}
-
-  // move assignment operator
-  AbstractProgram& operator=(AbstractProgram&& X) noexcept {
-    functionCfgMap = std::move(X.functionCfgMap);
-    return *this;
+  void dump(AnalysisManager* Mgr) const {
+    llvm::errs() << "Num functions: " << numFunctions() << "\n";
+    for (auto& [_, abstractCfg] : functionCfgMap) {
+      abstractCfg.dump(Mgr);
+    }
   }
-
-  // Copy operator
-  AbstractProgram(const AbstractProgram& X) : functionCfgMap(X.functionCfgMap) {}
-
-  // assignment operator
-  AbstractProgram& operator=(const AbstractProgram& X) {
-    functionCfgMap = X.functionCfgMap;
-
-    return *this;
-  }
-
-  // destructor
-  ~AbstractProgram() noexcept { functionCfgMap.clear(); }
 };
 
 template <typename Transitions> class AbstractProgramBuilder {
@@ -158,22 +211,72 @@ template <typename Transitions> class AbstractProgramBuilder {
   Transitions& transitions;
   AnalysisManager* Mgr;
 
+  void buildAbstractBlock(AbstractBlock& abstractBlock) {
+    // skip if entry or exit block
+    if (abstractBlock.isEntryExit()) {
+      return;
+    }
+
+    // iterate blocks
+    for (const CFGElement element : abstractBlock.getCFGElements()) {
+      if (Optional<CFGStmt> CS = element.getAs<CFGStmt>()) {
+        const Stmt* S = CS->getStmt();
+        assert(S);
+
+        // check if stmt is used in data flow
+        auto PTI = transitions.parseStmt(S);
+        if (PTI.isStmtUsed()) {
+          abstractBlock.insertStmt(S);
+        }
+      }
+    }
+  }
+
+  void buildSuccPred(AbstractCfg& parent, AbstractBlock& abstractBlock) {
+    for (const CFGBlock* predBlock : abstractBlock.getCFGPredecessors()) {
+      size_t no = AbstractBlock::getBlockId(predBlock);
+      auto& predAbstractBlock = parent.getBlock(no);
+      abstractBlock.insertPred(predAbstractBlock);
+    }
+
+    for (const CFGBlock* succBlock : abstractBlock.getCFGSuccessors()) {
+      size_t no = AbstractBlock::getBlockId(succBlock);
+      auto& succAbstractBlock = parent.getBlock(no);
+      abstractBlock.insertSucc(succAbstractBlock);
+    }
+  }
+
+  void buildAbstractCfg(AbstractCfg& abstractCfg) {
+    // per function abstract cfg
+
+    // iterate cfg
+    for (const CFGBlock* block : abstractCfg.getCFGBlocks(Mgr)) {
+      // per block abstract block
+      auto& abstractBlock = abstractCfg.insertBlock(block);
+      buildAbstractBlock(abstractBlock);
+    }
+
+    for (auto& abstractBlock : abstractCfg.getBlocks()) {
+      // nuild succ and pred
+      buildSuccPred(abstractCfg, abstractBlock);
+    }
+  }
+
 public:
-  AbstractProgramBuilder(Transitions& transitions_): transitions(transitions_) {
+  AbstractProgramBuilder(Transitions& transitions_)
+      : transitions(transitions_) {
     Mgr = transitions.getMgr();
+    // set so that all effected statements are tracked, not just unit
+    transitions.useGlobalTransitions();
     assert(Mgr);
   }
 
-  AbstractProgram buildProgram() {
-    AbstractProgram abstractProgram;
-
-    /*
-    for (const FunctionDecl* FD : transitions.getAnalysisFunctions()) {
-      AbstractCfg abstractCfg;
+  void buildProgram(AbstractProgram& abstractProgram) {
+    // create abstract control flow graphs for each function
+    for (const FunctionDecl* function : transitions.getAnalysisFunctions()) {
+      auto& abstractCfg = abstractProgram.insertAbstractCfg(function);
+      buildAbstractCfg(abstractCfg);
     }
-    */
-
-    return abstractProgram;
   }
 };
 
