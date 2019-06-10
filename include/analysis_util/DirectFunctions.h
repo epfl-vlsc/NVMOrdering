@@ -27,6 +27,10 @@ private:
 public:
   DirectFunctions() : analyzedFnc(NVM_FNC), skipFnc(SKIP_FNC) {}
 
+  FuncSet getAnalysisFunctions() const {
+    return allUnitsInfo.getAnalysisFunctions();
+  }
+
   void addUnitInfo(const FunctionDecl* FD, VarSet& usedVars,
                    FuncSet& usedFuncs) {
     allUnitsInfo.addFunctionInfo(FD, usedVars, usedFuncs);

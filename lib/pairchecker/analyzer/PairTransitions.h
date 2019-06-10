@@ -33,6 +33,8 @@ template <typename Variables, typename Functions> class PairTransitions {
       assert(ND);
     }
 
+    bool isStmtUsed() const { return transferFunc != NoFunc; }
+
     const NamedDecl* getND() const { return ND; }
 
     TransferFunction getTransferFunction() const { return transferFunc; }
@@ -57,6 +59,15 @@ template <typename Variables, typename Functions> class PairTransitions {
   Functions* funcs;
   FunctionInfo* activeUnitInfo;
   AnalysisManager* Mgr;
+
+  // access structures
+  Functions& getAnalysisFunctions() const {
+    return funcs->getAnalysisFunctions();
+  }
+
+  AnalysisManager* getMgr() {
+    return Mgr;
+  }
 
   // parse-------------------------------------------------------
   PairTransitionInfo parseWrite(const BinaryOperator* BO) {

@@ -63,6 +63,17 @@ public:
     FunctionInfo functionInfo(usedVars, usedFuncs);
     functionInfoMap[FD] = functionInfo;
   }
+
+  FuncSet getAnalysisFunctions() const{
+    FuncSet functions;
+    for(auto& [FD, FI]: functionInfoMap){
+      functions.insert(FD);
+      for(auto& SubFD: FI.getUsedFuncs()){
+        functions.insert(SubFD);
+      }
+    }
+    return functions;
+  }
 };
 
 } // namespace clang::ento::nvm

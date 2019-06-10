@@ -75,6 +75,19 @@ struct ProgramLocation {
   const Stmt* getStmt() const { return ptrPl.stmt; }
 };
 
+class PlSet {
+  std::set<ProgramLocation> programLocations;
+
+public:
+  bool isUsedLocation(ProgramLocation& pl) const{
+    return programLocations.count(pl);
+  }
+
+  void addProgramLocation(ProgramLocation& pl){
+    programLocations.insert(pl);
+  }
+};
+
 class PlContext {
   ProgramLocation caller;
   ProgramLocation callee;
@@ -151,7 +164,7 @@ public:
   }
 
   static ProgramLocation getFunctionExitKey(const FunctionDecl* function,
-                                         AnalysisManager* mgr) {
+                                            AnalysisManager* mgr) {
     const CFG* cfg = mgr->getCFG(function);
     const CFGBlock* exitBlock = &cfg->getExit();
     return ProgramLocation(exitBlock);
