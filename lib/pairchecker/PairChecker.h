@@ -14,9 +14,6 @@ public:
 
   void checkASTDecl(const TranslationUnitDecl* CTUD, AnalysisManager& Mgr,
                     BugReporter& BR) const;
-
-private:
-  mutable PairAnalyzer analyzer;
 };
 
 } // namespace clang::ento::nvm
