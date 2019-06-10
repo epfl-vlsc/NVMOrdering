@@ -148,7 +148,7 @@ class PairParser : public RecursiveASTVisitor<PairParser> {
       }
 
       for (const FunctionDecl* FD : NDP.getFuncSet()) {
-        if (pairFunctions.isSkipFunction(FD)) {
+        if (!pairFunctions.isSkipFunction(FD)) {
           funcSet.insert(FD);
         }
       }
