@@ -7,6 +7,7 @@
 #include "clang/StaticAnalyzer/Frontend/CheckerRegistry.h"
 #include "llvm/Support/raw_ostream.h"
 #include <array>
+#include <list>
 #include <map>
 #include <set>
 #include <tuple>

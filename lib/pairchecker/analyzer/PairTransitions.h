@@ -19,6 +19,7 @@ template <typename Variables, typename Functions> class PairTransitions {
       FlushFenceFunc,
       VfenceFunc,
       PfenceFunc,
+      IpaFunc,
       NoFunc
     };
 
@@ -26,12 +27,17 @@ template <typename Variables, typename Functions> class PairTransitions {
     TransferFunction transferFunc;
     const NamedDecl* ND;
 
+    PairTransitionInfo(TransferFunction transferFunc_)
+        : transferFunc(transferFunc_), ND(nullptr) {}
+
   public:
     PairTransitionInfo() : transferFunc(NoFunc), ND(nullptr) {}
     PairTransitionInfo(TransferFunction transferFunc_, const NamedDecl* ND_)
         : transferFunc(transferFunc_), ND(ND_) {
       assert(ND);
     }
+
+    static PairTransitionInfo getIpa() { return PairTransitionInfo(IpaFunc); }
 
     bool isStmtUsed() const { return transferFunc != NoFunc; }
 
@@ -60,7 +66,19 @@ template <typename Variables, typename Functions> class PairTransitions {
   FunctionInfo* activeUnitInfo;
   AnalysisManager* Mgr;
 
+  // for creating abstract graph
+  bool useGlobal;
+
   // parse-------------------------------------------------------
+  bool isUsedVar(const NamedDecl* ND) {
+    if (useGlobal) {
+      return vars->isUsedVar(ND);
+    } else {
+      assert(activeUnitInfo && "active unit must be set");
+      return activeUnitInfo->isUsedVar(ND);
+    }
+  }
+
   PairTransitionInfo parseWrite(const BinaryOperator* BO) {
     const MemberExpr* ME = ParseUtils::getME(BO);
     if (!ME) {
@@ -68,7 +86,7 @@ template <typename Variables, typename Functions> class PairTransitions {
     }
 
     const ValueDecl* VD = ME->getMemberDecl();
-    if (!activeUnitInfo->isUsedVar(VD)) {
+    if (!isUsedVar(VD)) {
       return PairTransitionInfo();
     }
 
@@ -83,7 +101,7 @@ template <typename Variables, typename Functions> class PairTransitions {
     }
 
     const ValueDecl* VD = ME->getMemberDecl();
-    if (!activeUnitInfo->isUsedVar(VD)) {
+    if (!isUsedVar(VD)) {
       return PairTransitionInfo();
     }
 
@@ -109,6 +127,8 @@ template <typename Variables, typename Functions> class PairTransitions {
       return parseFence(CE, true);
     } else if (funcs->isVfenceFunction(FD)) {
       return parseFence(CE, false);
+    } else if (useGlobal && !funcs->isSkipFunction(FD)) {
+      return PairTransitionInfo::getIpa();
     }
 
     return PairTransitionInfo();
@@ -133,10 +153,14 @@ public:
     vars = &vars_;
     funcs = &funcs_;
     Mgr = Mgr_;
+    useGlobal = false;
   }
+
+  void useGlobalTransitions() { useGlobal = true; }
 
   void initUnit(FunctionInfo* activeUnitInfo_) {
     activeUnitInfo = activeUnitInfo_;
+    useGlobal = false;
   }
 
   void initLatticeValues(AbstractState& state) {
@@ -149,10 +173,8 @@ public:
 
   PairTransitionInfo parseStmt(const Stmt* S) {
     if (const BinaryOperator* BO = dyn_cast<BinaryOperator>(S)) {
-      printStmt(S, *Mgr, "bo");
       return parseWrite(BO);
     } else if (const CallExpr* CE = dyn_cast<CallExpr>(S)) {
-      printStmt(S, *Mgr, "ce");
       return parseCall(CE);
     }
 
@@ -180,9 +202,7 @@ public:
   }
 
   // access structures
-  Functions& getAnalysisFunctions() const {
-    return funcs->getAnalysisFunctions();
-  }
+  auto getAnalysisFunctions() { return funcs->getAnalysisFunctions(); }
 
   AnalysisManager* getMgr() { return Mgr; }
 };
