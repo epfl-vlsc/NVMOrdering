@@ -47,10 +47,30 @@ public:
     successors = std::move(X.successors);
     return *this;
   }
+
+  // Copy operator
+  AbstractCfgBlock(const AbstractCfgBlock& X)
+      : plStmts(X.plStmts), predecessors(X.predecessors),
+        successors(X.successors) {}
+
+  // assignment operator
+  AbstractCfgBlock& operator=(const AbstractCfgBlock& X) {
+    plStmts = X.plStmts;
+    predecessors = X.predecessors;
+    successors = X.successors;
+    return *this;
+  }
+
+  // destructor
+  ~AbstractCfgBlock() noexcept {
+    plStmts.clear();
+    predecessors.clear();
+    successors.clear();
+  }
 };
 
 class AbstractCfg {
-  using PlVec = std::vector<const ProgramLocation>;
+  using PlVec = std::vector<ProgramLocation>;
 
   PlVec plBlocks;
 
@@ -67,7 +87,7 @@ public:
 
   ProgramLocation& getExitPlBlock() { return plBlocks[numBlocks() - 1]; }
 
-  size_t numBlocks() const { return numBlocks.size(); }
+  size_t numBlocks() const { return plBlocks.size(); }
 
   // normal constructor
   AbstractCfg() {}
@@ -80,6 +100,19 @@ public:
     plBlocks = std::move(X.plBlocks);
     return *this;
   }
+
+  // Copy operator
+  AbstractCfg(const AbstractCfg& X) : plBlocks(X.plBlocks) {}
+
+  // assignment operator
+  AbstractCfg& operator=(const AbstractCfg& X) {
+    plBlocks = X.plBlocks;
+
+    return *this;
+  }
+
+  // destructor
+  ~AbstractCfg() noexcept { plBlocks.clear(); }
 };
 
 class AbstractProgram {
@@ -92,6 +125,8 @@ public:
     functionCfgMap[FD] = std::move(abstractCfg);
   }
 
+  size_t numFunctions() const { return functionCfgMap.size(); }
+
   AbstractProgram() {}
 
   // Move constructor
@@ -103,29 +138,42 @@ public:
     functionCfgMap = std::move(X.functionCfgMap);
     return *this;
   }
+
+  // Copy operator
+  AbstractProgram(const AbstractProgram& X) : functionCfgMap(X.functionCfgMap) {}
+
+  // assignment operator
+  AbstractProgram& operator=(const AbstractProgram& X) {
+    functionCfgMap = X.functionCfgMap;
+
+    return *this;
+  }
+
+  // destructor
+  ~AbstractProgram() noexcept { functionCfgMap.clear(); }
 };
 
 template <typename Transitions> class AbstractProgramBuilder {
   // useful structures
-  Transitions* transitions;
+  Transitions& transitions;
   AnalysisManager* Mgr;
 
 public:
-  void init(Transitions* transitions_) {
-    transitions = transitions_;
-    assert(transitions);
-    Mgr = transitions->getMgr();
+  AbstractProgramBuilder(Transitions& transitions_): transitions(transitions_) {
+    Mgr = transitions.getMgr();
     assert(Mgr);
   }
 
-  AbstractProgram createAbstractProgram() {
+  AbstractProgram buildProgram() {
     AbstractProgram abstractProgram;
 
+    /*
     for (const FunctionDecl* FD : transitions.getAnalysisFunctions()) {
       AbstractCfg abstractCfg;
     }
+    */
 
-    return AbstractProgram;
+    return abstractProgram;
   }
 };
 

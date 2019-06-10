@@ -1,11 +1,12 @@
 #pragma once
+#include "AbstractProgram.h"
 #include "Common.h"
 #include "DataflowAnalysis.h"
 
 namespace clang::ento::nvm {
 
 template <typename Vars, typename Functions, typename LatVal,
-          typename Transitions, typename SubClass>
+          typename Transitions, typename Parser, typename SubClass>
 class MainAnalyzer {
 public:
   using FunctionInfo = typename Functions::FunctionInfo;
@@ -23,6 +24,7 @@ protected:
   Vars vars;
   Functions funcs;
   Transitions transitions;
+  AbstractProgram abstractProgram;
 
   // convenient data structure per unit analysis
   FunctionInfo* activeUnitInfo;
@@ -30,13 +32,17 @@ protected:
 
   void parseTUD(TranslationUnitDecl* TUD) {
     ASTContext& astContext = Mgr->getASTContext();
-    PairParser pairParser(vars, funcs, astContext);
-    pairParser.TraverseDecl(TUD);
-    pairParser.fillStructures();
-    // pairParser.createGraphs();
+    Parser parser(vars, funcs, astContext);
+    parser.TraverseDecl(TUD);
+    parser.fillStructures();
 
     // initialize transitions
     transitions.initAll(vars, funcs, Mgr);
+    
+    //create abstract graphs
+    AbstractProgramBuilder programBuilder(transitions);
+    abstractProgram = std::move(programBuilder.buildProgram());
+    
     funcs.dump();
     vars.dump();
   }

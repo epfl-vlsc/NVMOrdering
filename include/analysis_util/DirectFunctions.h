@@ -27,7 +27,7 @@ private:
 public:
   DirectFunctions() : analyzedFnc(NVM_FNC), skipFnc(SKIP_FNC) {}
 
-  FuncSet getAnalysisFunctions() const {
+  FuncSet getAnalysisFunctions() {
     return allUnitsInfo.getAnalysisFunctions();
   }
 

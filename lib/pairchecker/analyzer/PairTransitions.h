@@ -60,15 +60,6 @@ template <typename Variables, typename Functions> class PairTransitions {
   FunctionInfo* activeUnitInfo;
   AnalysisManager* Mgr;
 
-  // access structures
-  Functions& getAnalysisFunctions() const {
-    return funcs->getAnalysisFunctions();
-  }
-
-  AnalysisManager* getMgr() {
-    return Mgr;
-  }
-
   // parse-------------------------------------------------------
   PairTransitionInfo parseWrite(const BinaryOperator* BO) {
     const MemberExpr* ME = ParseUtils::getME(BO);
@@ -187,6 +178,13 @@ public:
       return false;
     }
   }
+
+  // access structures
+  Functions& getAnalysisFunctions() const {
+    return funcs->getAnalysisFunctions();
+  }
+
+  AnalysisManager* getMgr() { return Mgr; }
 };
 
 } // namespace clang::ento::nvm

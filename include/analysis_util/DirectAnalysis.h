@@ -64,7 +64,7 @@ public:
     functionInfoMap[FD] = functionInfo;
   }
 
-  FuncSet getAnalysisFunctions() const{
+  FuncSet getAnalysisFunctions(){
     FuncSet functions;
     for(auto& [FD, FI]: functionInfoMap){
       functions.insert(FD);

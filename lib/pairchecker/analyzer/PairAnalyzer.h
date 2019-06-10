@@ -11,7 +11,7 @@ namespace clang::ento::nvm {
 class PairAnalyzer
     : public MainAnalyzer<PairVariables, PairFunctions, LatticeValue,
                           PairTransitions<PairVariables, PairFunctions>,
-                          PairAnalyzer> {
+                          PairParser, PairAnalyzer> {
 
 public:
   PairAnalyzer& getAnalyzer() { return *this; };
