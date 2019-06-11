@@ -37,7 +37,7 @@ protected:
     parser.fillStructures();
 
     // initialize transitions
-    transitions.initAll(vars, funcs, Mgr);
+    transitions.initAll(vars, funcs, Mgr, BR);
 
     // create abstract graphs
     AbstractProgramBuilder programBuilder(abstractProgram, transitions);
@@ -104,8 +104,8 @@ public:
     transitions.initLatticeValues(state);
   }
 
-  auto handleStmt(const Stmt* S, AbstractState& state) {
-    return transitions.handleStmt(S, state);
+  auto handleStmt(const AbstractStmt* absStmt, AbstractState& state) {
+    return transitions.handleStmt(absStmt, state);
   }
 
   const AbstractFunction* getAbstractFunction(const FunctionDecl* function) {

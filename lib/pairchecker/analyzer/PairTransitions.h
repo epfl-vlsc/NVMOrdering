@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "dataflow_util/AbstractProgram.h"
 #include "dataflow_util/TransitionChange.h"
 #include "parser_util/ParseUtils.h"
 
@@ -77,14 +78,22 @@ template <typename Variables, typename Functions> class PairTransitions {
   Functions* funcs;
   FunctionInfo* activeUnitInfo;
   AnalysisManager* Mgr;
+  BugReporter* BR;
 
   // for bug finding
   using PairSet = std::set<const NamedDecl*>;
   using VarToPair = std::map<const NamedDecl*, PairSet>;
+  using LastLocationMap = std::map<const NamedDecl*, const AbstractLocation*>;
   VarToPair* varToPair;
+  LastLocationMap* lastLocationMap;
 
   // for creating abstract graph
   bool useGlobal;
+
+  void updateLastLocation(const NamedDecl* ND,
+                          const AbstractLocation* absLocation) {
+    (*lastLocationMap)[ND] = absLocation;
+  }
 
   PairSet& getPairSet(const NamedDecl* ND) {
     auto& pairSet = (*varToPair)[ND];
@@ -165,7 +174,8 @@ template <typename Variables, typename Functions> class PairTransitions {
   }
 
   // handle----------------------------------------------------
-  TransitionChange handleWrite(const PairTransitionInfo& PTI,
+  TransitionChange handleWrite(const AbstractStmt* absStmt,
+                               const PairTransitionInfo& PTI,
                                AbstractState& state) {
     const NamedDecl* ND = PTI.getND();
     state[ND] = LatVal::getWrite(state[ND]);
@@ -175,20 +185,28 @@ template <typename Variables, typename Functions> class PairTransitions {
       auto& pairLattice = state[pairND];
       if (pairLattice.isWriteFlush()) {
         printMsg("bug here");
+        assert(lastLocationMap);
+        const AbstractLocation* absLocation = (*lastLocationMap)[pairND];
+        assert(absLocation);
+        absLocation->fullDump(Mgr);
+        absStmt->fullDump(Mgr);
         return TransitionChange::BugChange;
       }
     }
 
+    updateLastLocation(ND, absStmt);
     return TransitionChange::StateChange;
   }
 
-  TransitionChange handleFence(const PairTransitionInfo& PTI,
+  TransitionChange handleFence(const AbstractStmt* absStmt,
+                               const PairTransitionInfo& PTI,
                                AbstractState& state) {
     llvm::report_fatal_error("not implemented");
     return TransitionChange::NoChange;
   }
 
-  TransitionChange handleFlush(const PairTransitionInfo& PTI,
+  TransitionChange handleFlush(const AbstractStmt* absStmt,
+                               const PairTransitionInfo& PTI,
                                AbstractState& state) {
     const NamedDecl* ND = PTI.getND();
     bool isPfence = PTI.isPfence();
@@ -204,35 +222,40 @@ template <typename Variables, typename Functions> class PairTransitions {
     } else {
       state[ND] = LatVal::getFlush(LV);
     }
+
+    updateLastLocation(ND, absStmt);
     return TransitionChange::StateChange;
   }
 
-  TransitionChange handleStmt(const PairTransitionInfo& PTI,
+  TransitionChange handleStmt(const AbstractStmt* absStmt,
+                              const PairTransitionInfo& PTI,
                               AbstractState& state) {
     switch (PTI.getTransferFunction()) {
     case PairTransitionInfo::WriteFunc:
-      return handleWrite(PTI, state);
-      break;
+      return handleWrite(absStmt, PTI, state);
     case PairTransitionInfo::FlushFunc:
-      return handleFlush(PTI, state);
+      return handleFlush(absStmt, PTI, state);
     case PairTransitionInfo::FlushFenceFunc:
-      return handleFlush(PTI, state);
+      return handleFlush(absStmt, PTI, state);
     case PairTransitionInfo::VfenceFunc:
-      return handleFence(PTI, state);
+      return handleFence(absStmt, PTI, state);
     case PairTransitionInfo::PfenceFunc:
-      return handleFence(PTI, state);
+      return handleFence(absStmt, PTI, state);
     default:
       return TransitionChange::NoChange;
     }
   }
 
 public:
-  void initAll(Variables& vars_, Functions& funcs_, AnalysisManager* Mgr_) {
+  void initAll(Variables& vars_, Functions& funcs_, AnalysisManager* Mgr_,
+               BugReporter* BR_) {
     vars = &vars_;
     funcs = &funcs_;
     Mgr = Mgr_;
+    BR = BR_;
     useGlobal = false;
     varToPair = nullptr;
+    lastLocationMap = nullptr;
   }
 
   void useGlobalTransitions() { useGlobal = true; }
@@ -246,6 +269,10 @@ public:
       delete varToPair;
     }
     varToPair = new VarToPair;
+    if (lastLocationMap) {
+      delete lastLocationMap;
+    }
+    lastLocationMap = new LastLocationMap();
   }
 
   void initLatticeValues(AbstractState& state) {
@@ -266,12 +293,15 @@ public:
     return PairTransitionInfo();
   }
 
-  TransitionChange handleStmt(const Stmt* S, AbstractState& state) {
+  TransitionChange handleStmt(const AbstractStmt* absStmt,
+                              AbstractState& state) {
     // parse stmt to usable structure
+    const Stmt* S = absStmt->getStmt();
+
     auto PTI = parseStmt(S);
 
     // handle stmt
-    return handleStmt(PTI, state);
+    return handleStmt(absStmt, PTI, state);
   }
 
   // access structures

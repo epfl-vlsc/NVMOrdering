@@ -49,9 +49,9 @@ public:
 
   void fullDump(AnalysisManager* Mgr) const {
     assert(S);
-    llvm::errs() << "S:" << no << " " << this << " stmt key " << getStmtKey()
-                 << " ";
+    llvm::errs() << "S:" << no << " " << this << " ";
     printStmt(S, *Mgr, "s", false);
+    llvm::errs() << " stmt key " << getStmtKey() << "\n";
   }
 
   const Stmt* getStmt() const {

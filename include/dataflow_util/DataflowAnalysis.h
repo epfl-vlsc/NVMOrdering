@@ -181,18 +181,19 @@ template <typename Analyzer> class DataflowAnalysis {
     }
   }
 
-  bool applyTransfer(const Stmt* S, AbstractState& state) {
-    auto change = analyzer.handleStmt(S, state);
+  bool applyTransfer(const AbstractStmt* absStmt, AbstractState& state) {
+    auto change = analyzer.handleStmt(absStmt, state);
     return isStateChange(change);
   }
 
-  bool analyzeStmt(const Stmt* S, AbstractState& state,
+  bool analyzeStmt(const AbstractStmt* absStmt, AbstractState& state,
                    const AbstractFunction* absCaller,
                    const AbstractContext& context) {
+    const Stmt* S = absStmt->getStmt();
     if (const CallExpr* CE = analyzer.getIpaCall(S)) {
       return analyzeCall(CE, state, absCaller, context);
     } else {
-      return applyTransfer(S, state);
+      return applyTransfer(absStmt, state);
     }
   }
 
@@ -201,10 +202,7 @@ template <typename Analyzer> class DataflowAnalysis {
                     const AbstractContext& context) {
 
     for (auto& absStmt : absBlock->getStmts()) {
-      assert(absStmt);
-      const Stmt* S = absStmt->getStmt();
-      printStmt(S, *Mgr, "dd");
-      if (analyzeStmt(S, state, absCaller, context)) {
+      if (analyzeStmt(absStmt, state, absCaller, context)) {
         auto* stmtKey = absStmt->getStmtKey();
         results[stmtKey] = state;
       }
