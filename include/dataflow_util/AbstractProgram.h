@@ -297,7 +297,7 @@ class AbstractProgram {
 public:
   ~AbstractProgram() {
     for (auto& location : locations) {
-      //delete location;
+      delete location;
     }
   }
 

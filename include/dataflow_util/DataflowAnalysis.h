@@ -31,7 +31,7 @@ template <typename Analyzer> class DataflowAnalysis {
   // top info
   const FunctionDecl* topFunction;
   AnalysisManager* Mgr;
-  Analyzer analyzer;
+  Analyzer& analyzer;
 
   void initTopEntryValues(const AbstractFunction* absFunction,
                           FunctionResults& results) {
