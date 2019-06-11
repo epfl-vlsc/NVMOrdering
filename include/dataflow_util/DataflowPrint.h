@@ -24,7 +24,7 @@ void dumpFunctionResults(const FunctionResults& results, AnalysisManager* Mgr) {
 template <typename DataflowResults>
 void dumpDataflowResults(const DataflowResults* dataflowResults,
                          AnalysisManager* Mgr) {
-  printMsg("---All results---");
+  llvm::errs() << "---All results---" << dataflowResults->size() << "\n";
   for (auto& [context, results] : *dataflowResults) {
     context.fullDump(Mgr);
     dumpFunctionResults(results, Mgr);

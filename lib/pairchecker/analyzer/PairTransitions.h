@@ -23,11 +23,11 @@ template <typename Variables, typename Functions> class PairTransitions {
       NoFunc
     };
 
-    static const constexpr char* tfStr[7] = {"Write",  "Flush",  "FlushFence",
-                                             "Vfence", "Pfence", "Ipa",
-                                             "No"};
+    static const constexpr char* tfStr[7] = {
+        "Write", "Flush", "FlushFence", "Vfence", "Pfence", "Ipa", "No"};
 
-    private : TransferFunction transferFunc;
+  private:
+    TransferFunction transferFunc;
     const NamedDecl* ND;
 
     PairTransitionInfo(TransferFunction transferFunc_)
@@ -161,6 +161,24 @@ template <typename Variables, typename Functions> class PairTransitions {
     return transferFlush(PTI.getND(), state, PTI.isPfence());
   }
 
+  bool handleStmt(const PairTransitionInfo& PTI, AbstractState& state) {
+    switch (PTI.getTransferFunction()) {
+    case PairTransitionInfo::WriteFunc:
+      return handleWrite(PTI, state);
+      break;
+    case PairTransitionInfo::FlushFunc:
+      return handleFlush(PTI, state);
+    case PairTransitionInfo::FlushFenceFunc:
+      return handleFlush(PTI, state);
+    case PairTransitionInfo::VfenceFunc:
+      return handleFence(PTI, state);
+    case PairTransitionInfo::PfenceFunc:
+      return handleFence(PTI, state);
+    default:
+      return false;
+    }
+  }
+
 public:
   void initAll(Variables& vars_, Functions& funcs_, AnalysisManager* Mgr_) {
     vars = &vars_;
@@ -195,23 +213,11 @@ public:
   }
 
   bool handleStmt(const Stmt* S, AbstractState& state) {
+    // parse stmt to usable structure
     auto PTI = parseStmt(S);
 
-    switch (PTI.getTransferFunction()) {
-    case PairTransitionInfo::WriteFunc:
-      return handleWrite(PTI, state);
-      break;
-    case PairTransitionInfo::FlushFunc:
-      return handleFlush(PTI, state);
-    case PairTransitionInfo::FlushFenceFunc:
-      return handleFlush(PTI, state);
-    case PairTransitionInfo::VfenceFunc:
-      return handleFence(PTI, state);
-    case PairTransitionInfo::PfenceFunc:
-      return handleFence(PTI, state);
-    default:
-      return false;
-    }
+    // handle stmt 
+    return handleStmt(PTI, state);
   }
 
   // access structures

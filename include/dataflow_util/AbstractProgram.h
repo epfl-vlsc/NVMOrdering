@@ -282,7 +282,7 @@ public:
   void dump() const {
     assert(function);
     printND(function, "F", true, false);
-    llvm::errs() << " " << this << "\n";
+    llvm::errs() << " " << this << " ";
   }
 };
 
@@ -471,11 +471,21 @@ public:
   }
 
   bool operator<(const AbstractContext& X) const {
-    return (caller < X.caller && callee < X.callee);
+    if (caller < X.caller) {
+      return true;
+    } else if (caller > X.caller) {
+      return false;
+    } else {
+      return callee < X.callee;
+    }
   }
 
   bool operator==(const AbstractContext& X) const {
     return (caller == X.caller && callee == X.callee);
+  }
+
+  bool operator!=(const AbstractContext& X) const {
+    return (caller != X.caller || callee != X.callee);
   }
 
   void fullDump(AnalysisManager* Mgr) const {
