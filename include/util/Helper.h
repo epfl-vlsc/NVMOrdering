@@ -5,6 +5,7 @@
 #include "clang/StaticAnalyzer/Core/PathSensitive/CallEvent.h"
 #include "clang/StaticAnalyzer/Core/PathSensitive/CheckerContext.h"
 #include "clang/StaticAnalyzer/Frontend/CheckerRegistry.h"
+#include "clang/StaticAnalyzer/Core/BugReporter/BugType.h"
 #include "llvm/Support/raw_ostream.h"
 #include <array>
 #include <list>

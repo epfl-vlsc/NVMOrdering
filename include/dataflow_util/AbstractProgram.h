@@ -22,6 +22,7 @@ protected:
   AbstractLocation(LocationType locationType_) : locationType(locationType_) {}
 
 public:
+  virtual SourceRange getSourceRange() const = 0;
   virtual void dump() const = 0;
   virtual void fullDump(AnalysisManager* Mgr) const = 0;
   virtual ~AbstractLocation() {}
@@ -51,13 +52,15 @@ public:
     assert(S);
     llvm::errs() << "S:" << no << " " << this << " ";
     printStmt(S, *Mgr, "s", false);
-    llvm::errs() << " stmt key " << getStmtKey() << "\n";
+    llvm::errs() << " stmt key " << getStmtKey() << " ";
   }
 
   const Stmt* getStmt() const {
     assert(S && "non valid stmt");
     return S;
   }
+
+  SourceRange getSourceRange() const { return S->getSourceRange(); }
 
   ~AbstractStmt() {}
 };
@@ -213,6 +216,11 @@ public:
   }
 
   ~AbstractBlock() {}
+
+  SourceRange getSourceRange() const {
+    llvm::report_fatal_error("block cannot find source");
+    return SourceRange();
+  }
 };
 
 class AbstractFunction : public AbstractLocation {
@@ -283,6 +291,11 @@ public:
     assert(function);
     printND(function, "F", true, false);
     llvm::errs() << " " << this << " ";
+  }
+
+  SourceRange getSourceRange() const {
+    llvm::report_fatal_error("function cannot find source");
+    return SourceRange();
   }
 };
 

@@ -6,12 +6,11 @@
 namespace clang::ento::nvm {
 
 void PairChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
-                                 AnalysisManager& Mgr, BugReporter& BR) const {
-  
+                               AnalysisManager& Mgr, BugReporter& BR) const {
 
   PairAnalyzer analyzer;
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
-  analyzer.analyzeTUD(TUD, Mgr, BR);
+  analyzer.analyzeTUD(TUD, Mgr, BR, this);
 }
 
 } // namespace clang::ento::nvm

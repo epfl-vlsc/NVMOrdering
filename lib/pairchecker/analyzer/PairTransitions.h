@@ -79,6 +79,7 @@ template <typename Variables, typename Functions> class PairTransitions {
   FunctionInfo* activeUnitInfo;
   AnalysisManager* Mgr;
   BugReporter* BR;
+  const CheckerBase* CB;
 
   // for bug finding
   using PairSet = std::set<const NamedDecl*>;
@@ -86,6 +87,7 @@ template <typename Variables, typename Functions> class PairTransitions {
   using LastLocationMap = std::map<const NamedDecl*, const AbstractLocation*>;
   VarToPair* varToPair;
   LastLocationMap* lastLocationMap;
+  std::unique_ptr<BugType> CommitBug;
 
   // for creating abstract graph
   bool useGlobal;
@@ -189,7 +191,23 @@ template <typename Variables, typename Functions> class PairTransitions {
         const AbstractLocation* absLocation = (*lastLocationMap)[pairND];
         assert(absLocation);
         absLocation->fullDump(Mgr);
+        printMsg("");
         absStmt->fullDump(Mgr);
+        printMsg("");
+
+        SmallString<100> buf;
+        llvm::raw_svector_ostream os(buf);
+        os << "Error writing " << ND->getQualifiedNameAsString() << " commit "
+           << pairND->getQualifiedNameAsString() << "\n";
+
+        auto* Ctx = Mgr->getAnalysisDeclContext(ND);
+        PathDiagnosticLocation L = PathDiagnosticLocation::createBegin(
+            absStmt->getStmt(), Mgr->getSourceManager(), Ctx);
+        auto R = llvm::make_unique<BugReport>(*CommitBug, os.str(), L);
+        R->addRange(absLocation->getSourceRange());
+        R->addRange(absStmt->getSourceRange());
+        BR->emitReport(std::move(R));
+
         return TransitionChange::BugChange;
       }
     }
@@ -248,7 +266,7 @@ template <typename Variables, typename Functions> class PairTransitions {
 
 public:
   void initAll(Variables& vars_, Functions& funcs_, AnalysisManager* Mgr_,
-               BugReporter* BR_) {
+               BugReporter* BR_, const CheckerBase* CB_) {
     vars = &vars_;
     funcs = &funcs_;
     Mgr = Mgr_;
@@ -256,6 +274,8 @@ public:
     useGlobal = false;
     varToPair = nullptr;
     lastLocationMap = nullptr;
+    CB = CB_;
+    CommitBug.reset(new BugType(CB, "Not committed", ""));
   }
 
   void useGlobalTransitions() { useGlobal = true; }

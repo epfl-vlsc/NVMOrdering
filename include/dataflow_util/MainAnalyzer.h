@@ -19,6 +19,7 @@ protected:
   // program helpers
   AnalysisManager* Mgr;
   BugReporter* BR;
+  const CheckerBase* CB;
 
   // whole program data structures
   Vars vars;
@@ -37,7 +38,7 @@ protected:
     parser.fillStructures();
 
     // initialize transitions
-    transitions.initAll(vars, funcs, Mgr, BR);
+    transitions.initAll(vars, funcs, Mgr, BR, CB);
 
     // create abstract graphs
     AbstractProgramBuilder programBuilder(abstractProgram, transitions);
@@ -72,10 +73,11 @@ protected:
 
 public:
   void analyzeTUD(TranslationUnitDecl* TUD, AnalysisManager& Mgr_,
-                  BugReporter& BR_) {
+                  BugReporter& BR_, const CheckerBase* CB_) {
     // init program helpers
     Mgr = &Mgr_;
     BR = &BR_;
+    CB = CB_;
 
     // parse entire program
     parseTUD(TUD);
