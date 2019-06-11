@@ -12,7 +12,7 @@ public:
   using FunctionInfo = typename Functions::FunctionInfo;
   using LatVar = const NamedDecl*;
   using AbstractState = std::map<LatVar, LatVal>;
-  using FunctionResults = std::map<AbstractLocation*, AbstractState>;
+  using FunctionResults = std::map<const AbstractLocation*, AbstractState>;
   using DataflowResults = std::map<AbstractContext, FunctionResults>;
 
 protected:
@@ -40,9 +40,7 @@ protected:
     transitions.initAll(vars, funcs, Mgr);
 
     // create abstract graphs
-    AbstractProgramBuilder programBuilder(transitions);
-    programBuilder.buildProgram(abstractProgram);
-
+    AbstractProgramBuilder programBuilder(abstractProgram, transitions);
     abstractProgram.dump(Mgr);
   }
 
@@ -110,7 +108,7 @@ public:
     return transitions.handleStmt(S, state);
   }
 
-  AbstractFunction& getAbstractFunction(const FunctionDecl* function) {
+  const AbstractFunction* getAbstractFunction(const FunctionDecl* function) {
     return abstractProgram.getAbstractFunction(function);
   }
 

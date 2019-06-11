@@ -23,8 +23,11 @@ template <typename Variables, typename Functions> class PairTransitions {
       NoFunc
     };
 
-  private:
-    TransferFunction transferFunc;
+    static const constexpr char* tfStr[7] = {"Write",  "Flush",  "FlushFence",
+                                             "Vfence", "Pfence", "Ipa",
+                                             "No"};
+
+    private : TransferFunction transferFunc;
     const NamedDecl* ND;
 
     PairTransitionInfo(TransferFunction transferFunc_)
@@ -35,6 +38,15 @@ template <typename Variables, typename Functions> class PairTransitions {
     PairTransitionInfo(TransferFunction transferFunc_, const NamedDecl* ND_)
         : transferFunc(transferFunc_), ND(ND_) {
       assert(ND);
+    }
+
+    void dump() const {
+      if (transferFunc == NoFunc) {
+        llvm::errs() << "Skip stmt\n";
+      } else {
+        llvm::errs() << tfStr[(int)transferFunc] << " function";
+        printND(ND, "");
+      }
     }
 
     static PairTransitionInfo getIpa() { return PairTransitionInfo(IpaFunc); }
@@ -136,6 +148,7 @@ template <typename Variables, typename Functions> class PairTransitions {
 
   // handle----------------------------------------------------
   bool handleWrite(const PairTransitionInfo& PTI, AbstractState& state) {
+    PTI.dump();
     return transferWrite(PTI.getND(), state);
   }
 
@@ -164,7 +177,7 @@ public:
   }
 
   void initLatticeValues(AbstractState& state) {
-    for (auto usedVar : activeUnitInfo->getUsedVars()) {
+    for (auto& usedVar : activeUnitInfo->getUsedVars()) {
       auto& [isDcl, isScl] = vars->getDsclInfo(usedVar);
       auto lv = LatticeValue::getInit(isDcl, isScl);
       state[usedVar] = lv;

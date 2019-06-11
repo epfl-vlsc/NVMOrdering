@@ -60,10 +60,12 @@ void printStmt(const Stmt* S, CheckerContext& C, const char* msg) {
   S->dumpPretty(C.getASTContext());
 }
 
-void printStmt(const Stmt* S, AnalysisManager& mgr, const char* msg) {
+void printStmt(const Stmt* S, AnalysisManager& mgr, const char* msg,
+               bool newline = true) {
   llvm::errs() << msg << ":";
   S->dumpPretty(mgr.getASTContext());
-  llvm::errs() << "\n";
+  if (newline)
+    llvm::errs() << "\n";
 }
 
 void printStmt(const Stmt* S, const char* msg) { S->dump(); }

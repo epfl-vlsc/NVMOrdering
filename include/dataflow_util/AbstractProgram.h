@@ -6,6 +6,7 @@ namespace clang::ento::nvm {
 class AbstractStmt;
 class AbstractBlock;
 class AbstractFunction;
+class AbstractProgram;
 
 struct AbstractLocation {
 protected:
@@ -29,21 +30,28 @@ public:
 class AbstractStmt : public AbstractLocation {
   const Stmt* S;
   size_t no;
-  AbstractBlock* parent;
+  const AbstractBlock* parent;
 
 public:
-  AbstractStmt(const Stmt* S_, size_t no_, AbstractBlock* parent_)
-      : AbstractLocation(StmtLocation), S(S_), no(no_), parent(parent_) {}
+  AbstractStmt(const Stmt* S_, size_t no_, const AbstractBlock* parent_)
+      : S(S_), no(no_), parent(parent_) {
+    locationType = StmtLocation;
+  }
 
-  AbstractBlock& getParent() { return *parent; }
+  const AbstractBlock* getParent() const { return parent; }
 
-  AbstractStmt* getStmtKey() { return this; }
+  const AbstractLocation* getStmtKey() const { return this; }
 
-  void dump() const { llvm::errs() << "\tS:" << no << "\n"; }
+  void dump() const {
+    assert(S);
+    llvm::errs() << "S:" << no << " " << this << " ";
+  }
 
   void fullDump(AnalysisManager* Mgr) const {
-    llvm::errs() << "S:" << no << " ";
-    printStmt(S, *Mgr, "\ts");
+    assert(S);
+    llvm::errs() << "S:" << no << " " << this << " stmt key " << getStmtKey()
+                 << " ";
+    printStmt(S, *Mgr, "s", false);
   }
 
   const Stmt* getStmt() const {
@@ -57,12 +65,12 @@ public:
 class AbstractBlock : public AbstractLocation {
 private:
   enum BlockType { EntryBlock, ExitBlock, NormalBlock };
-  using Stmts = std::vector<AbstractStmt>;
-  using Blocks = std::vector<AbstractBlock*>;
+  using Stmts = std::vector<const AbstractStmt*>;
+  using Blocks = std::vector<const AbstractBlock*>;
 
   // block data
   const CFGBlock* block;
-  AbstractFunction* function;
+  const AbstractFunction* parent;
   size_t blockNo;
   BlockType blockType;
 
@@ -87,8 +95,8 @@ private:
 
 public:
   // normal constructor
-  AbstractBlock(const CFGBlock* block_, AbstractFunction* function_)
-      : block(block_), function(function_) {
+  AbstractBlock(const CFGBlock* block_, const AbstractFunction* parent_)
+      : block(block_), parent(parent_) {
     blockType = getBlockType(block_);
     blockNo = getBlockId(block_);
     locationType = BlockLocation;
@@ -100,40 +108,42 @@ public:
     return numBlocks - block_->getBlockID() - 1;
   }
 
-  AbstractFunction& getParent() { return *function; }
+  const AbstractFunction* getParent() const { return parent; }
 
   bool isEntryExit() const { return blockType != NormalBlock; }
 
-  bool isLastStmt(const Stmt* S) {
-    auto& lastStmt = stmts.back();
-    return lastStmt.getStmt() == S;
+  bool isLastStmt(const Stmt* S) const {
+    const AbstractStmt* lastStmt = stmts.back();
+    assert(lastStmt);
+    return lastStmt->getStmt() == S;
   }
 
-  void insertStmt(const Stmt* S) {
+  void insertStmt(const AbstractStmt* absStmt) {
     if (isEntryExit()) {
       llvm::report_fatal_error("disable adding stmt to entry exit block");
     }
-    size_t no = stmts.size();
-    stmts.emplace_back(S, no, this);
+    stmts.push_back(absStmt);
   }
 
-  void insertSucc(AbstractBlock* block_) { succs.push_back(block_); }
+  void insertSucc(const AbstractBlock* block_) { succs.push_back(block_); }
 
-  void insertPred(AbstractBlock* block_) { preds.push_back(block_); }
+  void insertPred(const AbstractBlock* block_) { preds.push_back(block_); }
 
-  CFGElement getLastElement() { return block->back(); }
+  CFGElement getLastElement() const { return block->back(); }
 
   auto getCFGElements() const {
     return llvm::iterator_range(block->begin(), block->end());
   }
 
-  auto getStmts() { return llvm::iterator_range(stmts.begin(), stmts.end()); }
+  auto getStmts() const {
+    return llvm::iterator_range(stmts.begin(), stmts.end());
+  }
 
   auto getCFGSuccessors() const {
     return llvm::iterator_range(block->succ_begin(), block->succ_end());
   }
 
-  auto getSuccessors() {
+  auto getSuccessors() const {
     return llvm::iterator_range(succs.begin(), succs.end());
   }
 
@@ -141,47 +151,64 @@ public:
     return llvm::iterator_range(block->pred_begin(), block->pred_end());
   }
 
-  auto getPredecessors() {
+  auto getPredecessors() const {
     return llvm::iterator_range(preds.begin(), preds.end());
   }
 
-  AbstractBlock* getBlockEntryKey() { return this; }
+  const AbstractLocation* getBlockEntryKey() const { return this; }
 
-  AbstractStmt* getBlockExitKey() { return &stmts.back(); }
+  const AbstractLocation* getBlockExitKey() const {
+    if (isEntryExit()) {
+      // return the entry
+      return this;
+    }
+
+    const AbstractLocation* blockExitKey = stmts.back();
+    assert(blockExitKey);
+    return blockExitKey;
+  }
 
   size_t numStmts() const { return stmts.size(); }
 
-  void dump() const { llvm::errs() << "B:" << blockNo; }
+  void dump() const {
+    assert(block && parent);
+    llvm::errs() << "B:" << blockNo << " " << this << " ";
+  }
 
   void fullDump(AnalysisManager* Mgr) const {
-    llvm::errs() << "B:" << blockNo << " ";
+    assert(block && parent);
+    llvm::errs() << "B:" << blockNo << " " << this << " ";
     switch (blockType) {
     case EntryBlock:
-      llvm::errs() << "entry\n";
+      llvm::errs() << "entry ";
       break;
     case ExitBlock:
-      llvm::errs() << "exit\n";
+      llvm::errs() << "exit ";
       break;
     default:
       break;
     }
 
-    printMsg("successors:", false);
-    for (auto succ : succs) {
-      succ->dump();
+    llvm::errs() << "successors ";
+    for (const AbstractBlock* absSucc : succs) {
+      absSucc->dump();
       llvm::errs() << " ";
     }
-    llvm::errs() << "\n";
 
-    printMsg("predecessors:", false);
-    for (auto pred : preds) {
-      pred->dump();
+    llvm::errs() << "predecessors ";
+    for (const AbstractBlock* absPred : preds) {
+      absPred->dump();
       llvm::errs() << " ";
     }
+
+    llvm::errs() << "entry key " << getBlockEntryKey() << " ";
+    llvm::errs() << "exit key " << getBlockExitKey() << " ";
+
     llvm::errs() << "\n";
 
-    for (auto stmt : stmts) {
-      stmt.fullDump(Mgr);
+    for (const AbstractStmt* absStmt : stmts) {
+      absStmt->fullDump(Mgr);
+      llvm::errs() << "\n";
     }
   }
 
@@ -189,42 +216,54 @@ public:
 };
 
 class AbstractFunction : public AbstractLocation {
-  using Blocks = std::vector<AbstractBlock>;
+  using Blocks = std::vector<const AbstractBlock*>;
 
   const FunctionDecl* function;
   const CFG* cfg;
+  const AbstractProgram* parent;
 
   Blocks blocks;
 
 public:
-  void initFunction(const FunctionDecl* function_, AnalysisManager* Mgr) {
-    function = function_;
+  AbstractFunction(const FunctionDecl* function_,
+                   const AbstractProgram* parent_, AnalysisManager* Mgr)
+      : function(function_), parent(parent_) {
     cfg = Mgr->getCFG(function);
     locationType = FunctionLocation;
   }
 
-  AbstractBlock& insertBlock(const CFGBlock* block) {
-    blocks.emplace_back(block, this);
-    return blocks.back();
+  void insertBlock(const AbstractBlock* absBlock) {
+    blocks.push_back(absBlock);
   }
+
+  const AbstractProgram* getParent() const { return parent; }
 
   auto getCFGBlocks() const {
     return llvm::iterator_range(cfg->rbegin(), cfg->rend());
   }
 
-  auto getBlocks() {
+  auto getBlocks() const {
     return llvm::iterator_range(blocks.begin(), blocks.end());
   }
 
-  AbstractBlock* getBlock(size_t no) { return &blocks[no]; }
+  auto getReverseBlocks() const {
+    return llvm::iterator_range(blocks.rbegin(), blocks.rend());
+  }
 
-  AbstractBlock* getEntryBlockKey() { return &blocks.front(); }
+  const AbstractBlock* getBlock(size_t no) const { return blocks[no]; }
 
-  AbstractFunction* getFunctionEntryKey() { return this; }
+  const AbstractLocation* getEntryBlockKey() const {
+    const AbstractLocation* entryBlockKey = blocks.front();
+    assert(entryBlockKey);
+    return entryBlockKey;
+  }
 
-  AbstractStmt* getFunctionExitKey() {
-    auto& lastBlock = blocks.back();
-    return lastBlock.getBlockExitKey();
+  const AbstractLocation* getFunctionEntryKey() const { return this; }
+
+  const AbstractLocation* getFunctionExitKey() const {
+    const AbstractLocation* functionExitBlock = blocks.back();
+    assert(functionExitBlock);
+    return functionExitBlock;
   }
 
   size_t numBlocks() const { return blocks.size(); }
@@ -232,31 +271,49 @@ public:
   const FunctionDecl* getFunction() const { return function; }
 
   void fullDump(AnalysisManager* Mgr) const {
-    printND(function, "F");
-    for (auto& block : blocks) {
-      block.fullDump(Mgr);
+    assert(function);
+    printND(function, "F", true, false);
+    llvm::errs() << " " << this << "\n";
+    for (const AbstractBlock* absBlock : blocks) {
+      absBlock->fullDump(Mgr);
     }
   }
 
-  void dump() const { printND(function, "F:"); }
+  void dump() const {
+    assert(function);
+    printND(function, "F", true, false);
+    llvm::errs() << " " << this << "\n";
+  }
 };
 
 class AbstractProgram {
-  using AbstractFunctionMap = std::map<const FunctionDecl*, AbstractFunction>;
+  using Locations = std::set<const AbstractLocation*>;
+  using AbstractFunctionMap =
+      std::map<const FunctionDecl*, const AbstractFunction*>;
 
+  Locations locations;
   AbstractFunctionMap abstractFunctionMap;
 
 public:
-  AbstractFunction& insertAbstractFunction(const FunctionDecl* function,
-                                           AnalysisManager* Mgr) {
-    auto& abstractFunction = abstractFunctionMap[function];
-    abstractFunction.initFunction(function, Mgr);
-    return abstractFunction;
+  ~AbstractProgram() {
+    for (auto& location : locations) {
+      //delete location;
+    }
   }
 
-  AbstractFunction& getAbstractFunction(const FunctionDecl* function) {
+  void insertLocation(const AbstractLocation* absLocation) {
+    locations.insert(absLocation);
+  }
+
+  void insertAbstractFunction(const AbstractFunction* absFunction) {
+    const FunctionDecl* FD = absFunction->getFunction();
+    abstractFunctionMap.insert(std::pair(FD, absFunction));
+  }
+
+  const AbstractFunction*
+  getAbstractFunction(const FunctionDecl* function) const {
     assert(abstractFunctionMap.count(function));
-    return abstractFunctionMap[function];
+    return abstractFunctionMap.at(function);
   }
 
   size_t numFunctions() const { return abstractFunctionMap.size(); }
@@ -264,19 +321,30 @@ public:
   void dump(AnalysisManager* Mgr) const {
     llvm::errs() << "Num functions: " << numFunctions() << "\n";
     for (auto& [_, abstractFunction] : abstractFunctionMap) {
-      abstractFunction.fullDump(Mgr);
+      abstractFunction->fullDump(Mgr);
+    }
+  }
+
+  void dumpLocations(AnalysisManager* Mgr) const {
+    for (auto& location : locations) {
+      location->fullDump(Mgr);
     }
   }
 };
 
 template <typename Transitions> class AbstractProgramBuilder {
   // useful structures
+  AbstractProgram& abstractProgram;
   Transitions& transitions;
   AnalysisManager* Mgr;
 
-  void addLastStmt(AbstractBlock& abstractBlock) {
+  void addLocation(const AbstractLocation* absLocation) {
+    abstractProgram.insertLocation(absLocation);
+  }
+
+  void addLastStmt(const AbstractBlock* absBlock) {
     // must not be entry nor exit block
-    CFGElement element = abstractBlock.getLastElement();
+    CFGElement element = absBlock->getLastElement();
     int kind = element.getKind();
 
     switch (kind) {
@@ -284,27 +352,31 @@ template <typename Transitions> class AbstractProgramBuilder {
       CFGStmt CS = element.castAs<CFGStmt>();
       const Stmt* S = CS.getStmt();
       assert(S);
-      if (!abstractBlock.isLastStmt(S)) {
-        abstractBlock.insertStmt(S);
+      if (!absBlock->isLastStmt(S)) {
+        size_t stmtNo = absBlock->numStmts();
+        const AbstractStmt* absStmt = new AbstractStmt(S, stmtNo, absBlock);
+        addLocation(absStmt);
+
+        ((AbstractBlock*)absBlock)->insertStmt(absStmt);
       }
 
     } break;
     default: {
       llvm::errs() << "kind:" << kind << "\n";
-      abstractBlock.fullDump(Mgr);
+      absBlock->fullDump(Mgr);
       llvm::report_fatal_error("kind not covered");
     } break;
     }
   }
 
-  void buildAbstractBlock(AbstractBlock& abstractBlock) {
+  void buildAbstractBlock(const AbstractBlock* absBlock) {
     // skip if entry or exit block
-    if (abstractBlock.isEntryExit()) {
+    if (absBlock->isEntryExit()) {
       return;
     }
 
     // iterate blocks
-    for (const CFGElement element : abstractBlock.getCFGElements()) {
+    for (const CFGElement element : absBlock->getCFGElements()) {
       if (Optional<CFGStmt> CS = element.getAs<CFGStmt>()) {
         const Stmt* S = CS->getStmt();
         assert(S);
@@ -312,59 +384,76 @@ template <typename Transitions> class AbstractProgramBuilder {
         // check if stmt is used in data flow
         auto PTI = transitions.parseStmt(S);
         if (PTI.isStmtUsed()) {
-          abstractBlock.insertStmt(S);
+          size_t stmtNo = absBlock->numStmts();
+          const AbstractStmt* absStmt = new AbstractStmt(S, stmtNo, absBlock);
+          addLocation(absStmt);
+
+          ((AbstractBlock*)absBlock)->insertStmt(absStmt);
         }
       }
     }
 
     // get final stmt
-    addLastStmt(abstractBlock);
+    addLastStmt(absBlock);
   }
 
-  void buildSuccPred(AbstractFunction& parent, AbstractBlock& abstractBlock) {
-    for (const CFGBlock* predBlock : abstractBlock.getCFGPredecessors()) {
+  void buildSuccPred(const AbstractBlock* absBlock,
+                     const AbstractFunction* parent) {
+    for (const CFGBlock* predBlock : absBlock->getCFGPredecessors()) {
       size_t no = AbstractBlock::getBlockId(predBlock);
-      auto* predAbstractBlock = parent.getBlock(no);
-      abstractBlock.insertPred(predAbstractBlock);
+      const AbstractBlock* predAbsBlock = parent->getBlock(no);
+      ((AbstractBlock*)absBlock)->insertPred(predAbsBlock);
     }
 
-    for (const CFGBlock* succBlock : abstractBlock.getCFGSuccessors()) {
+    for (const CFGBlock* succBlock : absBlock->getCFGSuccessors()) {
       size_t no = AbstractBlock::getBlockId(succBlock);
-      auto* succAbstractBlock = parent.getBlock(no);
-      abstractBlock.insertSucc(succAbstractBlock);
+      const AbstractBlock* succAbsBlock = parent->getBlock(no);
+      ((AbstractBlock*)absBlock)->insertSucc(succAbsBlock);
     }
   }
 
-  void buildAbstractFunction(AbstractFunction& absFunction) {
+  void buildAbstractFunction(const AbstractFunction* absFunction) {
     // per function abstract cfg
 
     // iterate cfg
-    for (const CFGBlock* block : absFunction.getCFGBlocks()) {
+    for (const CFGBlock* block : absFunction->getCFGBlocks()) {
       // per block abstract block
-      auto& abstractBlock = absFunction.insertBlock(block);
-      buildAbstractBlock(abstractBlock);
+      const AbstractBlock* absBlock = new AbstractBlock(block, absFunction);
+      addLocation(absBlock);
+
+      ((AbstractFunction*)absFunction)->insertBlock(absBlock);
+
+      buildAbstractBlock(absBlock);
     }
 
-    for (auto& abstractBlock : absFunction.getBlocks()) {
-      // nuild succ and pred
-      buildSuccPred(absFunction, abstractBlock);
+    for (const AbstractBlock* absBlock : absFunction->getBlocks()) {
+      // build succ and pred
+      buildSuccPred(absBlock, absFunction);
     }
   }
 
 public:
-  AbstractProgramBuilder(Transitions& transitions_)
-      : transitions(transitions_) {
+  AbstractProgramBuilder(AbstractProgram& abstractProgram_,
+                         Transitions& transitions_)
+      : abstractProgram(abstractProgram_), transitions(transitions_) {
     Mgr = transitions.getMgr();
     // set so that all effected statements are tracked, not just unit
     transitions.useGlobalTransitions();
     assert(Mgr);
+
+    buildProgram();
   }
 
-  void buildProgram(AbstractProgram& abstractProgram) {
+  void buildProgram() {
     // create abstract control flow graphs for each function
     for (const FunctionDecl* function : transitions.getAnalysisFunctions()) {
-      auto& abstractCfg = abstractProgram.insertAbstractFunction(function, Mgr);
-      buildAbstractFunction(abstractCfg);
+      const AbstractFunction* absFunction =
+          new AbstractFunction(function, &abstractProgram, Mgr);
+
+      addLocation(absFunction);
+      abstractProgram.insertAbstractFunction(absFunction);
+
+      buildAbstractFunction(absFunction);
     }
   }
 };
@@ -375,6 +464,7 @@ class AbstractContext {
 
 public:
   AbstractContext() : caller(nullptr), callee(nullptr) {}
+
   AbstractContext(const AbstractContext& X, const CallExpr* Callee) {
     caller = X.callee;
     callee = Callee;
@@ -397,7 +487,7 @@ public:
       llvm::errs() << "none";
     }
 
-    llvm::errs() << "callee:";
+    llvm::errs() << " callee:";
     if (callee) {
       callee->dumpPretty(ASTC);
     } else {

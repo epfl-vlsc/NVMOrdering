@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "LatticeValue.h"
+#include "dataflow_util/DataflowPrint.h"
 
 namespace clang::ento::nvm {
 
