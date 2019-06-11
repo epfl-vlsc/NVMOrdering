@@ -29,12 +29,12 @@ public:
   SclValue() : scl(UnseenScl) {}
 };
 
-class LatticeValue : public DclValue, public SclValue {
+class PairLattice : public DclValue, public SclValue {
   enum LatticeType { DclType, SclType, BothType, None };
 
   LatticeType latticeType;
 
-  void meetValue(const LatticeValue& val) {
+  void meetValue(const PairLattice& val) {
     LatticeType type = val.latticeType;
     if (type != DclType) {
       scl = ((int)scl < (int)val.scl) ? scl : val.scl;
@@ -45,15 +45,15 @@ class LatticeValue : public DclValue, public SclValue {
   }
 
 public:
-  LatticeValue(LatticeType type)
+  PairLattice(LatticeType type)
       : DclValue(UnseenDcl), SclValue(UnseenScl), latticeType(type) {
     assert(type < None);
   }
 
-  LatticeValue()
+  PairLattice()
       : DclValue(UnseenDcl), SclValue(UnseenScl), latticeType(None) {}
 
-  LatticeValue(const LatticeValue& val) { *this = val; }
+  PairLattice(const PairLattice& val) { *this = val; }
 
   LatticeType getLatticeType() const { return latticeType; }
 
@@ -71,28 +71,28 @@ public:
     }
   }
 
-  static LatticeValue getInit(bool isDcl, bool isScl) {
+  static PairLattice getInit(bool isDcl, bool isScl) {
     assert((isDcl || isScl));
     if (isDcl && isScl) {
-      return LatticeValue(BothType);
+      return PairLattice(BothType);
     } else if (isDcl) {
-      return LatticeValue(DclType);
+      return PairLattice(DclType);
     } else if (isScl) {
-      return LatticeValue(SclType);
+      return PairLattice(SclType);
     } else {
       llvm::report_fatal_error("invalid dscl");
-      return LatticeValue(BothType);
+      return PairLattice(BothType);
     }
   }
 
-  static LatticeValue getUnseenDcl(const LatticeValue& val) {
-    LatticeValue value(val);
+  static PairLattice getUnseenDcl(const PairLattice& val) {
+    PairLattice value(val);
     value.dcl = UnseenDcl;
     return value;
   }
 
-  static LatticeValue getWrite(const LatticeValue& val) {
-    LatticeValue value(val);
+  static PairLattice getWrite(const PairLattice& val) {
+    PairLattice value(val);
     LatticeType type = value.latticeType;
     if (type != DclType) {
       value.scl = WriteScl;
@@ -103,33 +103,33 @@ public:
     return value;
   }
 
-  static LatticeValue getFlush(const LatticeValue& val) {
-    LatticeValue value(val);
+  static PairLattice getFlush(const PairLattice& val) {
+    PairLattice value(val);
     value.dcl = Flush;
     return value;
   }
 
-  static LatticeValue getPfence(const LatticeValue& val) {
-    LatticeValue value(val);
+  static PairLattice getPfence(const PairLattice& val) {
+    PairLattice value(val);
     value.dcl = Pfence;
     return value;
   }
 
-  static LatticeValue getUnseenScl(const LatticeValue& val) {
-    LatticeValue value(val);
+  static PairLattice getUnseenScl(const PairLattice& val) {
+    PairLattice value(val);
     value.scl = UnseenScl;
     return value;
   }
 
-  static LatticeValue getVfence(const LatticeValue& val) {
-    LatticeValue value(val);
+  static PairLattice getVfence(const PairLattice& val) {
+    PairLattice value(val);
     value.scl = Vfence;
     return value;
   }
 
-  static LatticeValue meet(const LatticeValue& value) {
+  static PairLattice meet(const PairLattice& value) {
     LatticeType type = value.getLatticeType();
-    LatticeValue newValue(type);
+    PairLattice newValue(type);
     newValue.meetValue(value);
     return newValue;
   }
@@ -138,11 +138,11 @@ public:
 
   bool isFlush() const { return dcl == Flush; }
 
-  bool operator<(const LatticeValue& X) const {
+  bool operator<(const PairLattice& X) const {
     return latticeType < X.latticeType && dcl < X.dcl && scl < X.scl;
   }
 
-  bool operator==(const LatticeValue& X) const {
+  bool operator==(const PairLattice& X) const {
     return latticeType == X.latticeType && dcl == X.dcl && scl == X.scl;
   }
 };

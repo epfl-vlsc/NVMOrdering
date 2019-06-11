@@ -104,7 +104,7 @@ public:
     transitions.initLatticeValues(state);
   }
 
-  bool handleStmt(const Stmt* S, AbstractState& state) {
+  auto handleStmt(const Stmt* S, AbstractState& state) {
     return transitions.handleStmt(S, state);
   }
 

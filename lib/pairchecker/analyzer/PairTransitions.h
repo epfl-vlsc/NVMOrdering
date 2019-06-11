@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-#include "PairTransfer.h"
+#include "dataflow_util/TransitionChange.h"
 #include "parser_util/ParseUtils.h"
 
 namespace clang::ento::nvm {
@@ -8,7 +8,7 @@ namespace clang::ento::nvm {
 template <typename Variables, typename Functions> class PairTransitions {
   using FunctionInfo = typename Functions::FunctionInfo;
   using LatVar = const NamedDecl*;
-  using LatVal = LatticeValue;
+  using LatVal = PairLattice;
   using AbstractState = std::map<LatVar, LatVal>;
 
   class PairTransitionInfo {
@@ -78,8 +78,26 @@ template <typename Variables, typename Functions> class PairTransitions {
   FunctionInfo* activeUnitInfo;
   AnalysisManager* Mgr;
 
+  // for bug finding
+  using PairSet = std::set<const NamedDecl*>;
+  using VarToPair = std::map<const NamedDecl*, PairSet>;
+  VarToPair* varToPair;
+
   // for creating abstract graph
   bool useGlobal;
+
+  PairSet& getPairSet(const NamedDecl* ND) {
+    auto& pairSet = (*varToPair)[ND];
+
+    auto& PISet = vars->getPairInfoSet(ND);
+    for (auto& PI : PISet) {
+      const NamedDecl* pairND = PI->getPairND(ND);
+      if (activeUnitInfo->isUsedVar(pairND)) {
+        pairSet.insert(pairND);
+      }
+    }
+    return pairSet;
+  }
 
   // parse-------------------------------------------------------
   bool isUsedVar(const NamedDecl* ND) {
@@ -147,21 +165,50 @@ template <typename Variables, typename Functions> class PairTransitions {
   }
 
   // handle----------------------------------------------------
-  bool handleWrite(const PairTransitionInfo& PTI, AbstractState& state) {
-    PTI.dump();
-    return transferWrite(PTI.getND(), state);
+  TransitionChange handleWrite(const PairTransitionInfo& PTI,
+                               AbstractState& state) {
+    const NamedDecl* ND = PTI.getND();
+    state[ND] = LatVal::getWrite(state[ND]);
+
+    auto& pairSet = getPairSet(ND);
+    for (auto& pairND : pairSet) {
+      auto& pairLattice = state[pairND];
+      if (pairLattice.isWriteFlush()) {
+        printMsg("bug here");
+        return TransitionChange::BugChange;
+      }
+    }
+
+    return TransitionChange::StateChange;
   }
 
-  bool handleFence(const PairTransitionInfo& PTI, AbstractState& state) {
+  TransitionChange handleFence(const PairTransitionInfo& PTI,
+                               AbstractState& state) {
     llvm::report_fatal_error("not implemented");
-    return false;
+    return TransitionChange::NoChange;
   }
 
-  bool handleFlush(const PairTransitionInfo& PTI, AbstractState& state) {
-    return transferFlush(PTI.getND(), state, PTI.isPfence());
+  TransitionChange handleFlush(const PairTransitionInfo& PTI,
+                               AbstractState& state) {
+    const NamedDecl* ND = PTI.getND();
+    bool isPfence = PTI.isPfence();
+
+    auto& LV = state[ND];
+
+    if (!LV.isWrite()) {
+      return TransitionChange::NoChange;
+    }
+
+    if (isPfence) {
+      state[ND] = LatVal::getPfence(LV);
+    } else {
+      state[ND] = LatVal::getFlush(LV);
+    }
+    return TransitionChange::StateChange;
   }
 
-  bool handleStmt(const PairTransitionInfo& PTI, AbstractState& state) {
+  TransitionChange handleStmt(const PairTransitionInfo& PTI,
+                              AbstractState& state) {
     switch (PTI.getTransferFunction()) {
     case PairTransitionInfo::WriteFunc:
       return handleWrite(PTI, state);
@@ -175,7 +222,7 @@ template <typename Variables, typename Functions> class PairTransitions {
     case PairTransitionInfo::PfenceFunc:
       return handleFence(PTI, state);
     default:
-      return false;
+      return TransitionChange::NoChange;
     }
   }
 
@@ -185,6 +232,7 @@ public:
     funcs = &funcs_;
     Mgr = Mgr_;
     useGlobal = false;
+    varToPair = nullptr;
   }
 
   void useGlobalTransitions() { useGlobal = true; }
@@ -192,12 +240,18 @@ public:
   void initUnit(FunctionInfo* activeUnitInfo_) {
     activeUnitInfo = activeUnitInfo_;
     useGlobal = false;
+
+    // to find pairs quickly
+    if (varToPair) {
+      delete varToPair;
+    }
+    varToPair = new VarToPair;
   }
 
   void initLatticeValues(AbstractState& state) {
     for (auto& usedVar : activeUnitInfo->getUsedVars()) {
       auto& [isDcl, isScl] = vars->getDsclInfo(usedVar);
-      auto lv = LatticeValue::getInit(isDcl, isScl);
+      auto lv = LatVal::getInit(isDcl, isScl);
       state[usedVar] = lv;
     }
   }
@@ -212,11 +266,11 @@ public:
     return PairTransitionInfo();
   }
 
-  bool handleStmt(const Stmt* S, AbstractState& state) {
+  TransitionChange handleStmt(const Stmt* S, AbstractState& state) {
     // parse stmt to usable structure
     auto PTI = parseStmt(S);
 
-    // handle stmt 
+    // handle stmt
     return handleStmt(PTI, state);
   }
 

@@ -2,6 +2,7 @@
 #include "AbstractProgram.h"
 #include "Common.h"
 #include "DataflowPrint.h"
+#include "TransitionChange.h"
 
 namespace clang::ento::nvm {
 
@@ -32,6 +33,9 @@ template <typename Analyzer> class DataflowAnalysis {
   const FunctionDecl* topFunction;
   AnalysisManager* Mgr;
   Analyzer& analyzer;
+
+  // interrupt data flow
+  bool stopDataflow;
 
   void initTopEntryValues(const AbstractFunction* absFunction,
                           FunctionResults& results) {
@@ -114,6 +118,9 @@ template <typename Analyzer> class DataflowAnalysis {
   bool analyzeCall(const CallExpr* CE, AbstractState& callerState,
                    const AbstractFunction* absCaller,
                    const AbstractContext& context) {
+    if (stopDataflow) {
+      return false;
+    }
     AbstractContext newContext(context, CE);
     const FunctionDecl* caller = absCaller->getFunction();
     const FunctionDecl* callee = CE->getDirectCallee();
@@ -159,8 +166,24 @@ template <typename Analyzer> class DataflowAnalysis {
     return true;
   }
 
+  bool isStateChange(TransitionChange change) {
+    switch (change) {
+    case TransitionChange::StateChange: {
+      return true;
+    } break;
+    case TransitionChange::BugChange: {
+      stopDataflow = true;
+      contextWork.clear();
+      return true;
+    } break;
+    default:
+      return false;
+    }
+  }
+
   bool applyTransfer(const Stmt* S, AbstractState& state) {
-    return analyzer.handleStmt(S, state);
+    auto change = analyzer.handleStmt(S, state);
+    return isStateChange(change);
   }
 
   bool analyzeStmt(const Stmt* S, AbstractState& state,
@@ -189,6 +212,10 @@ template <typename Analyzer> class DataflowAnalysis {
   }
 
   void computeDataflow(const FunctionDecl* function, AbstractContext& context) {
+    if (stopDataflow) {
+      return;
+    }
+
     const AbstractFunction* absFunction =
         analyzer.getAbstractFunction(function);
 
@@ -202,6 +229,10 @@ template <typename Analyzer> class DataflowAnalysis {
     addBlocksToWorklist(absFunction, blockWorklist);
 
     while (!blockWorklist.empty()) {
+      if (stopDataflow) {
+        return;
+      }
+
       const AbstractBlock* absBlock = blockWorklist.pop_back_val();
 
       auto* blockEntryKey = absBlock->getBlockEntryKey();
@@ -258,6 +289,7 @@ public:
       : topFunction(function), analyzer(analyzer_) {
     Mgr = analyzer.getMgr();
     contextWork.push_back({function, AbstractContext()});
+    stopDataflow = false;
   }
 
   DataflowResults* computeDataflow() {

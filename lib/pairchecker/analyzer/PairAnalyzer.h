@@ -1,15 +1,14 @@
 #pragma once
 #include "../preprocess/PairParser.h"
 #include "Common.h"
-#include "LatticeValue.h"
+#include "PairLattice.h"
 #include "PairTransitions.h"
 #include "dataflow_util/MainAnalyzer.h"
-#include "dataflow_util/ProgramLocation.h"
 
 namespace clang::ento::nvm {
 
 class PairAnalyzer
-    : public MainAnalyzer<PairVariables, PairFunctions, LatticeValue,
+    : public MainAnalyzer<PairVariables, PairFunctions, PairLattice,
                           PairTransitions<PairVariables, PairFunctions>,
                           PairParser, PairAnalyzer> {
 
