@@ -5,111 +5,23 @@
 
 namespace clang::ento::nvm {
 
-void ExpChecker::checkASTDecl(const RecordDecl* RD, AnalysisManager& Mgr,
-                              BugReporter& BR) const {}
+void ExpChecker::checkEndOfTranslationUnit(const TranslationUnitDecl* TU,
+                                           AnalysisManager& Mgr,
+                                           BugReporter& BR) const {
+  ASTContext& ACtx = Mgr.getASTContext();
+  const TranslationUnitDecl* TUD = ACtx.getTranslationUnitDecl();
+  SourceManager& SM = ACtx.getSourceManager();
+  AnalysisDeclContext* ADC = Mgr.getAnalysisDeclContext(TUD);
 
-void ExpChecker::checkASTDecl(const TranslationUnitDecl* CTUD,
-                              AnalysisManager& Mgr, BugReporter& BR) const {}
+  std::unique_ptr<BugType> BT_Exact;
+  if (!BT_Exact)
+    BT_Exact.reset(new BugType(this, "Exact code clone", "Code clone"));
 
-void ExpChecker::checkBeginFunction(CheckerContext& C) const {}
+  auto L = PathDiagnosticLocation::createBegin(TUD, SM, ADC);
+  auto R =
+      llvm::make_unique<BugReport>(*BT_Exact, "Duplicate code detected", L);
 
-void ExpChecker::checkBind(SVal Loc, SVal Val, const Stmt* S,
-                           CheckerContext& C) const {
-  // DBGS(S, "bs")
-  // DBGL(Loc, "bl")
-
-  printStmt(S, C, "bs", true);
-  printLoc(Val, "bval");
-  printLoc(Loc, "bloc");
-  
-  if (auto ls = Val.getAs<nonloc::ConcreteInt>()) {
-    auto l = ls.getValue();
-    auto val = l.getValue();
-    auto i = val.getExtValue();
-    llvm::errs()<< i << "\n";
-  }
-}
-
-void ExpChecker::checkPostCall(const CallEvent& Call, CheckerContext& C) const {
-  const FunctionDecl* FD = getFuncDecl(Call);
-  printND(FD, "fnc");
-}
-
-void ExpChecker::checkPreCall(const CallEvent& Call, CheckerContext& C) const {}
-
-void ExpChecker::checkBranchCondition(const Stmt* S, CheckerContext& C) const {
-  /*
-  ProgramStateRef State = C.getState();
-  const LocationContext* LC = C.getLocationContext();
-  SVal Val = State->getSVal(S, LC);
-  Optional<DefinedOrUnknownSVal> DVal = Val.getAs<DefinedOrUnknownSVal>();
-
-  DBGL(Val, "val")
-  if (State->assume(*DVal, true)) {
-    DBG("false")
-  }
-  if (State->assume(*DVal, false)) {
-    DBG("false")
-    ProgramStateRef NewState = C.getState();
-    SValBuilder& SVB = C.getSValBuilder();
-    SVal TrueValue = SVB.makeTruthVal(true);
-    DBGL(TrueValue, "truthval")
-    DBGS(S, "s")
-    NewState = NewState->BindExpr(S, LC, TrueValue);
-    if (NewState == State) {
-      DBG("fail")
-    }
-    C.addTransition(NewState);
-    //SVal Valx = NewState->getSVal(S, LC);
-    //DBGL(Valx, "val")
-  }
-  */
-}
-
-bool ExpChecker::evalCall(const CallExpr* CE, CheckerContext& C) const {
-  static const size_t MEMCPY_ARGS = 3;
-  const FunctionDecl* FD = C.getCalleeDecl(CE);
-  if (!FD) {
-    return false;
-  }
-  StringRef fncName = FD->getName();
-  if (!fncName.equals("memcpy")) {
-    return false;
-  }
-
-  if (CE->getNumArgs() != MEMCPY_ARGS) {
-    llvm::report_fatal_error("what's wrong with memcpy");
-  }
-
-  ProgramStateRef State = C.getState();
-  const LocationContext* LC = C.getLocationContext();
-
-  const Expr* Arg0 = CE->getArg(0);
-  const Expr* Arg1 = CE->getArg(1);
-  SVal Loc = State->getSVal(Arg0, LC);
-  SVal Val = State->getSVal(Arg1, LC);
-
-  printStmt(CE, C, "es", true);
-  printLoc(Loc, "eloc");
-  printLoc(Val, "eval");
-  
-  const MemRegion* mloc = Loc.getAsRegion();
-  const MemRegion* mval = Val.getAsRegion();
-
-  printReg(mloc, "emloc");
-  printReg(mval, "emval");
-
-  SVal sloc = State->getSVal(mloc);
-  SVal sval = State->getSVal(mval);
-
-  printLoc(sloc, "esloc");
-  printLoc(sval, "esval");
-
-  State = State->bindLoc(sloc, sval, LC);
-  
-  C.addTransition(State);
-
-  return true;
+  BR.emitReport(std::move(R));
 }
 
 } // namespace clang::ento::nvm
