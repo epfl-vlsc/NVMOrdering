@@ -215,11 +215,6 @@ public:
   }
 
   ~AbstractBlock() {}
-
-  SourceRange getSourceRange() const {
-    llvm::report_fatal_error("block cannot find source");
-    return SourceRange();
-  }
 };
 
 class AbstractFunction : public AbstractLocation {
@@ -290,11 +285,6 @@ public:
     assert(function);
     printND(function, "F", true, false);
     llvm::errs() << " " << this << " ";
-  }
-
-  SourceRange getSourceRange() const {
-    llvm::report_fatal_error("function cannot find source");
-    return SourceRange();
   }
 };
 

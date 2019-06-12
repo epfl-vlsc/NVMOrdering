@@ -50,16 +50,11 @@ public:
     assert(type < None);
   }
 
-  PairLattice()
-      : DclValue(UnseenDcl), SclValue(UnseenScl), latticeType(None) {}
+  PairLattice() : DclValue(UnseenDcl), SclValue(UnseenScl), latticeType(None) {}
 
   PairLattice(const PairLattice& val) { *this = val; }
 
   LatticeType getLatticeType() const { return latticeType; }
-
-  bool isWriteFlush() const {
-    return scl == WriteScl || dcl == WriteDcl || dcl == Flush;
-  }
 
   void dump() const {
     assert(latticeType < None);
@@ -134,9 +129,27 @@ public:
     return newValue;
   }
 
+  bool hasScl() const {
+    return latticeType == BothType || latticeType == SclType;
+  }
+
+  bool hasDcl() const {
+    return latticeType == BothType || latticeType == DclType;
+  }
+
   bool isWrite() const { return dcl == WriteDcl || scl == WriteScl; }
 
+  bool isWriteDcl() const { return dcl == WriteDcl; }
+
+  bool isWriteFlushDcl() const { return dcl == WriteDcl || dcl == Flush; }
+
+  bool isWriteScl() const { return scl == WriteScl; }
+
   bool isFlush() const { return dcl == Flush; }
+
+  bool isWriteFlush() const {
+    return scl == WriteScl || dcl == WriteDcl || dcl == Flush;
+  }
 
   bool operator<(const PairLattice& X) const {
     return latticeType < X.latticeType && dcl < X.dcl && scl < X.scl;

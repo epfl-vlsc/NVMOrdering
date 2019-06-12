@@ -239,30 +239,59 @@ template <typename Variables, typename Functions> class PairTransitions {
   TransitionChange handleFence(const AbstractStmt* absStmt,
                                const PairTransitionInfo& PTI,
                                AbstractState& state) {
-    llvm::report_fatal_error("not implemented");
-    return TransitionChange::NoChange;
+    bool isPfence = PTI.isPfence();
+    bool stateChanged = false;
+
+    for (auto& [Var, LV] : state) {
+      if (isPfence && LV.hasDcl() && LV.isFlush()) {
+        state[Var] = LatVal::getPfence(LV);
+        updateLastLocation(Var, absStmt);
+        stateChanged = true;
+      }
+
+      if (LV.hasScl() && LV.isWrite()) {
+        state[Var] = LatVal::getVfence(LV);
+        updateLastLocation(Var, absStmt);
+        stateChanged = true;
+      }
+    }
+
+    if (stateChanged) {
+      return TransitionChange::StateChange;
+    } else {
+      return TransitionChange::NoChange;
+    }
   }
 
   TransitionChange handleFlush(const AbstractStmt* absStmt,
                                const PairTransitionInfo& PTI,
                                AbstractState& state) {
-    const NamedDecl* ND = PTI.getND();
+    const NamedDecl* Var = PTI.getND();
     bool isPfence = PTI.isPfence();
+    auto& LV = state[Var];
+    bool stateChanged = false;
 
-    auto& LV = state[ND];
-
-    if (!LV.isWrite()) {
-      return TransitionChange::NoChange;
+    if (isPfence && LV.hasDcl() && LV.isWriteFlushDcl()) {
+      state[Var] = LatVal::getPfence(LV);
+      updateLastLocation(Var, absStmt);
+      stateChanged = true;
+    } else if (LV.hasDcl() && LV.isWriteDcl()) {
+      state[Var] = LatVal::getFlush(LV);
+      updateLastLocation(Var, absStmt);
+      stateChanged = true;
     }
 
     if (isPfence) {
-      state[ND] = LatVal::getPfence(LV);
-    } else {
-      state[ND] = LatVal::getFlush(LV);
+      state[Var] = LatVal::getVfence(LV);
+      updateLastLocation(Var, absStmt);
+      stateChanged = true;
     }
 
-    updateLastLocation(ND, absStmt);
-    return TransitionChange::StateChange;
+    if (stateChanged) {
+      return TransitionChange::StateChange;
+    } else {
+      return TransitionChange::NoChange;
+    }
   }
 
   TransitionChange handleStmt(const AbstractStmt* absStmt,
