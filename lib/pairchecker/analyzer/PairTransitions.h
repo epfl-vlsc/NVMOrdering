@@ -175,13 +175,8 @@ template <typename Variables, typename Functions> class PairTransitions {
     return PairTransitionInfo();
   }
 
-  // handle----------------------------------------------------
-  TransitionChange handleWrite(const AbstractStmt* absStmt,
-                               const PairTransitionInfo& PTI,
-                               AbstractState& state) {
-    const NamedDecl* ND = PTI.getND();
-    state[ND] = LatVal::getWrite(state[ND]);
-
+  bool checkBug(const NamedDecl* ND, const AbstractStmt* absStmt,
+                AbstractState& state) {
     auto& pairSet = getPairSet(ND);
     for (auto& pairND : pairSet) {
       auto& pairLattice = state[pairND];
@@ -195,25 +190,50 @@ template <typename Variables, typename Functions> class PairTransitions {
         absStmt->fullDump(Mgr);
         printMsg("");
 
+        const AbstractStmt* pairAbsStmt = absLocation->castAs<AbstractStmt>();
+        const Stmt* bugStmt = absStmt->getStmt();
+        const Stmt* pairStmt = pairAbsStmt->getStmt();
+
         SmallString<100> buf;
         llvm::raw_svector_ostream os(buf);
         os << "Error writing " << ND->getQualifiedNameAsString() << " commit "
            << pairND->getQualifiedNameAsString() << "\n";
 
-        auto* Ctx = Mgr->getAnalysisDeclContext(ND);
-        PathDiagnosticLocation L = PathDiagnosticLocation::createBegin(
-            absStmt->getStmt(), Mgr->getSourceManager(), Ctx);
-        auto R = llvm::make_unique<BugReport>(*CommitBug, os.str(), L);
-        R->addRange(absLocation->getSourceRange());
-        R->addRange(absStmt->getSourceRange());
-        BR->emitReport(std::move(R));
+        SmallString<100> buf2;
+        llvm::raw_svector_ostream os2(buf2);
+        os2 << "Commit " << pairND->getQualifiedNameAsString() << "\n";
 
-        return TransitionChange::BugChange;
+        ASTContext& ACtx = Mgr->getASTContext();
+        const TranslationUnitDecl* TUD = ACtx.getTranslationUnitDecl();
+        SourceManager& SM = ACtx.getSourceManager();
+        AnalysisDeclContext* ADC = Mgr->getAnalysisDeclContext(TUD);
+
+        auto L = PathDiagnosticLocation::createBegin(bugStmt, SM, ADC);
+        auto R = llvm::make_unique<BugReport>(*CommitBug, os.str(), L);
+
+        auto L2 = PathDiagnosticLocation::createBegin(pairStmt, SM, ADC);
+        R->addNote(os2.str(), L2, pairStmt->getSourceRange());
+
+        BR->emitReport(std::move(R));
+        return true;
       }
     }
 
+    return false;
+  }
+
+  // handle----------------------------------------------------
+  TransitionChange handleWrite(const AbstractStmt* absStmt,
+                               const PairTransitionInfo& PTI,
+                               AbstractState& state) {
+    const NamedDecl* ND = PTI.getND();
+    state[ND] = LatVal::getWrite(state[ND]);
     updateLastLocation(ND, absStmt);
-    return TransitionChange::StateChange;
+    if (checkBug(ND, absStmt, state)) {
+      return TransitionChange::BugChange;
+    } else {
+      return TransitionChange::StateChange;
+    }
   }
 
   TransitionChange handleFence(const AbstractStmt* absStmt,

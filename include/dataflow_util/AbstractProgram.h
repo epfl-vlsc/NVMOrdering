@@ -22,7 +22,8 @@ protected:
   AbstractLocation(LocationType locationType_) : locationType(locationType_) {}
 
 public:
-  virtual SourceRange getSourceRange() const = 0;
+  template <typename T> const T* castAs() const { return (const T*)this; }
+
   virtual void dump() const = 0;
   virtual void fullDump(AnalysisManager* Mgr) const = 0;
   virtual ~AbstractLocation() {}
@@ -59,8 +60,6 @@ public:
     assert(S && "non valid stmt");
     return S;
   }
-
-  SourceRange getSourceRange() const { return S->getSourceRange(); }
 
   ~AbstractStmt() {}
 };

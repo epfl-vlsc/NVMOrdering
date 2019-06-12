@@ -6,14 +6,13 @@ constexpr const char* CHECKER_PLUGIN_NAME = "nvm.pairchecker";
 
 namespace clang::ento::nvm {
 
-class PairChecker
-    : public Checker<check::ASTDecl<TranslationUnitDecl>> {
+class PairChecker : public Checker<check::EndOfTranslationUnit> {
 
 public:
   PairChecker() {}
 
-  void checkASTDecl(const TranslationUnitDecl* CTUD, AnalysisManager& Mgr,
-                    BugReporter& BR) const;
+  void checkEndOfTranslationUnit(const TranslationUnitDecl* TUD,
+                                 AnalysisManager& Mgr, BugReporter& BR) const;
 };
 
 } // namespace clang::ento::nvm
