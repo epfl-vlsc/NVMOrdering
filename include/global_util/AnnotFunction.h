@@ -22,13 +22,15 @@ public:
     }
   }
 
+  void insertFunctionDirect(const FunctionDecl* FD) { functions.insert(FD); }
+
   void erase(const FunctionDecl* FD) { functions.erase(FD); }
 
   auto begin() const { return functions.cbegin(); }
 
   auto end() const { return functions.cend(); }
 
-  void dump() const{
+  void dump() const {
     llvm::errs() << annotation << " ";
     BaseFunction::dump();
   }

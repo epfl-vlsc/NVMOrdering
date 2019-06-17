@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
 #include "PairInfo.h"
-#include "analysis_util/AutoCl.h"
+#include "parser_util/AutoCl.h"
 
 namespace clang::ento::nvm {
 
@@ -145,16 +145,17 @@ public:
     if (const CallExpr* CE = dyn_cast<CallExpr>(S)) {
       const FunctionDecl* FD = CE->getDirectCallee();
       if (FD->hasBody() && !globals.isSkipFunction(FD)) {
-        const Stmt* functionBody = FD->getBody();
-        trackStmt(functionBody);
-        globals.addFunctionToActiveUnit(FD);
-        trackChildren(S);
+        trackStmt(FD);
+        globals.insertFunctionToActiveUnit(FD);
+      } else {
+        return;
       }
     } else if (const MemberExpr* ME = dyn_cast<MemberExpr>(S)) {
       const ValueDecl* VD = ME->getMemberDecl();
-      globals.addVariableToActiveUnit(VD);
-      trackChildren(S);
+      globals.insertVariableToActiveUnit(VD);
     }
+
+    trackChildren(S);
   }
 
   void trackChildren(const Stmt* S) {

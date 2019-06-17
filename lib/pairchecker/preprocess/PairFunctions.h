@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-#include "analysis_util/DirectFunctions.h"
+#include "global_util/DirectFunctions.h"
 
 namespace clang::ento::nvm {
 

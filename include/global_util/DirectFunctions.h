@@ -40,7 +40,7 @@ public:
   }
 
   void insertAnalyzeFunction(const FunctionDecl* FD) {
-    analyzedFnc.insertFunction(FD);
+    analyzedFnc.insertFunctionDirect(FD);
   }
 
   void insertFunction(const FunctionDecl* FD) {

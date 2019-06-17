@@ -26,7 +26,10 @@ public:
       : Mgr(Mgr_), stmtParser(globals), bugReporter(globals, Mgr_, BR, CB),
         transitions(globals, stmtParser, bugReporter) {}
 
-  void initUnit(const FunctionDecl* FD) { globals.setActiveUnit(FD); }
+  void initUnit(const FunctionDecl* FD) {
+    globals.setActiveUnit(FD);
+    globals.dumpUnit();
+  }
 
   void initLatticeValues(AbstractState& state) {
     transitions.initLatticeValues(state);

@@ -86,12 +86,12 @@ public:
     activeUnit = &functionUnitMap[FD];
   }
 
-  void addVariableToActiveUnit(LatVar var) {
+  void insertVariableToActiveUnit(LatVar var) {
     assert(activeUnit);
     activeUnit->insertVariable(var);
   }
 
-  void addFunctionToActiveUnit(const FunctionDecl* FD) {
+  void insertFunctionToActiveUnit(const FunctionDecl* FD) {
     assert(activeUnit);
     activeUnit->insertFunction(FD);
   }
