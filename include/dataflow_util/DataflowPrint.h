@@ -16,7 +16,8 @@ void dumpAbstractState(const AbstractState& state) {
 template <typename FunctionResults>
 void dumpFunctionResults(const FunctionResults& results, AnalysisManager& Mgr) {
   for (auto& [pl, state] : results) {
-    pl.dump();
+    pl.dump(Mgr);
+    llvm::errs() << "--> ";
     dumpAbstractState(state);
   }
 }
@@ -24,7 +25,7 @@ void dumpFunctionResults(const FunctionResults& results, AnalysisManager& Mgr) {
 template <typename DataflowResults>
 void dumpDataflowResults(const DataflowResults& dataflowResults,
                          AnalysisManager& Mgr) {
-  llvm::errs() << "---All results---" << dataflowResults.size() << "\n";
+  llvm::errs() << "---All results--- no of contexts(" << dataflowResults.size() << ")\n";
   for (auto& [context, results] : dataflowResults) {
     context.dump(Mgr);
     dumpFunctionResults(results, Mgr);

@@ -29,6 +29,8 @@ public:
   void initUnit(const FunctionDecl* FD) {
     globals.setActiveUnit(FD);
     globals.dumpUnit();
+
+    bugReporter.initUnit();
   }
 
   void initLatticeValues(AbstractState& state) {

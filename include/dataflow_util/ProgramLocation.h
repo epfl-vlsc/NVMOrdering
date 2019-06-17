@@ -41,13 +41,13 @@ struct ProgramLocation {
   void dump() const {
     switch (ptrType) {
     case CfgPtr:
-      printND(ptrPl.function, "function");
+      printND(ptrPl.function, "function", false);
       break;
     case CfgBlockPtr:
-      printBlock(ptrPl.block, "block");
+      printBlock(ptrPl.block, "block", false);
       break;
     case StmtPtr:
-      printStmt(ptrPl.stmt, "stmt");
+      printStmt(ptrPl.stmt, "stmt", false);
       break;
     case None:
       printMsg("None");
@@ -61,7 +61,7 @@ struct ProgramLocation {
   void dump(AnalysisManager& mgr) const {
     switch (ptrType) {
     case StmtPtr: {
-      printStmt(ptrPl.stmt, mgr, "stmt");
+      printStmt(ptrPl.stmt, mgr, "stmt", false);
       return;
     } break;
     default:
@@ -99,13 +99,32 @@ public:
   }
 
   void dump() const {
-    printStmt(caller, "callee:", false);
-    printStmt(callee, "callee:", false);
+    printMsg("context:", false);
+    if (caller)
+      printStmt(caller, " caller:", false);
+    else
+      printMsg(" none", false);
+
+    if (callee)
+      printStmt(callee, " callee:", false);
+    else
+      printMsg(" none", false);
+    printMsg("");
   }
 
   void dump(AnalysisManager& Mgr) const {
-    printStmt(caller, Mgr, "callee:", false);
-    printStmt(caller, Mgr, " callee:", false);
+    printMsg("context:", false);
+    if (caller)
+      printStmt(caller, Mgr, " caller:", false);
+    else
+      printMsg(" none", false);
+
+    if (callee)
+      printStmt(callee, Mgr, " callee:", false);
+    else
+      printMsg(" none", false);
+
+    printMsg("");
   }
 };
 
@@ -115,11 +134,13 @@ public:
     return llvm::iterator_range(block->begin(), block->end());
   }
 
-  static auto getBlocks(const CFG* cfg) {
+  static auto getBlocks(const FunctionDecl* function, AnalysisManager& Mgr) {
+    const CFG* cfg = Mgr.getCFG(function);
     return llvm::iterator_range(cfg->begin(), cfg->end());
   }
 
-  static auto getRBlocks(const CFG* cfg) {
+  static auto getRBlocks(const FunctionDecl* function, AnalysisManager& Mgr) {
+    const CFG* cfg = Mgr.getCFG(function);
     return llvm::iterator_range(cfg->rbegin(), cfg->rend());
   }
 
@@ -136,7 +157,9 @@ public:
     return getPredecessorBlocks(block);
   }
 
-  static ProgramLocation getEntryBlock(const CFG* cfg) {
+  static ProgramLocation getEntryBlock(const FunctionDecl* function,
+                                       AnalysisManager& Mgr) {
+    const CFG* cfg = Mgr.getCFG(function);
     const CFGBlock* entryBlock = &cfg->getEntry();
     return ProgramLocation(entryBlock);
   }

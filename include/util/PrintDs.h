@@ -71,9 +71,11 @@ void printStmt(const Stmt* S, const char* msg, bool newline = true) {
     llvm::errs() << "\n";
 }
 
-void printBlock(const CFGBlock* block, const char* msg) {
+void printBlock(const CFGBlock* block, const char* msg, bool newline=true) {
   // exit is 0, entry is N
-  llvm::errs() << msg << ":B" << block->getBlockID() << "\n";
+  llvm::errs() << msg << ":B" << block->getBlockID();
+  if (newline)
+    llvm::errs() << "\n";
 }
 
 template <typename T> void dumpPtr(const T* t) { t->dump(); }

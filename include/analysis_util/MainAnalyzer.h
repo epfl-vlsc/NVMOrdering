@@ -23,10 +23,10 @@ protected:
     printND(FD, "***analyzing function***");
     // run data flow analysis
     DataflowAnalysis dataflowAnalysis(FD, manager);
-    //dataflowAnalysis.computeDataflow();
+    dataflowAnalysis.computeDataflow();
 
     // report bugs
-    //dataflowAnalysis.reportBugs();
+    dataflowAnalysis.reportBugs();
   }
 
   void doDataflowTUD(Manager& manager) {

@@ -36,8 +36,7 @@ template <typename Manager> class DataflowAnalysis {
   void initTopEntryValues(const FunctionDecl* function,
                           FunctionResults& results) {
     // initialize entry block
-    const CFG* cfg = Mgr.getCFG(function);
-    ProgramLocation entryBlockKey = Forward::getEntryBlock(cfg);
+    ProgramLocation entryBlockKey = Forward::getEntryBlock(function, Mgr);
     AbstractState& state = results[entryBlockKey];
 
     // initialize all tracked variables for the entry block
@@ -46,8 +45,7 @@ template <typename Manager> class DataflowAnalysis {
 
   void initCalleeEntryValues(const FunctionDecl* function,
                              FunctionResults& results) {
-    const CFG* cfg = Mgr.getCFG(function);
-    ProgramLocation entryBlockKey = Forward::getEntryBlock(cfg);
+    ProgramLocation entryBlockKey = Forward::getEntryBlock(function, Mgr);
     AbstractState& state = results[entryBlockKey];
 
     // initialize from the function entry state
@@ -71,10 +69,9 @@ template <typename Manager> class DataflowAnalysis {
 
   void addBlocksToWorklist(const FunctionDecl* function,
                            BlockWorklist& blockWorkList) {
-    const CFG* cfg = Mgr.getCFG(function);
-    for (const CFGBlock* block : Forward::getBlocks(cfg)) {
+    for (const CFGBlock* block : Forward::getBlocks(function, Mgr)) {
       blockWorkList.push_back(block);
-}
+    }
   }
 
   AbstractState mergePrevStates(const ProgramLocation& blockEntryKey,
@@ -197,6 +194,7 @@ template <typename Manager> class DataflowAnalysis {
 
     while (!blockWorklist.empty()) {
       const CFGBlock* block = blockWorklist.pop_back_val();
+
       ProgramLocation blockEntryKey = Forward::getEntryKey(block);
       ProgramLocation blockExitKey = Forward::getExitKey(block);
 

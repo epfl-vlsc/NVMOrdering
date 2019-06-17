@@ -151,8 +151,11 @@ public:
         return;
       }
     } else if (const MemberExpr* ME = dyn_cast<MemberExpr>(S)) {
+
       const ValueDecl* VD = ME->getMemberDecl();
-      globals.insertVariableToActiveUnit(VD);
+      if (globals.isUsedVar(VD)) {
+        globals.insertVariableToActiveUnit(VD);
+      }
     }
 
     trackChildren(S);
