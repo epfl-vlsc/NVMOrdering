@@ -65,6 +65,9 @@ protected:
     DataflowAnalysis dataflowAnalysis(FD, getAnalyzer());
     dataflowResults = dataflowAnalysis.computeDataflow();
     dumpDataflowResults(dataflowResults, Mgr);
+
+    // report bugs
+    transitions.reportBugs();
   }
 
   void doDataflowTUD() {

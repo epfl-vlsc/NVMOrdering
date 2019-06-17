@@ -2,7 +2,6 @@
 #include "Common.h"
 #include "PairBugReporter.h"
 #include "dataflow_util/AbstractProgram.h"
-#include "dataflow_util/TransitionChange.h"
 #include "parser_util/ParseUtils.h"
 
 namespace clang::ento::nvm {
@@ -86,8 +85,6 @@ template <typename Variables, typename Functions> class PairTransitions {
   // for creating abstract graph
   bool useGlobal;
 
-  void reportBugs() {}
-
   // parse-------------------------------------------------------
   bool isUsedVar(const NamedDecl* ND) {
     if (useGlobal) {
@@ -154,17 +151,15 @@ template <typename Variables, typename Functions> class PairTransitions {
   }
 
   // handle----------------------------------------------------
-  TransitionChange handleWrite(const AbstractStmt* absStmt,
-                               const PairTransitionInfo& PTI,
-                               AbstractState& state) {
+  bool handleWrite(const AbstractStmt* absStmt, const PairTransitionInfo& PTI,
+                   AbstractState& state) {
     const NamedDecl* ND = PTI.getND();
     state[ND] = LatVal::getWrite(state[ND]);
     return bugReporter.updateLastLocation(ND, absStmt, state);
   }
 
-  TransitionChange handleFence(const AbstractStmt* absStmt,
-                               const PairTransitionInfo& PTI,
-                               AbstractState& state) {
+  bool handleFence(const AbstractStmt* absStmt, const PairTransitionInfo& PTI,
+                   AbstractState& state) {
     bool isPfence = PTI.isPfence();
     bool stateChanged = false;
 
@@ -182,12 +177,11 @@ template <typename Variables, typename Functions> class PairTransitions {
       }
     }
 
-    return getStateChange(stateChanged);
+    return stateChanged;
   }
 
-  TransitionChange handleFlush(const AbstractStmt* absStmt,
-                               const PairTransitionInfo& PTI,
-                               AbstractState& state) {
+  bool handleFlush(const AbstractStmt* absStmt, const PairTransitionInfo& PTI,
+                   AbstractState& state) {
     const NamedDecl* Var = PTI.getND();
     bool isPfence = PTI.isPfence();
     auto& LV = state[Var];
@@ -209,12 +203,11 @@ template <typename Variables, typename Functions> class PairTransitions {
       stateChanged = true;
     }
 
-    return getStateChange(stateChanged);
+    return stateChanged;
   }
 
-  TransitionChange handleStmt(const AbstractStmt* absStmt,
-                              const PairTransitionInfo& PTI,
-                              AbstractState& state) {
+  bool handleStmt(const AbstractStmt* absStmt, const PairTransitionInfo& PTI,
+                  AbstractState& state) {
     switch (PTI.getTransferFunction()) {
     case PairTransitionInfo::WriteFunc:
       return handleWrite(absStmt, PTI, state);
@@ -227,7 +220,7 @@ template <typename Variables, typename Functions> class PairTransitions {
     case PairTransitionInfo::PfenceFunc:
       return handleFence(absStmt, PTI, state);
     default:
-      return TransitionChange::NoChange;
+      return false;
     }
   }
 
@@ -270,8 +263,7 @@ public:
     return PairTransitionInfo();
   }
 
-  TransitionChange handleStmt(const AbstractStmt* absStmt,
-                              AbstractState& state) {
+  bool handleStmt(const AbstractStmt* absStmt, AbstractState& state) {
     // parse stmt to usable structure
     const Stmt* S = absStmt->getStmt();
 
@@ -285,6 +277,8 @@ public:
   auto getAnalysisFunctions() { return funcs->getAnalysisFunctions(); }
 
   AnalysisManager* getMgr() { return Mgr; }
+
+  void reportBugs() { bugReporter.reportBugs(); }
 };
 
 } // namespace clang::ento::nvm
