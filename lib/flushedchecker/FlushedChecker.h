@@ -1,15 +1,15 @@
 #pragma once
 #include "Common.h"
-//#include "analyzer/LogAnalyzer.h"
+//#include "analyzer/FlushedAnalyzer.h"
 
-constexpr const char* CHECKER_PLUGIN_NAME = "nvm.logchecker";
+constexpr const char* CHECKER_PLUGIN_NAME = "nvm.flushedchecker";
 
 namespace clang::ento::nvm {
 
-class LogChecker : public Checker<check::EndOfTranslationUnit> {
+class FlushedChecker : public Checker<check::EndOfTranslationUnit> {
 
 public:
-  LogChecker() {}
+  FlushedChecker() {}
 
   void checkEndOfTranslationUnit(const TranslationUnitDecl* TUD,
                                  AnalysisManager& Mgr, BugReporter& BR) const;

@@ -5,6 +5,7 @@
 #add_subdirectory(txpchecker)
 #add_subdirectory(mainchecker)
 #add_subdirectory(ptrchecker)
-#add_subdirectory(logchecker)
+add_subdirectory(flushedchecker)
+add_subdirectory(logchecker)
 add_subdirectory(expchecker)
 add_subdirectory(pairchecker)

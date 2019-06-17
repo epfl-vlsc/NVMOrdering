@@ -1,11 +1,11 @@
 //===-- PairChecker.cpp -----------------------------------------*
 // ensure main handle functions only add one state
 
-#include "LogChecker.h"
+#include "FlushedChecker.h"
 
 namespace clang::ento::nvm {
 
-void LogChecker::checkEndOfTranslationUnit(const TranslationUnitDecl* CTUD,
+void FlushedChecker::checkEndOfTranslationUnit(const TranslationUnitDecl* CTUD,
                                             AnalysisManager& Mgr,
                                             BugReporter& BR) const {
   /*
@@ -21,6 +21,6 @@ extern "C" const char clang_analyzerAPIVersionString[] =
     CLANG_ANALYZER_API_VERSION_STRING;
 
 extern "C" void clang_registerCheckers(clang::ento::CheckerRegistry& registry) {
-  registry.addChecker<clang::ento::nvm::LogChecker>(
-      CHECKER_PLUGIN_NAME, "Data flow log checker", "");
+  registry.addChecker<clang::ento::nvm::FlushedChecker>(
+      CHECKER_PLUGIN_NAME, "Data flow flushed checker", "");
 }
