@@ -5,6 +5,7 @@
 namespace clang::ento::nvm {
 
 class PairVariables {
+protected:
   struct DsclInfo {
     bool isDcl;
     bool isScl;
@@ -21,47 +22,49 @@ class PairVariables {
     }
   };
 
+  using LatVar = const NamedDecl*;
+  using VariableSet = std::set<LatVar>;
   using PairInfoSet = std::set<PairInfo*>;
-  using PairInfoMap = std::map<const NamedDecl*, PairInfoSet>;
-  using VarInfo = std::map<const NamedDecl*, DsclInfo>;
+  using PairInfoMap = std::map<LatVar, PairInfoSet>;
+  using VarInfo = std::map<LatVar, DsclInfo>;
 
   VarInfo usedVars;
   PairInfoMap pairInfoMap;
 
 public:
-  PairInfoSet& getPairInfoSet(const NamedDecl* ND) {
-    assert(pairInfoMap.count(ND));
-    return pairInfoMap[ND];
+  PairInfoSet& getPairInfoSet(LatVar var) {
+    assert(pairInfoMap.count(var));
+    return pairInfoMap[var];
   }
 
-  DsclInfo& getDsclInfo(const NamedDecl* ND) {
-    assert(usedVars.count(ND));
-    return usedVars[ND];
+  DsclInfo& getDsclInfo(LatVar var) {
+    assert(usedVars.count(var));
+    return usedVars[var];
   }
 
-  bool isUsedVar(const NamedDecl* ND) { return usedVars.count(ND); }
+  bool isUsedVar(LatVar var) { return usedVars.count(var); }
 
-  void addUsedVar(const NamedDecl* ND, PairInfo* PI) {
-    if (!usedVars.count(ND)) {
+  void insertVariable(LatVar var, PairInfo* PI) {
+    if (!usedVars.count(var)) {
       // not exist
-      usedVars[ND];
-      pairInfoMap[ND];
+      usedVars[var];
+      pairInfoMap[var];
     }
 
-    //insert var information
-    auto& dsclInfo = usedVars[ND];
+    // insert var information
+    auto& dsclInfo = usedVars[var];
     dsclInfo.isDcl |= !PI->isSameCl();
     dsclInfo.isScl |= PI->isSameCl();
 
-    //insert pair information
-    pairInfoMap[ND].insert(PI);
+    // insert pair information
+    pairInfoMap[var].insert(PI);
   }
 
-  void dump() const {
+  void dumpVariables() const {
     llvm::errs() << "vars------------------------\n";
-    for (auto& [ND, dsclInfo] : usedVars) {
-      auto& pairInfoSet = pairInfoMap.find(ND)->second;
-      printND(ND, "var", true, false);
+    for (auto& [var, dsclInfo] : usedVars) {
+      auto& pairInfoSet = pairInfoMap.find(var)->second;
+      printND(var, "var", true, false);
       dsclInfo.dump();
       printMsg("");
       for (auto& PI : pairInfoSet) {

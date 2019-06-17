@@ -1,19 +1,18 @@
 #pragma once
-#include "AbstractProgram.h"
 #include "Common.h"
 #include "DataflowPrint.h"
-#include "TransitionChange.h"
+#include "ProgramLocation.h"
 
 namespace clang::ento::nvm {
 
-template <typename Analyzer> class DataflowAnalysis {
+template <typename Manager> class DataflowAnalysis {
   // df results
-  using AbstractState = typename Analyzer::AbstractState;
-  using FunctionResults = typename Analyzer::FunctionResults;
-  using DataflowResults = typename Analyzer::DataflowResults;
+  using AbstractState = typename Manager::AbstractState;
+  using FunctionResults = typename Manager::FunctionResults;
+  using DataflowResults = typename Manager::DataflowResults;
 
   // context helpers
-  using FunctionContext = std::pair<const FunctionDecl*, AbstractContext>;
+  using FunctionContext = std::pair<const FunctionDecl*, PlContext>;
   using FunctionContextSet = std::set<FunctionContext>;
   using FunctionContextMap = std::map<FunctionContext, FunctionContextSet>;
 
@@ -21,7 +20,7 @@ template <typename Analyzer> class DataflowAnalysis {
   template <typename WorkElement, int N>
   using Worklist = SmallVector<WorkElement, N>;
   using ContextWorklist = Worklist<FunctionContext, 100>;
-  using BlockWorklist = Worklist<const AbstractBlock*, 200>;
+  using BlockWorklist = Worklist<const CFGBlock*, 250>;
 
   // data structures
   DataflowResults allResults;
@@ -31,54 +30,55 @@ template <typename Analyzer> class DataflowAnalysis {
 
   // top info
   const FunctionDecl* topFunction;
-  AnalysisManager* Mgr;
-  Analyzer& analyzer;
+  Manager& manager;
+  AnalysisManager& Mgr;
 
-  void initTopEntryValues(const AbstractFunction* absFunction,
+  void initTopEntryValues(const FunctionDecl* function,
                           FunctionResults& results) {
     // initialize entry block
-    auto* entryBlockKey = absFunction->getEntryBlockKey();
+    const CFG* cfg = Mgr.getCFG(function);
+    ProgramLocation entryBlockKey = Forward::getEntryBlock(cfg);
     AbstractState& state = results[entryBlockKey];
 
     // initialize all tracked variables for the entry block
-    analyzer.initLatticeValues(state);
+    manager.initLatticeValues(state);
   }
 
-  void initCalleeEntryValues(const AbstractFunction* absFunction,
+  void initCalleeEntryValues(const FunctionDecl* function,
                              FunctionResults& results) {
-    auto* entryBlockKey = absFunction->getEntryBlockKey();
+    const CFG* cfg = Mgr.getCFG(function);
+    ProgramLocation entryBlockKey = Forward::getEntryBlock(cfg);
     AbstractState& state = results[entryBlockKey];
 
     // initialize from the function entry state
-    auto* functionEntryKey = absFunction->getFunctionEntryKey();
+    ProgramLocation functionEntryKey = Forward::getFunctionEntryKey(function);
     state = results[functionEntryKey];
   }
 
-  FunctionResults& getFunctionResults(const AbstractFunction* absFunction,
-                                      const AbstractContext& context) {
+  FunctionResults& getFunctionResults(const FunctionDecl* function,
+                                      const PlContext& context) {
     FunctionResults& results = allResults[context];
-    auto* functionEntryKey = absFunction->getFunctionEntryKey();
+    ProgramLocation functionEntryKey = Forward::getFunctionEntryKey(function);
 
     if (!results.count(functionEntryKey)) {
-      initTopEntryValues(absFunction, results);
+      initTopEntryValues(function, results);
     } else {
-      initCalleeEntryValues(absFunction, results);
+      initCalleeEntryValues(function, results);
     }
 
     return results;
   }
 
-  void addBlocksToWorklist(const AbstractFunction* absFunction,
+  void addBlocksToWorklist(const FunctionDecl* function,
                            BlockWorklist& blockWorkList) {
-    for (auto& absBlock : absFunction->getReverseBlocks()) {
-      blockWorkList.push_back(absBlock);
-    }
+    const CFG* cfg = Mgr.getCFG(function);
+    for (const CFGBlock* block : Forward::getBlocks(cfg)) {
+      blockWorkList.push_back(block);
+}
   }
 
-  AbstractState mergePrevStates(const AbstractBlock* absBlock,
+  AbstractState mergePrevStates(const ProgramLocation& blockEntryKey,
                                 FunctionResults& results) {
-    auto* blockEntryKey = absBlock->getBlockEntryKey();
-
     AbstractState mergedState;
     AbstractState& inState = results[blockEntryKey];
 
@@ -86,9 +86,9 @@ template <typename Analyzer> class DataflowAnalysis {
     mergeInState(mergedState, inState);
 
     // get all prev blocks
-    for (auto* predBlock : absBlock->getPredecessors()) {
-      auto* blockExitKey = predBlock->getBlockExitKey();
-
+    for (const CFGBlock* pred_block :
+         Forward::getPredecessorBlocks(blockEntryKey)) {
+      ProgramLocation blockExitKey = Forward::getExitKey(pred_block);
       if (results.count(blockExitKey)) {
         AbstractState& predecessorState = results[blockExitKey];
         mergeInState(mergedState, predecessorState);
@@ -113,23 +113,19 @@ template <typename Analyzer> class DataflowAnalysis {
   }
 
   bool analyzeCall(const CallExpr* CE, AbstractState& callerState,
-                   const AbstractFunction* absCaller,
-                   const AbstractContext& context) {
-    AbstractContext newContext(context, CE);
-    const FunctionDecl* caller = absCaller->getFunction();
+                   const FunctionDecl* caller, const PlContext& context) {
+    PlContext newContext(context, CE);
     const FunctionDecl* callee = CE->getDirectCallee();
     if (!callee)
       return false;
-
-    const AbstractFunction* absCallee = analyzer.getAbstractFunction(callee);
 
     // prepare function contexts for caller and callee
     FunctionContext toCall = std::pair(callee, newContext);
     FunctionContext toUpdate = std::pair(caller, context);
 
     // get keys
-    auto* calleeEntryKey = absCallee->getFunctionEntryKey();
-    auto* calleeExitKey = absCallee->getFunctionExitKey();
+    ProgramLocation calleeEntryKey = Forward::getFunctionEntryKey(callee);
+    ProgramLocation calleeExitKey = Forward::getFunctionExitKey(callee, Mgr);
 
     // get previously computed states in the context
     auto& calleeResults = allResults[newContext];
@@ -160,58 +156,56 @@ template <typename Analyzer> class DataflowAnalysis {
     return true;
   }
 
-  bool applyTransfer(const AbstractStmt* absStmt, AbstractState& state) {
-    return analyzer.handleStmt(absStmt, state);
+  bool applyTransfer(const Stmt* S, AbstractState& state) {
+    return manager.handleStmt(S, state);
   }
 
-  bool analyzeStmt(const AbstractStmt* absStmt, AbstractState& state,
-                   const AbstractFunction* absCaller,
-                   const AbstractContext& context) {
-    const Stmt* S = absStmt->getStmt();
-    if (const CallExpr* CE = analyzer.getIpaCall(S)) {
-      return analyzeCall(CE, state, absCaller, context);
+  bool analyzeStmt(const Stmt* S, AbstractState& state,
+                   const FunctionDecl* caller, const PlContext& context) {
+    if (const CallExpr* CE = manager.getCEIfAnalyzedFunction(S)) {
+      return analyzeCall(CE, state, caller, context);
     } else {
-      return applyTransfer(absStmt, state);
+      return applyTransfer(S, state);
     }
   }
 
-  void analyzeStmts(const AbstractBlock* absBlock, AbstractState& state,
-                    FunctionResults& results, const AbstractFunction* absCaller,
-                    const AbstractContext& context) {
+  void analyzeStmts(const CFGBlock* block, AbstractState& state,
+                    FunctionResults& results, const FunctionDecl* caller,
+                    const PlContext& context) {
+    for (const CFGElement element : Forward::getElements(block)) {
+      if (Optional<CFGStmt> CS = element.getAs<CFGStmt>()) {
+        const Stmt* S = CS->getStmt();
+        assert(S);
 
-    for (auto& absStmt : absBlock->getStmts()) {
-      if (analyzeStmt(absStmt, state, absCaller, context)) {
-        auto* stmtKey = absStmt->getStmtKey();
-        results[stmtKey] = state;
+        if (analyzeStmt(S, state, caller, context)) {
+          ProgramLocation stmtKey = Forward::getStmtKey(S);
+          results[stmtKey] = state;
+        }
       }
     }
   }
 
-  void computeDataflow(const FunctionDecl* function, AbstractContext& context) {
-    const AbstractFunction* absFunction =
-        analyzer.getAbstractFunction(function);
-
+  void computeDataflow(const FunctionDecl* function, PlContext& context) {
     active.insert({function, context});
 
     // initialize results
-    FunctionResults& results = getFunctionResults(absFunction, context);
+    FunctionResults& results = getFunctionResults(function, context);
 
     // initialize worklist
     BlockWorklist blockWorklist;
-    addBlocksToWorklist(absFunction, blockWorklist);
+    addBlocksToWorklist(function, blockWorklist);
 
     while (!blockWorklist.empty()) {
-      const AbstractBlock* absBlock = blockWorklist.pop_back_val();
-
-      auto* blockEntryKey = absBlock->getBlockEntryKey();
-      auto* blockExitKey = absBlock->getBlockExitKey();
+      const CFGBlock* block = blockWorklist.pop_back_val();
+      ProgramLocation blockEntryKey = Forward::getEntryKey(block);
+      ProgramLocation blockExitKey = Forward::getExitKey(block);
 
       // get previously computed states
       AbstractState& oldEntryState = results[blockEntryKey];
       AbstractState oldExitState = results[blockExitKey];
 
       // get current state
-      AbstractState state = mergePrevStates(absBlock, results);
+      AbstractState state = mergePrevStates(blockEntryKey, results);
 
       // skip block if same result
       if (state == oldEntryState && !state.empty()) {
@@ -222,7 +216,7 @@ template <typename Analyzer> class DataflowAnalysis {
       results[blockEntryKey] = state;
 
       // todo go over statements
-      analyzeStmts(absBlock, state, results, absFunction, context);
+      analyzeStmts(block, state, results, function, context);
 
       // skip if state not updated
       if (state == oldExitState) {
@@ -233,7 +227,7 @@ template <typename Analyzer> class DataflowAnalysis {
       results[blockExitKey] = state;
 
       // do data flow for successive blocks
-      for (auto* succBlock : absBlock->getSuccessors()) {
+      for (const CFGBlock* succBlock : Forward::getSuccessorBlocks(block)) {
         blockWorklist.push_back(succBlock);
       }
     }
@@ -253,19 +247,21 @@ template <typename Analyzer> class DataflowAnalysis {
   }
 
 public:
-  DataflowAnalysis(const FunctionDecl* function, Analyzer& analyzer_)
-      : topFunction(function), analyzer(analyzer_) {
-    Mgr = analyzer.getMgr();
-    contextWork.push_back({function, AbstractContext()});
+  DataflowAnalysis(const FunctionDecl* function, Manager& manager_)
+      : topFunction(function), manager(manager_), Mgr(manager_.getMgr()) {
+    contextWork.push_back({function, PlContext()});
   }
 
-  DataflowResults* computeDataflow() {
+  void computeDataflow() {
     while (!contextWork.empty()) {
       auto [function, context] = contextWork.pop_back_val();
       computeDataflow(function, context);
     }
-    return &allResults;
+
+    dumpDataflowResults(allResults, Mgr);
   }
+
+  void reportBugs() const { manager.reportBugs(); }
 };
 
 } // namespace clang::ento::nvm

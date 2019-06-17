@@ -1,17 +1,14 @@
 #pragma once
 #include "AnnotFunction.h"
-#include "DirectAnalysis.h"
 #include "NamedFunctions.h"
 
 namespace clang::ento::nvm {
 
 class DirectFunctions {
 public:
-  using FunctionInfo = typename DirectAnalysis::FunctionInfo;
-  using VarSet = typename DirectAnalysis::VarSet;
-  using FuncSet = typename DirectAnalysis::FuncSet;
+  using FunctionSet = std::set<const FunctionDecl*>;
 
-private:
+protected:
   static constexpr const char* NVM_FNC = "NvmCode";
   static constexpr const char* SKIP_FNC = "SkipCode";
 
@@ -22,23 +19,10 @@ private:
   FlushFunction flushFnc;
   FlushFenceFunction flushFenceFnc;
 
-  DirectAnalysis allUnitsInfo;
-
 public:
   DirectFunctions() : analyzedFnc(NVM_FNC), skipFnc(SKIP_FNC) {}
 
-  FuncSet getAnalysisFunctions() {
-    return allUnitsInfo.getAnalysisFunctions();
-  }
-
-  void addUnitInfo(const FunctionDecl* FD, VarSet& usedVars,
-                   FuncSet& usedFuncs) {
-    allUnitsInfo.addFunctionInfo(FD, usedVars, usedFuncs);
-  }
-
-  auto& getUnitInfo(const FunctionDecl* FD) {
-    return allUnitsInfo.getFunctionInfo(FD);
-  }
+  auto& getAnalyzedFunctions() { return analyzedFnc; }
 
   bool isSkipFunction(const FunctionDecl* FD) const {
     return isFlushFenceFunction(FD) || isFlushOptFunction(FD) ||
@@ -55,15 +39,17 @@ public:
     return isSkipFunction(FD);
   }
 
-  void insertAnalyzeFunction(const FunctionDecl* FD) { analyzedFnc.insert(FD); }
+  void insertAnalyzeFunction(const FunctionDecl* FD) {
+    analyzedFnc.insertFunction(FD);
+  }
 
-  void insertIfKnown(const FunctionDecl* FD) {
-    analyzedFnc.insertIfKnown(FD);
-    skipFnc.insertIfKnown(FD);
-    pfenceFnc.insertIfKnown(FD);
-    vfenceFnc.insertIfKnown(FD);
-    flushFnc.insertIfKnown(FD);
-    flushFenceFnc.insertIfKnown(FD);
+  void insertFunction(const FunctionDecl* FD) {
+    analyzedFnc.insertFunction(FD);
+    skipFnc.insertFunction(FD);
+    pfenceFnc.insertFunction(FD);
+    vfenceFnc.insertFunction(FD);
+    flushFnc.insertFunction(FD);
+    flushFenceFnc.insertFunction(FD);
   }
 
   void removeSkipFromAnalyze() {
@@ -88,7 +74,7 @@ public:
     return pfenceFnc.inFunctions(FD);
   }
 
-  void dump() const {
+  void dumpFunctions() const {
     analyzedFnc.dump();
     skipFnc.dump();
     flushFenceFnc.dump();
@@ -96,10 +82,6 @@ public:
     pfenceFnc.dump();
     vfenceFnc.dump();
   }
-
-  auto begin() const { return analyzedFnc.begin(); }
-
-  auto end() const { return analyzedFnc.end(); }
 };
 
 } // namespace clang::ento::nvm

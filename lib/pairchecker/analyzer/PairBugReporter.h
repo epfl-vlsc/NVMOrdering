@@ -1,38 +1,34 @@
 #pragma once
 #include "Common.h"
-#include "dataflow_util/AbstractProgram.h"
 
 namespace clang::ento::nvm {
 
-template <typename AbstractState, typename Vars, typename Funcs>
-class PairBugReporter {
+template <typename Globals> class PairBugReporter {
+  using LatVar = typename Globals::LatVar;
+
   struct BugData {
     const Stmt* bugStmt;
     const Stmt* pairStmt;
-    const NamedDecl* currentVar;
-    const NamedDecl* pairVar;
+    LatVar currentVar;
+    LatVar pairVar;
 
-    BugData(const Stmt* bugStmt_, const Stmt* pairStmt_,
-            const NamedDecl* currentVar_, const NamedDecl* pairVar_)
+    BugData(const Stmt* bugStmt_, const Stmt* pairStmt_, LatVar currentVar_,
+            LatVar pairVar_)
         : bugStmt(bugStmt_), pairStmt(pairStmt_), currentVar(currentVar_),
           pairVar(pairVar_) {}
   };
 
-  using FunctionInfo = typename Funcs::FunctionInfo;
-  using PairSet = std::set<const NamedDecl*>;
-  using VarToPair = std::map<const NamedDecl*, PairSet>;
-  using LastLocationMap = std::map<const NamedDecl*, const AbstractLocation*>;
+  using PairSet = std::set<LatVar>;
+  using VarToPair = std::map<LatVar, PairSet>;
+  using LastLocationMap = std::map<LatVar, const Stmt*>;
   using BuggedVars = std::set<const NamedDecl*>;
   using BugDataList = std::vector<BugData>;
 
   // general data structures
   std::unique_ptr<BugType> CommitBug;
-  BugReporter* BR;
-  AnalysisManager* Mgr;
-
-  Vars* vars;
-  Funcs* funcs;
-  FunctionInfo* activeUnitInfo;
+  Globals& globals;
+  AnalysisManager& Mgr;
+  BugReporter& BR;
 
   VarToPair* varToPair;
   LastLocationMap* lastLocationMap;
@@ -40,21 +36,17 @@ class PairBugReporter {
   BugDataList* bugDataList;
 
 public:
-  void initAll(const CheckerBase* CB_, BugReporter* BR_, AnalysisManager* Mgr_,
-               Vars* vars_, Funcs* funcs_) {
+  PairBugReporter(Globals& globals_, AnalysisManager& Mgr_, BugReporter& BR_,
+                  const CheckerBase* CB_)
+      : globals(globals_), Mgr(Mgr_), BR(BR_) {
     CommitBug.reset(new BugType(CB_, "Not committed", ""));
-    BR = BR_;
-    Mgr = Mgr_;
-    vars = vars_;
-    funcs = funcs_;
     varToPair = nullptr;
     lastLocationMap = nullptr;
     buggedVars = nullptr;
     bugDataList = nullptr;
   }
 
-  void initUnit(FunctionInfo* activeUnitInfo_) {
-    activeUnitInfo = activeUnitInfo_;
+  void initUnit() {
     // to find pairs quickly
     if (varToPair) {
       delete varToPair;
@@ -80,33 +72,33 @@ public:
   PairSet& getPairSet(const NamedDecl* ND) {
     auto& pairSet = (*varToPair)[ND];
 
-    auto& PISet = vars->getPairInfoSet(ND);
+    auto& PISet = globals.getPairInfoSet(ND);
     for (auto& PI : PISet) {
       const NamedDecl* pairND = PI->getPairND(ND);
-      if (activeUnitInfo->isUsedVar(pairND)) {
+      if (globals.isUsedVarUnit(pairND)) {
         pairSet.insert(pairND);
       }
     }
     return pairSet;
   }
 
-  void updateLastLocation(const NamedDecl* currentVar,
-                          const AbstractLocation* absLocation) {
-    (*lastLocationMap)[currentVar] = absLocation;
+  void updateLastLocation(const NamedDecl* var, const Stmt* S) {
+    (*lastLocationMap)[var] = S;
   }
 
-  bool updateLastLocation(const NamedDecl* currentVar,
-                          const AbstractStmt* absStmt, AbstractState& state) {
-    updateLastLocation(currentVar, absStmt);
-    checkBug(currentVar, absStmt, state);
+  template <typename AbstractState>
+  bool updateLastLocation(const NamedDecl* var, const Stmt* S,
+                          AbstractState& state) {
+    updateLastLocation(var, S);
+    checkBug(var, S, state);
     return true;
   }
 
   void reportBugs() const {
-    ASTContext& ACtx = Mgr->getASTContext();
+    ASTContext& ACtx = Mgr.getASTContext();
     const TranslationUnitDecl* TUD = ACtx.getTranslationUnitDecl();
     SourceManager& SM = ACtx.getSourceManager();
-    AnalysisDeclContext* ADC = Mgr->getAnalysisDeclContext(TUD);
+    AnalysisDeclContext* ADC = Mgr.getAnalysisDeclContext(TUD);
 
     for (auto& [bugStmt, pairStmt, currentVar, pairVar] : *bugDataList) {
       SmallString<100> buf;
@@ -124,7 +116,7 @@ public:
       auto L2 = PathDiagnosticLocation::createBegin(pairStmt, SM, ADC);
       R->addNote(os2.str(), L2, pairStmt->getSourceRange());
 
-      BR->emitReport(std::move(R));
+      BR.emitReport(std::move(R));
     }
   }
 
@@ -136,7 +128,8 @@ public:
     bugDataList->emplace_back(bugStmt, pairStmt, currentVar, pairVar);
   }
 
-  void checkBug(const NamedDecl* currentVar, const AbstractStmt* absStmt,
+  template <typename AbstractState>
+  void checkBug(const NamedDecl* currentVar, const Stmt* bugStmt,
                 AbstractState& state) {
     if (buggedVars->count(currentVar)) {
       return;
@@ -147,18 +140,8 @@ public:
       auto& pairLattice = state[pairVar];
       if (pairLattice.isWriteFlush()) {
         printMsg("bug here");
-        assert(lastLocationMap);
-        const AbstractLocation* absLocation = (*lastLocationMap)[pairVar];
-        assert(absLocation);
-        absLocation->fullDump(Mgr);
-        printMsg("");
-        absStmt->fullDump(Mgr);
-        printMsg("");
-
-        const AbstractStmt* pairAbsStmt = absLocation->castAs<AbstractStmt>();
-        const Stmt* bugStmt = absStmt->getStmt();
-        const Stmt* pairStmt = pairAbsStmt->getStmt();
-
+        assert(lastLocationMap && lastLocationMap->count(pairVar));
+        const Stmt* pairStmt = (*lastLocationMap)[pairVar];
         addAsBug(bugStmt, pairStmt, currentVar, pairVar);
       }
     }

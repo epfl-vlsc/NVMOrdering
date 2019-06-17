@@ -11,7 +11,7 @@ public:
     return checkName(FD->getIdentifier());
   }
 
-  void insertIfKnown(const FunctionDecl* FD) {
+  void insertFunction(const FunctionDecl* FD) {
     if (checkName(FD)) {
       functions.insert(FD);
     }

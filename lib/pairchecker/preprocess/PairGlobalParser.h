@@ -1,13 +1,15 @@
 #pragma once
 #include "Common.h"
-#include "PairFunctions.h"
-#include "PairVariables.h"
+#include "PairInfo.h"
 #include "analysis_util/AutoCl.h"
-#include "parser_util/NamedDeclParser.h"
 
 namespace clang::ento::nvm {
 
-class PairParser : public RecursiveASTVisitor<PairParser> {
+template <typename Globals>
+class PairGlobalParser : public RecursiveASTVisitor<PairGlobalParser<Globals>> {
+public:
+  using LatVar = typename Globals::LatVar;
+
   static constexpr const char* PAIR = "pair";
   static constexpr const char KEY_SEP = '-';
   static constexpr const char* SCL_STR = "scl";
@@ -34,8 +36,7 @@ class PairParser : public RecursiveASTVisitor<PairParser> {
     return ClType::UNK;
   }
 
-  bool usesScl(const NamedDecl* dataND, const NamedDecl* checkND,
-               ClType clType) {
+  bool usesScl(LatVar dataND, LatVar checkND, ClType clType) {
     switch (clType) {
     case ClType::SCL:
       return true;
@@ -50,12 +51,11 @@ class PairParser : public RecursiveASTVisitor<PairParser> {
   }
 
   using PSIList = std::vector<PairStrInfo>;
-  using StrToND = std::map<std::string, const NamedDecl*>;
+  using StrToND = std::map<std::string, LatVar>;
   using MESet = std::set<const MemberExpr*>;
 
   // whole program data structures
-  PairVariables& pairVariables;
-  PairFunctions& pairFunctions;
+  Globals& globals;
   ASTContext& AC;
 
   // temporary structures
@@ -64,11 +64,11 @@ class PairParser : public RecursiveASTVisitor<PairParser> {
   AutoCl autoCl;
   MESet memberExprs;
 
-  void addAnnotated(const NamedDecl* ND) {
+  void addAnnotated(LatVar ND) {
     std::string dataName = ND->getQualifiedNameAsString();
     strToND[dataName] = ND;
 
-    for (const auto* Ann : ND->specific_attrs<AnnotateAttr>()) {
+    for (const auto* Ann : ND->template specific_attrs<AnnotateAttr>()) {
       StringRef annotation = Ann->getAnnotation();
       if (annotation.contains(PAIR)) {
         auto [pairStrRef, checkNameRef] = annotation.rsplit(KEY_SEP);
@@ -84,14 +84,14 @@ class PairParser : public RecursiveASTVisitor<PairParser> {
     }
   }
 
-  const NamedDecl* getNDFromStr(const std::string& str) {
+  LatVar getNDFromStr(const std::string& str) {
     // ensures valid ND
     if (!strToND.count(str)) {
       llvm::errs() << str << "\n";
       llvm::report_fatal_error("not tracked correctly");
     }
 
-    const NamedDecl* ND = strToND[str];
+    LatVar ND = strToND[str];
 
     if (!ND) {
       llvm::report_fatal_error("ND not found");
@@ -102,22 +102,22 @@ class PairParser : public RecursiveASTVisitor<PairParser> {
 
   void fillMainVars() {
     for (auto& [data, check, clType] : psiList) {
-      const NamedDecl* dataND = getNDFromStr(data);
-      const NamedDecl* checkND = getNDFromStr(check);
+      LatVar dataND = getNDFromStr(data);
+      LatVar checkND = getNDFromStr(check);
 
       bool isScl = usesScl(dataND, checkND, clType);
 
       // create Pair info
       PairInfo* pi = new PairInfo(dataND, checkND, isScl);
-      pairVariables.addUsedVar(dataND, pi);
-      pairVariables.addUsedVar(checkND, pi);
+      globals.insertVariable(dataND, pi);
+      globals.insertVariable(checkND, pi);
     }
   }
 
   void autoFindFunctions() {
     for (const MemberExpr* ME : memberExprs) {
       const ValueDecl* VD = ME->getMemberDecl();
-      if (!pairVariables.isUsedVar(VD)) {
+      if (!globals.isUsedVar(VD)) {
         continue;
       }
 
@@ -127,44 +127,58 @@ class PairParser : public RecursiveASTVisitor<PairParser> {
       }
 
       // add function to the analysis list
-      pairFunctions.insertAnalyzeFunction(FD);
+      globals.insertAnalyzeFunction(FD);
     }
 
     // remove all skip from analyze
-    pairFunctions.removeSkipFromAnalyze();
+    globals.removeSkipFromAnalyze();
+  }
+
+  void trackStmt(const FunctionDecl* FD) {
+    if (FD->hasBody() && !globals.isSkipFunction(FD)) {
+      const Stmt* functionBody = FD->getBody();
+      trackStmt(functionBody);
+    }
+  }
+
+  void trackStmt(const Stmt* S) {
+    if (const CallExpr* CE = dyn_cast<CallExpr>(S)) {
+      const FunctionDecl* FD = CE->getDirectCallee();
+      if (FD->hasBody() && !globals.isSkipFunction(FD)) {
+        const Stmt* functionBody = FD->getBody();
+        trackStmt(functionBody);
+        globals.addFunctionToActiveUnit(FD);
+        trackChildren(S);
+      }
+    } else if (const MemberExpr* ME = dyn_cast<MemberExpr>(S)) {
+      const ValueDecl* VD = ME->getMemberDecl();
+      globals.addVariableToActiveUnit(VD);
+      trackChildren(S);
+    }
+  }
+
+  void trackChildren(const Stmt* S) {
+    for (Stmt::const_child_iterator I = S->child_begin(), E = S->child_end();
+         I != E; ++I) {
+      if (const Stmt* Child = *I) {
+        trackStmt(Child);
+      }
+    }
   }
 
   void fillTrackMap() {
-    for (const FunctionDecl* FD : pairFunctions) {
-      std::set<const NamedDecl*> varSet;
-      std::set<const FunctionDecl*> funcSet;
-
-      NamedDeclParser NDP(FD);
-
-      for (const NamedDecl* ND : NDP.getVarSet()) {
-        if (pairVariables.isUsedVar(ND)) {
-          varSet.insert(ND);
-        }
-      }
-
-      for (const FunctionDecl* FD : NDP.getFuncSet()) {
-        if (!pairFunctions.isSkipFunction(FD)) {
-          funcSet.insert(FD);
-        }
-      }
-
-      pairFunctions.addUnitInfo(FD, varSet, funcSet);
+    for (const FunctionDecl* FD : globals.getAnalyzedFunctions()) {
+      globals.initActiveUnit(FD);
+      trackStmt(FD);
     }
   }
 
 public:
-  PairParser(PairVariables& pairVariables_, PairFunctions& pairFunctions_,
-             ASTContext& AC_)
-      : pairVariables(pairVariables_), pairFunctions(pairFunctions_), AC(AC_),
-        autoCl(AC_) {}
+  PairGlobalParser(Globals& globals, ASTContext& AC_)
+      : globals(globals), AC(AC_), autoCl(AC_) {}
 
   bool VisitFunctionDecl(const FunctionDecl* FD) {
-    pairFunctions.insertIfKnown(FD);
+    globals.insertFunction(FD);
 
     // continue traversal
     return true;

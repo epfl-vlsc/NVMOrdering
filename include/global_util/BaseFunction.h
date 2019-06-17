@@ -22,7 +22,7 @@ public:
     llvm::errs() << "\n";
   }
 
-  void insert(const FunctionDecl* FD) { functions.insert(FD); }
+  void insertFunction(const FunctionDecl* FD) { functions.insert(FD); }
 };
 
 } // namespace clang::ento::nvm

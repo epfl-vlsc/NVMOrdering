@@ -14,7 +14,7 @@ public:
   AnnotVariable(const char* specialAnnot_) : specialAnnot(specialAnnot_) {}
   virtual ~AnnotVariable() {}
 
-  void addBasedOnAnnot(const NamedDecl* ND, const AnnotateAttr* AA) {
+  void insertVariable(const NamedDecl* ND, const AnnotateAttr* AA) {
     StringRef annotation = AA->getAnnotation();
 
     if (annotation.contains(specialAnnot)) {
@@ -22,16 +22,16 @@ public:
     }
   }
 
-  void insertIfKnown(const NamedDecl* ND) {
+  void insertVariable(const NamedDecl* ND) {
     for (const auto* AA : ND->specific_attrs<AnnotateAttr>()) {
       // add to annotated vars
-      addBasedOnAnnot(ND, AA);
+      insertVariable(ND, AA);
     }
   }
 
-  bool isUsed(const NamedDecl* ND) const { return valueSet.count(ND); }
+  bool isUsedVar(const NamedDecl* ND) const { return valueSet.count(ND); }
 
-  void dump() {
+  void dump() const {
     for (const NamedDecl* ND : valueSet) {
       llvm::errs() << ND->getQualifiedNameAsString() << "\n";
     }

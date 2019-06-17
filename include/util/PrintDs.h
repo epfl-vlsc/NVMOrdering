@@ -56,29 +56,19 @@ void printLoc(const SVal& Loc, const char* msg) {
   llvm::errs() << "\n";
 }
 
-void printStmt(const Stmt* S, CheckerContext& C, const char* msg) {
-  S->dumpPretty(C.getASTContext());
-}
-
-void printStmt(const Stmt* S, AnalysisManager& mgr, const char* msg,
+void printStmt(const Stmt* S, AnalysisManager& Mgr, const char* msg,
                bool newline = true) {
   llvm::errs() << msg << ":";
-  S->dumpPretty(mgr.getASTContext());
+  S->dumpPretty(Mgr.getASTContext());
   if (newline)
     llvm::errs() << "\n";
 }
 
-void printStmt(const Stmt* S, const char* msg) { S->dump(); }
-
-void printStmt(const Stmt* S, CheckerContext& C, const char* msg,
-               bool isPretty) {
+void printStmt(const Stmt* S, const char* msg, bool newline = true) {
   llvm::errs() << msg << ":";
-  if (isPretty) {
-    printStmt(S, C, msg);
-  } else {
-    printStmt(S, msg);
-  }
-  llvm::errs() << "\n";
+  S->dump();
+  if (newline)
+    llvm::errs() << "\n";
 }
 
 void printBlock(const CFGBlock* block, const char* msg) {

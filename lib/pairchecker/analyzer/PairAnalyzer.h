@@ -1,19 +1,25 @@
 #pragma once
-#include "../preprocess/PairParser.h"
+
+#include "../preprocess/PairFunctions.h"
+#include "../preprocess/PairGlobalParser.h"
+#include "../preprocess/PairVariables.h"
 #include "Common.h"
-#include "PairLattice.h"
+#include "PairStmtParser.h"
 #include "PairTransitions.h"
-#include "dataflow_util/MainAnalyzer.h"
+#include "analysis_util/MainAnalyzer.h"
+#include "dataflow_util/DataflowManager.h"
+#include "global_util/GlobalInfo.h"
 
 namespace clang::ento::nvm {
 
-class PairAnalyzer
-    : public MainAnalyzer<PairVariables, PairFunctions, PairLattice,
-                          PairTransitions<PairVariables, PairFunctions>,
-                          PairParser, PairAnalyzer> {
+using Globals = GlobalInfo<PairVariables, PairFunctions>;
+using StmtParser = PairStmtParser<Globals>;
+using BReporter = PairBugReporter<Globals>;
+using Transitions = PairTransitions<Globals, StmtParser, BReporter>;
+using Manager = DataflowManager<Globals, StmtParser, BReporter, Transitions>;
 
-public:
-  PairAnalyzer& getAnalyzer() { return *this; };
-};
+using Parser = PairGlobalParser<Globals>;
+
+class PairAnalyzer : public MainAnalyzer<Manager, Parser> {};
 
 } // namespace clang::ento::nvm

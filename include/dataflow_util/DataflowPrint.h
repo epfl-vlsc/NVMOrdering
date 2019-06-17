@@ -14,19 +14,19 @@ void dumpAbstractState(const AbstractState& state) {
 }
 
 template <typename FunctionResults>
-void dumpFunctionResults(const FunctionResults& results, AnalysisManager* Mgr) {
-  for (auto& [al, state] : results) {
-    al->dump();
+void dumpFunctionResults(const FunctionResults& results, AnalysisManager& Mgr) {
+  for (auto& [pl, state] : results) {
+    pl.dump();
     dumpAbstractState(state);
   }
 }
 
 template <typename DataflowResults>
-void dumpDataflowResults(const DataflowResults* dataflowResults,
-                         AnalysisManager* Mgr) {
-  llvm::errs() << "---All results---" << dataflowResults->size() << "\n";
-  for (auto& [context, results] : *dataflowResults) {
-    context.fullDump(Mgr);
+void dumpDataflowResults(const DataflowResults& dataflowResults,
+                         AnalysisManager& Mgr) {
+  llvm::errs() << "---All results---" << dataflowResults.size() << "\n";
+  for (auto& [context, results] : dataflowResults) {
+    context.dump(Mgr);
     dumpFunctionResults(results, Mgr);
   }
 }

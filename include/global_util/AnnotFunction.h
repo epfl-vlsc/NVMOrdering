@@ -13,11 +13,11 @@ public:
     return AA && AA->getAnnotation() == annotation;
   }
 
-  void insertIfKnown(const FunctionDecl* D) {
+  void insertFunction(const FunctionDecl* FD) {
     // if has attribute for analysis, add function to set
-    for (const auto* Ann : D->specific_attrs<AnnotateAttr>()) {
+    for (const auto* Ann : FD->specific_attrs<AnnotateAttr>()) {
       if (checkName(Ann)) {
-        functions.insert(D);
+        functions.insert(FD);
       }
     }
   }
