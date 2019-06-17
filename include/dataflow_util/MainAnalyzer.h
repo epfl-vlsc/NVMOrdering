@@ -33,16 +33,24 @@ protected:
 
   void parseTUD(TranslationUnitDecl* TUD) {
     ASTContext& astContext = Mgr->getASTContext();
+
+    // parse entire translation unit
     Parser parser(vars, funcs, astContext);
     parser.TraverseDecl(TUD);
     parser.fillStructures();
 
     // initialize transitions
     transitions.initAll(vars, funcs, Mgr, BR, CB);
+    vars.dump();
+    funcs.dump();
 
     // create abstract graphs
+    printMsg("parse");
     AbstractProgramBuilder programBuilder(abstractProgram, transitions);
+    printMsg("parse2");
     abstractProgram.dump(Mgr);
+
+    printMsg("abs program");
   }
 
   void doDataflowFD(const FunctionDecl* FD) {
@@ -63,13 +71,8 @@ protected:
     for (const FunctionDecl* FD : funcs) {
       // run data flow on a function inter-procedurally
       doDataflowFD(FD);
-
-      // report bugs
-      reportBugs();
     }
   }
-
-  void reportBugs() const {}
 
 public:
   void analyzeTUD(TranslationUnitDecl* TUD, AnalysisManager& Mgr_,

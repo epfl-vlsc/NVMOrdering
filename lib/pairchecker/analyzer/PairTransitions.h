@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "PairBugReporter.h"
 #include "dataflow_util/AbstractProgram.h"
 #include "dataflow_util/TransitionChange.h"
 #include "parser_util/ParseUtils.h"
@@ -11,6 +12,7 @@ template <typename Variables, typename Functions> class PairTransitions {
   using LatVar = const NamedDecl*;
   using LatVal = PairLattice;
   using AbstractState = std::map<LatVar, LatVal>;
+  using PBugReporter = PairBugReporter<AbstractState, Variables, Functions>;
 
   class PairTransitionInfo {
   public:
@@ -31,15 +33,14 @@ template <typename Variables, typename Functions> class PairTransitions {
     TransferFunction transferFunc;
     const NamedDecl* ND;
 
-    PairTransitionInfo(TransferFunction transferFunc_)
-        : transferFunc(transferFunc_), ND(nullptr) {}
-
   public:
     PairTransitionInfo() : transferFunc(NoFunc), ND(nullptr) {}
     PairTransitionInfo(TransferFunction transferFunc_, const NamedDecl* ND_)
         : transferFunc(transferFunc_), ND(ND_) {
       assert(ND);
     }
+    PairTransitionInfo(TransferFunction transferFunc_)
+        : transferFunc(transferFunc_), ND(nullptr) {}
 
     void dump() const {
       if (transferFunc == NoFunc) {
@@ -78,37 +79,14 @@ template <typename Variables, typename Functions> class PairTransitions {
   Functions* funcs;
   FunctionInfo* activeUnitInfo;
   AnalysisManager* Mgr;
-  BugReporter* BR;
-  const CheckerBase* CB;
 
   // for bug finding
-  using PairSet = std::set<const NamedDecl*>;
-  using VarToPair = std::map<const NamedDecl*, PairSet>;
-  using LastLocationMap = std::map<const NamedDecl*, const AbstractLocation*>;
-  VarToPair* varToPair;
-  LastLocationMap* lastLocationMap;
-  std::unique_ptr<BugType> CommitBug;
+  PBugReporter bugReporter;
 
   // for creating abstract graph
   bool useGlobal;
 
-  void updateLastLocation(const NamedDecl* ND,
-                          const AbstractLocation* absLocation) {
-    (*lastLocationMap)[ND] = absLocation;
-  }
-
-  PairSet& getPairSet(const NamedDecl* ND) {
-    auto& pairSet = (*varToPair)[ND];
-
-    auto& PISet = vars->getPairInfoSet(ND);
-    for (auto& PI : PISet) {
-      const NamedDecl* pairND = PI->getPairND(ND);
-      if (activeUnitInfo->isUsedVar(pairND)) {
-        pairSet.insert(pairND);
-      }
-    }
-    return pairSet;
-  }
+  void reportBugs() {}
 
   // parse-------------------------------------------------------
   bool isUsedVar(const NamedDecl* ND) {
@@ -151,8 +129,8 @@ template <typename Variables, typename Functions> class PairTransitions {
   }
 
   PairTransitionInfo parseFence(const CallExpr* CE, bool isPfence) {
-    llvm::report_fatal_error("not implemented");
-    return PairTransitionInfo();
+    auto transferFunction = PairTransitionInfo::getFenceFunction(isPfence);
+    return PairTransitionInfo(transferFunction);
   }
 
   PairTransitionInfo parseCall(const CallExpr* CE) {
@@ -175,65 +153,13 @@ template <typename Variables, typename Functions> class PairTransitions {
     return PairTransitionInfo();
   }
 
-  bool checkBug(const NamedDecl* ND, const AbstractStmt* absStmt,
-                AbstractState& state) {
-    auto& pairSet = getPairSet(ND);
-    for (auto& pairND : pairSet) {
-      auto& pairLattice = state[pairND];
-      if (pairLattice.isWriteFlush()) {
-        printMsg("bug here");
-        assert(lastLocationMap);
-        const AbstractLocation* absLocation = (*lastLocationMap)[pairND];
-        assert(absLocation);
-        absLocation->fullDump(Mgr);
-        printMsg("");
-        absStmt->fullDump(Mgr);
-        printMsg("");
-
-        const AbstractStmt* pairAbsStmt = absLocation->castAs<AbstractStmt>();
-        const Stmt* bugStmt = absStmt->getStmt();
-        const Stmt* pairStmt = pairAbsStmt->getStmt();
-
-        SmallString<100> buf;
-        llvm::raw_svector_ostream os(buf);
-        os << "Error writing " << ND->getQualifiedNameAsString() << " commit "
-           << pairND->getQualifiedNameAsString() << "\n";
-
-        SmallString<100> buf2;
-        llvm::raw_svector_ostream os2(buf2);
-        os2 << "Commit " << pairND->getQualifiedNameAsString() << "\n";
-
-        ASTContext& ACtx = Mgr->getASTContext();
-        const TranslationUnitDecl* TUD = ACtx.getTranslationUnitDecl();
-        SourceManager& SM = ACtx.getSourceManager();
-        AnalysisDeclContext* ADC = Mgr->getAnalysisDeclContext(TUD);
-
-        auto L = PathDiagnosticLocation::createBegin(bugStmt, SM, ADC);
-        auto R = llvm::make_unique<BugReport>(*CommitBug, os.str(), L);
-
-        auto L2 = PathDiagnosticLocation::createBegin(pairStmt, SM, ADC);
-        R->addNote(os2.str(), L2, pairStmt->getSourceRange());
-
-        BR->emitReport(std::move(R));
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   // handle----------------------------------------------------
   TransitionChange handleWrite(const AbstractStmt* absStmt,
                                const PairTransitionInfo& PTI,
                                AbstractState& state) {
     const NamedDecl* ND = PTI.getND();
     state[ND] = LatVal::getWrite(state[ND]);
-    updateLastLocation(ND, absStmt);
-    if (checkBug(ND, absStmt, state)) {
-      return TransitionChange::BugChange;
-    } else {
-      return TransitionChange::StateChange;
-    }
+    return bugReporter.updateLastLocation(ND, absStmt, state);
   }
 
   TransitionChange handleFence(const AbstractStmt* absStmt,
@@ -245,22 +171,18 @@ template <typename Variables, typename Functions> class PairTransitions {
     for (auto& [Var, LV] : state) {
       if (isPfence && LV.hasDcl() && LV.isFlush()) {
         state[Var] = LatVal::getPfence(LV);
-        updateLastLocation(Var, absStmt);
+        bugReporter.updateLastLocation(Var, absStmt);
         stateChanged = true;
       }
 
       if (LV.hasScl() && LV.isWrite()) {
         state[Var] = LatVal::getVfence(LV);
-        updateLastLocation(Var, absStmt);
+        bugReporter.updateLastLocation(Var, absStmt);
         stateChanged = true;
       }
     }
 
-    if (stateChanged) {
-      return TransitionChange::StateChange;
-    } else {
-      return TransitionChange::NoChange;
-    }
+    return getStateChange(stateChanged);
   }
 
   TransitionChange handleFlush(const AbstractStmt* absStmt,
@@ -273,25 +195,21 @@ template <typename Variables, typename Functions> class PairTransitions {
 
     if (isPfence && LV.hasDcl() && LV.isWriteFlushDcl()) {
       state[Var] = LatVal::getPfence(LV);
-      updateLastLocation(Var, absStmt);
+      bugReporter.updateLastLocation(Var, absStmt);
       stateChanged = true;
     } else if (LV.hasDcl() && LV.isWriteDcl()) {
       state[Var] = LatVal::getFlush(LV);
-      updateLastLocation(Var, absStmt);
+      bugReporter.updateLastLocation(Var, absStmt);
       stateChanged = true;
     }
 
     if (isPfence) {
       state[Var] = LatVal::getVfence(LV);
-      updateLastLocation(Var, absStmt);
+      bugReporter.updateLastLocation(Var, absStmt);
       stateChanged = true;
     }
 
-    if (stateChanged) {
-      return TransitionChange::StateChange;
-    } else {
-      return TransitionChange::NoChange;
-    }
+    return getStateChange(stateChanged);
   }
 
   TransitionChange handleStmt(const AbstractStmt* absStmt,
@@ -319,12 +237,10 @@ public:
     vars = &vars_;
     funcs = &funcs_;
     Mgr = Mgr_;
-    BR = BR_;
+
     useGlobal = false;
-    varToPair = nullptr;
-    lastLocationMap = nullptr;
-    CB = CB_;
-    CommitBug.reset(new BugType(CB, "Not committed", ""));
+
+    bugReporter.initAll(CB_, BR_, Mgr_, vars, funcs);
   }
 
   void useGlobalTransitions() { useGlobal = true; }
@@ -333,15 +249,7 @@ public:
     activeUnitInfo = activeUnitInfo_;
     useGlobal = false;
 
-    // to find pairs quickly
-    if (varToPair) {
-      delete varToPair;
-    }
-    varToPair = new VarToPair;
-    if (lastLocationMap) {
-      delete lastLocationMap;
-    }
-    lastLocationMap = new LastLocationMap();
+    bugReporter.initUnit(activeUnitInfo_);
   }
 
   void initLatticeValues(AbstractState& state) {

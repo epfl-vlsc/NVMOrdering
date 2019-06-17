@@ -1,9 +1,9 @@
 #pragma once
 
-//#define DBGSTATE
+#define DBGSTATE
 #ifdef DBGSTATE
 #define DBG(P) llvm::errs() << P << "\n";
-#define DBGS(P, M) printStmt(P, C, M, true);
+#define DBGS(P, M) printStmt(P, *Mgr, M, true);
 #define DBGL(P, M) printLoc(P, M);
 #define DBGR(P, M) printReg(P, M);
 #define DBGN(P, M) printND(P, M);

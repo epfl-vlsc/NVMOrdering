@@ -353,6 +353,7 @@ template <typename Transitions> class AbstractProgramBuilder {
     case CFGElement::Statement: {
       CFGStmt CS = element.castAs<CFGStmt>();
       const Stmt* S = CS.getStmt();
+      DBGS(S, "s")
       assert(S);
       if (!absBlock->isLastStmt(S)) {
         size_t stmtNo = absBlock->numStmts();
@@ -451,7 +452,7 @@ public:
     for (const FunctionDecl* function : transitions.getAnalysisFunctions()) {
       const AbstractFunction* absFunction =
           new AbstractFunction(function, &abstractProgram, Mgr);
-
+      DBGN(function, "create absFunction")
       addLocation(absFunction);
       abstractProgram.insertAbstractFunction(absFunction);
 

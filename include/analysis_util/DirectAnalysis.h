@@ -68,7 +68,9 @@ public:
     FuncSet functions;
     for(auto& [FD, FI]: functionInfoMap){
       functions.insert(FD);
+      DBGN(FD, "used func")
       for(auto& SubFD: FI.getUsedFuncs()){
+        DBGN(SubFD, "sub used func")
         functions.insert(SubFD);
       }
     }
