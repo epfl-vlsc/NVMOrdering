@@ -1,9 +1,5 @@
 #include "annot.h"
 
-void log(void* ptr) {}
-void tx_begin() {}
-void tx_end() {}
-
 struct Log {
   log_field int data;
 
@@ -20,5 +16,20 @@ struct Log {
     tx_end();
   }
 
-  void analyze_logging outsideTx() { data = 5; }
+  void logData(){
+    log(&data);
+  }
+
+  void analyze_logging doubleLogged() {
+    tx_begin();
+    log(&data);
+    logData();
+    data = 5;
+    tx_end();
+  }
+
+  void analyze_logging outsideTx() {
+    log(&data);
+    data = 5;
+  }
 };

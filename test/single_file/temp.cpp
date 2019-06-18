@@ -10,8 +10,14 @@ struct Dcl {
 
   void correct(){
     x();
-    clflush(&data);
-    valid = 1;
+    if(data == 1){
+      clflush(&data);
+      valid = 1;
+    }else{
+      valid = 1;
+    }
+    x();
+    
   }
 
   void skip_fnc do_stuff(){
