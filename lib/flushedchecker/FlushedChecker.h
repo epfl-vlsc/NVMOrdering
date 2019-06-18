@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-//#include "analyzer/FlushedAnalyzer.h"
+#include "analyzer/FlushedAnalyzer.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.flushedchecker";
 

@@ -1,4 +1,4 @@
-//===-- PairChecker.cpp -----------------------------------------*
+//===-- FlushedChecker.cpp -----------------------------------------*
 // ensure main handle functions only add one state
 
 #include "FlushedChecker.h"
@@ -8,11 +8,9 @@ namespace clang::ento::nvm {
 void FlushedChecker::checkEndOfTranslationUnit(const TranslationUnitDecl* CTUD,
                                             AnalysisManager& Mgr,
                                             BugReporter& BR) const {
-  /*
-  LogAnalyzer analyzer;
+  FlushedAnalyzer analyzer;
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
   analyzer.analyzeTUD(TUD, Mgr, BR, this);
-  */
 }
 
 } // namespace clang::ento::nvm
