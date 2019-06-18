@@ -60,11 +60,11 @@ private:
     auto& lv = state[var];
 
     bool stateChanged = false;
-    if (isPfence && lv.isWriteFlush()) {
+    if (isPfence) {
       state[var] = LatVal::getPfence(lv);
       bugReporter.updateLastLocation(var, S);
       stateChanged = true;
-    } else if (!isPfence && lv.isWriteFlush()) {
+    } else if (!isPfence) {
       state[var] = LatVal::getFlush(lv);
       bugReporter.updateLastLocation(var, S);
       stateChanged = true;

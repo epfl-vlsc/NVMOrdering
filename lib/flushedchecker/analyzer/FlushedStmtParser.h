@@ -118,7 +118,17 @@ template <typename Globals> class FlushedStmtParser {
   }
 
   auto parseFlush(const CallExpr* CE, bool isPfence) {
+    /*
+    auto arg0 = CE->getArg(0);
+    printStmt(arg0, "arg0");
+    */
+
     auto trackedVar = ParseUtils::getPtrFromFlush(CE);
+    /*
+    if(trackedVar)
+    trackedVar->dump();
+    */
+
     if (trackedVar && globals.isTrackedVariable(trackedVar)) {
       auto transferFunction = FlushedTransitionInfo::getFlushFunction(isPfence);
       return FlushedTransitionInfo::getTrackedVariableFTI(transferFunction,
