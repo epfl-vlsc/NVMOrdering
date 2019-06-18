@@ -25,7 +25,7 @@ private:
       LatVar fieldvar = TI.getTrackedVariable();
       LatVar trackedvar = TI.getTrackedVariable();
       bugReporter.checkBug(fieldvar, trackedvar, S, state);
-    } else if (TI.getAccessType() == TransitionInfo::TrackedvariableAccess) {
+    } else if (TI.getAccessType() == TransitionInfo::TrackedVariableAccess) {
       LatVar var = TI.getTrackedVariable();
       state[var] = LatVal::getWrite(state[var]);
       bugReporter.updateLastLocation(var, S);
@@ -99,7 +99,7 @@ public:
       : globals(globals_), parser(parser_), bugReporter(bugReporter_) {}
 
   void initLatticeValues(AbstractState& state) {
-    for (auto& usedvar : globals.getUnitvariables()) {
+    for (auto& usedvar : globals.getUnitVariables()) {
       auto lv = LatVal::getInit();
       state[usedvar] = lv;
     }

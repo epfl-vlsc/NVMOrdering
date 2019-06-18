@@ -34,7 +34,7 @@ template <typename Globals> class FlushedBugReporter {
 
 public:
   FlushedBugReporter(Globals& globals_, AnalysisManager& Mgr_, BugReporter& BR_,
-                  const CheckerBase* CB_)
+                     const CheckerBase* CB_)
       : globals(globals_), Mgr(Mgr_), BR(BR_) {
     FlushedBug.reset(new BugType(CB_, "Not committed", ""));
     bugDataList = new BugDataList();
@@ -91,7 +91,7 @@ public:
     bugDataList->emplace_back(fieldStmt, trackedStmt, fieldVar, trackedVar);
   }
 
-  auto getLastLocation(LatVar var) const {
+  const Stmt* getLastLocation(LatVar var) const {
     if (lastLocationMap->count(var)) {
       return (*lastLocationMap)[var];
     }

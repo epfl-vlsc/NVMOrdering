@@ -63,7 +63,7 @@ public:
 
   bool isWriteFlush() const { return dcl == Write || dcl == Flush; }
 
-  bool isFence() const { return dcl == Pfence; }
+  bool isPfence() const { return dcl == Pfence; }
 
   bool operator<(const FlushedLattice& X) const { return dcl < X.dcl; }
 

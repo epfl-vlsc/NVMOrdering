@@ -34,14 +34,13 @@ template <typename Globals> class FlushedStmtParser {
   public:
     FlushedTransitionInfo(TransferFunction transferFunc_,
                           AccessType accessType_, LatVar fieldVariable_,
-                          LatVar trackedVariable_, bool rhs_)
-        : transferFunc(transferFunc), accessType(accessType),
-          fieldVariable(fieldVariable),
-          trackedVariable(trackedVariable) {}
+                          LatVar trackedVariable_)
+        : transferFunc(transferFunc_), accessType(accessType_),
+          fieldVariable(fieldVariable_), trackedVariable(trackedVariable_) {}
 
     FlushedTransitionInfo()
-        : transferFunc(NoFunc), accessType(NoAccess),
-          fieldVariable(nullptr), trackedVariable(nullptr) {}
+        : transferFunc(NoFunc), accessType(NoAccess), fieldVariable(nullptr),
+          trackedVariable(nullptr) {}
 
     void dump() const {
       if (transferFunc == NoFunc) {
@@ -75,9 +74,7 @@ template <typename Globals> class FlushedStmtParser {
       return (isPfence) ? FlushFenceFunc : FlushFunc;
     }
 
-    static TransferFunction getFenceFunction(bool isPfence) {
-      return PfenceFunc;
-    }
+    static TransferFunction getFenceFunction() { return PfenceFunc; }
 
     static FlushedTransitionInfo
     getTrackedVariableFTI(TransferFunction transferFunc_,
@@ -96,13 +93,16 @@ template <typename Globals> class FlushedStmtParser {
     static FlushedTransitionInfo getFTI(TransferFunction transferFunc_) {
       return FlushedTransitionInfo(transferFunc_, NoAccess, nullptr, nullptr);
     }
+
+    static FlushedTransitionInfo getFTI() { return FlushedTransitionInfo(); }
   };
 
   // parse-------------------------------------------------------
   auto parseWrite(const BinaryOperator* BO) {
     auto field = ParseUtils::getFieldDeclFromWrite(BO);
     auto rhs = ParseUtils::getNDOfRHS(BO);
-    if (field && rhs && globals.isPersistentVariable(field)) {
+    if (field && rhs && globals.isFieldVariable(field) &&
+        globals.isTrackedVariable(rhs)) {
       auto transferFunction = FlushedTransitionInfo::getWriteFunction();
       return FlushedTransitionInfo::getFieldFTI(transferFunction, field, rhs);
     }
@@ -114,7 +114,7 @@ template <typename Globals> class FlushedStmtParser {
                                                           trackedVarLHS);
     }
 
-    return FlushedTransitionInfo();
+    return FlushedTransitionInfo::getFTI();
   }
 
   auto parseFlush(const CallExpr* CE, bool isPfence) {
@@ -125,7 +125,7 @@ template <typename Globals> class FlushedStmtParser {
                                                           trackedVar);
     }
 
-    return FlushedTransitionInfo();
+    return FlushedTransitionInfo::getFTI();
   }
 
   auto parseFence(const CallExpr* CE) {
@@ -146,7 +146,7 @@ template <typename Globals> class FlushedStmtParser {
       return parseFence(CE);
     }
 
-    return FlushedTransitionInfo();
+    return FlushedTransitionInfo::getFTI();
   }
 
   Globals& globals;
