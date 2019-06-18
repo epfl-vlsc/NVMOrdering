@@ -1,6 +1,6 @@
 #pragma once
 #include "Common.h"
-//#include "analyzer/LogAnalyzer.h"
+#include "analyzer/LogAnalyzer.h"
 
 constexpr const char* CHECKER_PLUGIN_NAME = "nvm.logchecker";
 

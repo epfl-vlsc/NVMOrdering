@@ -8,11 +8,9 @@ namespace clang::ento::nvm {
 void LogChecker::checkEndOfTranslationUnit(const TranslationUnitDecl* CTUD,
                                             AnalysisManager& Mgr,
                                             BugReporter& BR) const {
-  /*
   LogAnalyzer analyzer;
   TranslationUnitDecl* TUD = (TranslationUnitDecl*)CTUD;
   analyzer.analyzeTUD(TUD, Mgr, BR, this);
-  */
 }
 
 } // namespace clang::ento::nvm
