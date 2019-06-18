@@ -2,26 +2,14 @@
 // ensure main handle functions only add one state
 
 #include "ExpChecker.h"
+#include "ExpParser.h"
 
 namespace clang::ento::nvm {
 
-void ExpChecker::checkEndOfTranslationUnit(const TranslationUnitDecl* TU,
+void ExpChecker::checkEndOfTranslationUnit(const TranslationUnitDecl* TUD,
                                            AnalysisManager& Mgr,
                                            BugReporter& BR) const {
-  ASTContext& ACtx = Mgr.getASTContext();
-  const TranslationUnitDecl* TUD = ACtx.getTranslationUnitDecl();
-  SourceManager& SM = ACtx.getSourceManager();
-  AnalysisDeclContext* ADC = Mgr.getAnalysisDeclContext(TUD);
-
-  std::unique_ptr<BugType> BT_Exact;
-  if (!BT_Exact)
-    BT_Exact.reset(new BugType(this, "Exact code clone", "Code clone"));
-
-  auto L = PathDiagnosticLocation::createBegin(TUD, SM, ADC);
-  auto R =
-      llvm::make_unique<BugReport>(*BT_Exact, "Duplicate code detected", L);
-
-  BR.emitReport(std::move(R));
+  ExpParser parser((TranslationUnitDecl*)TUD);
 }
 
 } // namespace clang::ento::nvm

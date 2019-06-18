@@ -23,9 +23,9 @@ struct ProgramLocation {
     }
     PtrPl() { function = nullptr; }
   } ptrPl;
-  enum PtrType { CfgPtr, CfgBlockPtr, StmtPtr, None } ptrType;
+  enum PtrType { FunctionPtr, CfgBlockPtr, StmtPtr, None } ptrType;
 
-  ProgramLocation(const FunctionDecl* pl) : ptrPl(pl), ptrType(CfgPtr) {}
+  ProgramLocation(const FunctionDecl* pl) : ptrPl(pl), ptrType(FunctionPtr) {}
   ProgramLocation(const CFGBlock* pl) : ptrPl(pl), ptrType(CfgBlockPtr) {}
   ProgramLocation(const Stmt* pl) : ptrPl(pl), ptrType(StmtPtr) {}
   ProgramLocation() : ptrType(None) {}
@@ -40,8 +40,8 @@ struct ProgramLocation {
 
   void dump() const {
     switch (ptrType) {
-    case CfgPtr:
-      printND(ptrPl.function, "function", false);
+    case FunctionPtr:
+      printND(ptrPl.function, "function", true, false);
       break;
     case CfgBlockPtr:
       printBlock(ptrPl.block, "block", false);

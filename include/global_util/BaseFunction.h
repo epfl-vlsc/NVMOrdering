@@ -9,6 +9,8 @@ protected:
   std::set<const FunctionDecl*> functions;
 
 public:
+  auto begin() const { return functions.begin(); }
+
   bool inFunctions(const FunctionDecl* D) const { return functions.count(D); }
 
   size_t size() const { return functions.size(); }

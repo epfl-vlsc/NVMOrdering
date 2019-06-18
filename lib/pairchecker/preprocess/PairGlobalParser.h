@@ -178,8 +178,11 @@ public:
   }
 
 public:
-  PairGlobalParser(Globals& globals, ASTContext& AC_)
-      : globals(globals), AC(AC_), autoCl(AC_) {}
+  PairGlobalParser(TranslationUnitDecl* TUD, Globals& globals, ASTContext& AC_)
+      : globals(globals), AC(AC_), autoCl(AC_) {
+    this->TraverseDecl(TUD);
+    this->fillStructures();
+  }
 
   bool VisitFunctionDecl(const FunctionDecl* FD) {
     globals.insertFunction(FD);

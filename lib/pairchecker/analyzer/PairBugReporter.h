@@ -21,7 +21,7 @@ template <typename Globals> class PairBugReporter {
   using PairSet = std::set<LatVar>;
   using VarToPair = std::map<LatVar, PairSet>;
   using LastLocationMap = std::map<LatVar, const Stmt*>;
-  using BuggedVars = std::set<const NamedDecl*>;
+  using BuggedVars = std::set<LatVar>;
   using BugDataList = std::vector<BugData>;
 
   // general data structures
@@ -69,12 +69,12 @@ public:
     bugDataList = new BugDataList();
   }
 
-  PairSet& getPairSet(const NamedDecl* ND) {
+  PairSet& getPairSet(LatVar ND) {
     auto& pairSet = (*varToPair)[ND];
 
     auto& PISet = globals.getPairInfoSet(ND);
     for (auto& PI : PISet) {
-      const NamedDecl* pairND = PI->getPairND(ND);
+      LatVar pairND = PI->getPairND(ND);
       if (globals.isUsedVarUnit(pairND)) {
         pairSet.insert(pairND);
       }
@@ -82,12 +82,12 @@ public:
     return pairSet;
   }
 
-  void updateLastLocation(const NamedDecl* var, const Stmt* S) {
+  void updateLastLocation(LatVar var, const Stmt* S) {
     (*lastLocationMap)[var] = S;
   }
 
   template <typename AbstractState>
-  bool updateLastLocation(const NamedDecl* var, const Stmt* S,
+  bool updateLastLocation(LatVar var, const Stmt* S,
                           AbstractState& state) {
     updateLastLocation(var, S);
     checkBug(var, S, state);
@@ -121,7 +121,7 @@ public:
   }
 
   void addAsBug(const Stmt* bugStmt, const Stmt* pairStmt,
-                const NamedDecl* currentVar, const NamedDecl* pairVar) {
+                LatVar currentVar, LatVar pairVar) {
     buggedVars->insert(currentVar);
     buggedVars->insert(pairVar);
 
@@ -129,7 +129,7 @@ public:
   }
 
   template <typename AbstractState>
-  void checkBug(const NamedDecl* currentVar, const Stmt* bugStmt,
+  void checkBug(LatVar currentVar, const Stmt* bugStmt,
                 AbstractState& state) {
     if (buggedVars->count(currentVar)) {
       return;

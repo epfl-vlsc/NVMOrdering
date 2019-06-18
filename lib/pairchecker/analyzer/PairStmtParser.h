@@ -50,7 +50,7 @@ template <typename Globals> class PairStmtParser {
 
     bool isStmtUsed() const { return transferFunc != NoFunc; }
 
-    const NamedDecl* getVar() const { return var; }
+    LatVar getVar() const { return var; }
 
     TransferFunction getTransferFunction() const { return transferFunc; }
 

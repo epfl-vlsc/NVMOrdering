@@ -12,15 +12,14 @@ protected:
     auto& globals = manager.getGlobals();
 
     // parse entire translation unit
-    Parser parser(globals, AC);
-    parser.TraverseDecl(TUD);
-    parser.fillStructures();
-
+    Parser parser(TUD, globals, AC);
     globals.dump();
   }
 
   void doDataflowFD(const FunctionDecl* FD, Manager& manager) {
-    printND(FD, "***analyzing function***");
+    
+    
+
     // run data flow analysis
     DataflowAnalysis dataflowAnalysis(FD, manager);
     dataflowAnalysis.computeDataflow();
@@ -31,6 +30,7 @@ protected:
 
   void doDataflowTUD(Manager& manager) {
     for (const FunctionDecl* FD : manager.getAnalyzedFunctions()) {
+      printND(FD, "***analyzing function***");
       manager.initUnit(FD);
 
       // run data flow on a function inter-procedurally
