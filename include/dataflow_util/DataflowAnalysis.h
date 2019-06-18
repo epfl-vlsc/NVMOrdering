@@ -258,8 +258,6 @@ public:
 
     dumpDataflowResults(allResults, Mgr);
   }
-
-  void reportBugs() const { manager.reportBugs(); }
 };
 
 } // namespace clang::ento::nvm

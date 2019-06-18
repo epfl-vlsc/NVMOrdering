@@ -69,9 +69,9 @@ template <typename Globals> class LogBugReporter {
     }
   };
 
+  using BugDataList = std::vector<BugData>;
   using LastLocationMap = std::map<LatVar, const Stmt*>;
   using BuggedVars = std::set<LatVar>;
-  using BugDataList = std::vector<BugData>;
 
   // general data structures
   std::unique_ptr<BugType> DoubleLogBug;
@@ -82,20 +82,20 @@ template <typename Globals> class LogBugReporter {
   AnalysisManager& Mgr;
   BugReporter& BR;
 
+  BugDataList* bugDataList;
   LastLocationMap* lastLocationMap;
   BuggedVars* buggedVars;
-  BugDataList* bugDataList;
 
 public:
   LogBugReporter(Globals& globals_, AnalysisManager& Mgr_, BugReporter& BR_,
-                  const CheckerBase* CB_)
+                 const CheckerBase* CB_)
       : globals(globals_), Mgr(Mgr_), BR(BR_) {
     DoubleLogBug.reset(new BugType(CB_, "Double log", ""));
     OutsideTxBug.reset(new BugType(CB_, "Outside tx access", ""));
     NotLoggedBug.reset(new BugType(CB_, "Not logged", ""));
+    bugDataList = new BugDataList();
     lastLocationMap = nullptr;
     buggedVars = nullptr;
-    bugDataList = nullptr;
   }
 
   void initUnit() {
@@ -108,11 +108,6 @@ public:
       delete buggedVars;
     }
     buggedVars = new BuggedVars();
-
-    if (bugDataList) {
-      delete bugDataList;
-    }
-    bugDataList = new BugDataList();
   }
 
   void updateLastLocation(LatVar var, const Stmt* S) {
@@ -153,6 +148,7 @@ public:
         R->addNote(logStmtMsg, L2, logStmt->getSourceRange());
       }
 
+      llvm::errs() << R->getDescription() << "\n";
       BR.emitReport(std::move(R));
     }
   }

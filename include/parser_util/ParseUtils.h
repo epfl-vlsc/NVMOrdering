@@ -3,17 +3,87 @@
 
 namespace clang::ento::nvm::ParseUtils {
 
-const MemberExpr* getME(const BinaryOperator* BO) {
-  // used for write
-  Expr* LHS = BO->getLHS();
-  if (const MemberExpr* ME = dyn_cast<MemberExpr>(LHS)) {
-    return ME;
+const NamedDecl* getNDOfRHS(const BinaryOperator* BO) {
+  if (!BO->isAssignmentOp()) {
+    return nullptr;
   }
 
-  return nullptr;
+  // used for write
+  Expr* RHS = BO->getRHS();
+  const ImplicitCastExpr* ICE = dyn_cast_or_null<ImplicitCastExpr>(RHS);
+  if (!ICE) {
+    return nullptr;
+  }
+
+  const Stmt* Child1 = getNthChild(ICE, 0);
+  const DeclRefExpr* DRE = dyn_cast_or_null<DeclRefExpr>(Child1);
+  if (!DRE) {
+    return nullptr;
+  }
+
+  return DRE->getFoundDecl();
 }
 
-const MemberExpr* getME(const CallExpr* CE) {
+const NamedDecl* getNDOfAssigned(const BinaryOperator* BO) {
+  if (!BO->isAssignmentOp()) {
+    return nullptr;
+  }
+
+  // used for write
+  Expr* LHS = BO->getLHS();
+  const DeclRefExpr* DRE = dyn_cast_or_null<DeclRefExpr>(LHS);
+  if (!DRE) {
+    return nullptr;
+  }
+
+  return DRE->getFoundDecl();
+}
+
+const NamedDecl* getPtrFromFlush(const CallExpr* CE) {
+  // used for flush
+  const Expr* arg0 = CE->getArg(0);
+  const ImplicitCastExpr* ICE = dyn_cast_or_null<ImplicitCastExpr>(arg0);
+  if (!ICE) {
+    return nullptr;
+  }
+
+  const Stmt* Child1 = getNthChild(ICE, 0);
+  const ImplicitCastExpr* ICE2 = dyn_cast_or_null<ImplicitCastExpr>(Child1);
+  if (!ICE2) {
+    return nullptr;
+  }
+
+  const Stmt* Child2 = getNthChild(ICE2, 0);
+  const DeclRefExpr* DRE = dyn_cast_or_null<DeclRefExpr>(Child2);
+  if (!DRE) {
+    return nullptr;
+  }
+
+  return DRE->getFoundDecl();
+}
+
+const MemberExpr* getFieldDeclFromWriteME(const BinaryOperator* BO) {
+  if (!BO->isAssignmentOp()) {
+    return nullptr;
+  }
+
+  // used for write
+  Expr* LHS = BO->getLHS();
+  const MemberExpr* ME = dyn_cast_or_null<MemberExpr>(LHS);
+  return ME;
+}
+
+const ValueDecl* getFieldDeclFromWrite(const BinaryOperator* BO) {
+  const MemberExpr* ME = getFieldDeclFromWriteME(BO);
+  if (!ME) {
+    return nullptr;
+  }
+
+  const ValueDecl* VD = ME->getMemberDecl();
+  return VD;
+}
+
+const ValueDecl* getFieldDeclFromCall(const CallExpr* CE) {
   // used for flush
   const Expr* arg0 = CE->getArg(0);
   if (!isa<ImplicitCastExpr>(arg0)) {
@@ -28,11 +98,13 @@ const MemberExpr* getME(const CallExpr* CE) {
 
   const UnaryOperator* UO = dyn_cast<UnaryOperator>(Child1);
   const Stmt* expr = UO->getSubExpr();
-  if (const MemberExpr* ME = dyn_cast<MemberExpr>(expr)) {
-    return ME;
+  const MemberExpr* ME = dyn_cast_or_null<MemberExpr>(expr);
+  if (!ME) {
+    return nullptr;
   }
 
-  return nullptr;
+  const ValueDecl* VD = ME->getMemberDecl();
+  return VD;
 }
 
 } // namespace clang::ento::nvm::ParseUtils

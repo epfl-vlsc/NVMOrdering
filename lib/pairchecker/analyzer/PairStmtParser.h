@@ -71,12 +71,7 @@ template <typename Globals> class PairStmtParser {
 
   // parse-------------------------------------------------------
   auto parseWrite(const BinaryOperator* BO) {
-    const MemberExpr* ME = ParseUtils::getME(BO);
-    if (!ME) {
-      return PairTransitionInfo();
-    }
-
-    const ValueDecl* VD = ME->getMemberDecl();
+    const ValueDecl* VD = ParseUtils::getFieldDeclFromWrite(BO);
     if (!globals.isUsedVar(VD)) {
       return PairTransitionInfo();
     }
@@ -86,12 +81,7 @@ template <typename Globals> class PairStmtParser {
   }
 
   auto parseFlush(const CallExpr* CE, bool isPfence) {
-    const MemberExpr* ME = ParseUtils::getME(CE);
-    if (!ME) {
-      return PairTransitionInfo();
-    }
-
-    const ValueDecl* VD = ME->getMemberDecl();
+    const ValueDecl* VD = ParseUtils::getFieldDeclFromCall(CE);
     if (!globals.isUsedVar(VD)) {
       return PairTransitionInfo();
     }

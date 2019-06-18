@@ -30,20 +30,19 @@ template <typename Globals> class PairBugReporter {
   AnalysisManager& Mgr;
   BugReporter& BR;
 
+  BugDataList* bugDataList;
   VarToPair* varToPair;
   LastLocationMap* lastLocationMap;
   BuggedVars* buggedVars;
-  BugDataList* bugDataList;
-
 public:
   PairBugReporter(Globals& globals_, AnalysisManager& Mgr_, BugReporter& BR_,
                   const CheckerBase* CB_)
       : globals(globals_), Mgr(Mgr_), BR(BR_) {
     CommitBug.reset(new BugType(CB_, "Not committed", ""));
+    bugDataList = new BugDataList();
     varToPair = nullptr;
     lastLocationMap = nullptr;
     buggedVars = nullptr;
-    bugDataList = nullptr;
   }
 
   void initUnit() {
@@ -61,12 +60,7 @@ public:
     if (buggedVars) {
       delete buggedVars;
     }
-    buggedVars = new BuggedVars();
-
-    if (bugDataList) {
-      delete bugDataList;
-    }
-    bugDataList = new BugDataList();
+    buggedVars = new BuggedVars();    
   }
 
   PairSet& getPairSet(LatVar ND) {

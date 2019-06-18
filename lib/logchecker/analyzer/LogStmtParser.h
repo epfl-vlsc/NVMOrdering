@@ -64,12 +64,7 @@ template <typename Globals> class LogStmtParser {
 
   // parse-------------------------------------------------------
   auto parseWrite(const BinaryOperator* BO) {
-    const MemberExpr* ME = ParseUtils::getME(BO);
-    if (!ME) {
-      return LogTransitionInfo();
-    }
-
-    const ValueDecl* VD = ME->getMemberDecl();
+    const ValueDecl* VD = ParseUtils::getFieldDeclFromWrite(BO);
     if (!globals.isUsedVar(VD)) {
       return LogTransitionInfo();
     }
@@ -79,12 +74,7 @@ template <typename Globals> class LogStmtParser {
   }
 
   auto parseLog(const CallExpr* CE) {
-    const MemberExpr* ME = ParseUtils::getME(CE);
-    if (!ME) {
-      return LogTransitionInfo();
-    }
-
-    const ValueDecl* VD = ME->getMemberDecl();
+    const ValueDecl* VD = ParseUtils::getFieldDeclFromCall(CE);
     if (!globals.isUsedVar(VD)) {
       return LogTransitionInfo();
     }

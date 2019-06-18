@@ -6,8 +6,8 @@
 namespace clang::ento::nvm {
 
 class AnnotVariable {
-  using ValueSet = std::set<const NamedDecl*>;
-  ValueSet valueSet;
+  using VariableSet = std::set<const NamedDecl*>;
+  VariableSet variableSet;
   const char* specialAnnot;
 
 public:
@@ -18,7 +18,7 @@ public:
     StringRef annotation = AA->getAnnotation();
 
     if (annotation.contains(specialAnnot)) {
-      valueSet.insert(ND);
+      variableSet.insert(ND);
     }
   }
 
@@ -29,15 +29,21 @@ public:
     }
   }
 
-  bool isUsedVar(const NamedDecl* ND) const { return valueSet.count(ND); }
+  bool isUsedVar(const NamedDecl* ND) const { return variableSet.count(ND); }
 
   void dump() const {
-    for (const NamedDecl* ND : valueSet) {
+    for (const NamedDecl* ND : variableSet) {
       llvm::errs() << ND->getQualifiedNameAsString() << "\n";
     }
   }
 
-  const char* getSpecialAnnotation() const { return specialAnnot; }
+  auto getSpecialAnnotation() const { return specialAnnot; }
+
+  auto count(const NamedDecl* ND) const { return variableSet.count(ND); }
+
+  auto begin() const { return variableSet.begin(); }
+
+  auto end() const { return variableSet.end(); }
 };
 
 } // namespace clang::ento::nvm
